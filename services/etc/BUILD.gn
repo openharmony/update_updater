@@ -18,18 +18,18 @@ updater_path = rebase_path("${updater_absolutely_path}", ".")
 
 updater_normal_path = "${updater_path}/services/etc/updater_normal.cfg"
 if (!ohos_indep_compiler_enable) {
-updater_usb_init_cfg_path = "//base/startup/init/services/etc/init.usb.cfg"
-updater_init_usb_configfs_path_cfg =
-    "//drivers/peripheral/usb/cfg/init.usb.configfs.cfg"
-updater_faultloggerd_cfg =
-    "//base/hiviewdfx/faultloggerd/services/config/faultloggerd.cfg"
+  updater_usb_init_cfg_path = "//base/startup/init/services/etc/init.usb.cfg"
+  updater_init_usb_configfs_path_cfg =
+      "//drivers/peripheral/usb/cfg/init.usb.configfs.cfg"
+  updater_faultloggerd_cfg =
+      "//base/hiviewdfx/faultloggerd/services/config/faultloggerd.cfg"
 
-ohos_prebuilt_etc("updater_faultloggerd.cfg") {
-  source = "${updater_faultloggerd_cfg}"
-  install_images = [ "updater" ]
-  subsystem_name = "updater"
-  part_name = "updater"
-}
+  ohos_prebuilt_etc("updater_faultloggerd.cfg") {
+    source = "${updater_faultloggerd_cfg}"
+    install_images = [ "updater" ]
+    subsystem_name = "updater"
+    part_name = "updater"
+  }
 }
 
 ohos_prebuilt_etc("updater_common.cfg") {
@@ -46,19 +46,19 @@ ohos_prebuilt_etc("updater_hdcd.cfg") {
   part_name = "updater"
 }
 if (!ohos_indep_compiler_enable) {
-ohos_prebuilt_etc("updater_init_usb.cfg") {
-  source = "${updater_usb_init_cfg_path}"
-  install_images = [ "updater" ]
-  subsystem_name = "updater"
-  part_name = "updater"
-}
+  ohos_prebuilt_etc("updater_init_usb.cfg") {
+    source = "${updater_usb_init_cfg_path}"
+    install_images = [ "updater" ]
+    subsystem_name = "updater"
+    part_name = "updater"
+  }
 
-ohos_prebuilt_etc("updater_init_usb_configfs.cfg") {
-  source = "${updater_init_usb_configfs_path_cfg}"
-  install_images = [ "updater" ]
-  subsystem_name = "updater"
-  part_name = "updater"
-}
+  ohos_prebuilt_etc("updater_init_usb_configfs.cfg") {
+    source = "${updater_init_usb_configfs_path_cfg}"
+    install_images = [ "updater" ]
+    subsystem_name = "updater"
+    part_name = "updater"
+  }
 }
 
 ohos_prebuilt_etc("updater_normal.cfg") {
