@@ -47,13 +47,12 @@ updater_gen("updater") {
   external_deps = [ "hilog:libhilog" ]
 
   # force link flashd library
-  ldflags = [
-    "-Wl,--whole-archive",
-    "-Wl,--no-whole-archive",
-  ]
-
   if (!ohos_indep_compiler_enable) {
-    ldflags += [ rebase_path("${target_out_dir}/flashd/libflashd.a"), ]
+    ldflags = [
+      "-Wl,--whole-archive",
+      rebase_path("${target_out_dir}/flashd/libflashd.a"),
+      "-Wl,--no-whole-archive",
+    ]
   }
 
   part_name = "updater"
