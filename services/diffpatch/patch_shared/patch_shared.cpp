@@ -391,6 +391,8 @@ static int32_t ExecuteUpdateBlock(Uscript::UScriptEnv &env, const UpdateBlockInf
 
     std::unique_ptr<TransferManager> tm = std::make_unique<TransferManager>();
     auto transferParams = tm->GetTransferParams();
+    transferParams->canWrite = true;
+    transferParams->isUpdaterMode = true;
     /* Save Script Env to transfer manager */
     transferParams->env = &env;
     std::vector<std::string> lines =
@@ -449,8 +451,10 @@ int RestoreOriginalFile(const std::string &packagePath, const std::string &srcIm
         (void)Utils::DeleteFile(destImage);
         LOG(ERROR) << "restore original file fail.";
     }
+#ifndef UPDATE_RATCH_STATIC
     (void)Utils::DeleteFile(packagePath);
     (void)Utils::DeleteFile(infos.devPath);
+#endif
     PkgManager::ReleasePackageInstance(pkgManager);
     delete env;
     env = nullptr;
