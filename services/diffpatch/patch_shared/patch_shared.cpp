@@ -451,7 +451,7 @@ int RestoreOriginalFile(const std::string &packagePath, const std::string &srcIm
         (void)Utils::DeleteFile(destImage);
         LOG(ERROR) << "restore original file fail.";
     }
-#ifndef UPDATE_RATCH_STATIC
+#ifndef UPDATE_PATCH_STATIC
     (void)Utils::DeleteFile(packagePath);
     (void)Utils::DeleteFile(infos.devPath);
 #endif
