@@ -367,7 +367,11 @@ static int32_t ExecuteUpdateBlock(Uscript::UScriptEnv &env, const UpdateBlockInf
     size_t transferListSize = 0;
     uint8_t *fileSizeBuffer = nullptr;
     size_t fileListSize = 0;
+#ifndef UPDATE_PATCH_STATIC
     const std::string fileName = "anco_size";
+#else
+    const std::string fileName = "target_file_size";
+#endif
     if (ExtractFileByNameFunc(env, fileName, outStream, fileSizeBuffer,
                               fileListSize) != USCRIPT_SUCCESS) {
         return USCRIPT_ERROR_EXECUTE;
