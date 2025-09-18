@@ -91,14 +91,14 @@ ohos_static_library("libupdater_patch_static") {
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
-    "cJSON:cjson_static",
-    "hilog:libhilog_base",
+    "cJSON:cjson",
+    "hilog:libhilog",
     "init:libbegetutil_static",
     "init:libfsmanager_static_real",
     "openssl:libcrypto_static",
   ]
 
-  public_config = [ ":libupdater_patch_config" ]
+  public_configs = [ ":libupdater_patch_config" ]
   subsystem_name = "updater"
   part_name = "updater"
 }
