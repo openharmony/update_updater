@@ -89,6 +89,7 @@
                 "//base/update/updater/services/diffpatch/patch:libpatch",
                 "//base/update/updater/services/diffpatch/diff:libdiff",
                 "//base/update/updater/services/diffpatch:diff(//build/toolchain/linux:clang_${host_cpu})",
+                "//base/update/updater/services/diffpatch/patch_shared:libupdater_patch_static",
                 "//base/update/updater/services/ui:libui",
                 "//base/update/updater/services/flow_update/update_bin:libBinFlowUpdate",
                 "//base/update/updater/services/stream_update:libbinchunkupdate",
@@ -337,6 +338,13 @@
                     "header": {
                         "header_files": [],
                         "header_base": "//base/update/updater/services/write_state"
+                    }
+                },
+                {
+                    "name": "//base/update/updater/services/diffpatch/patch_shared:libupdater_patch_static",
+                    "header": {
+                        "header_files": [],
+                        "header_base": "//base/update/updater/services/diffpatch/patch_shared"
                     }
                 }
             ],
