@@ -156,6 +156,7 @@ static int32_t ExecuteTransferCommand(int fd, const std::vector<std::string> &li
     auto writerThreadInfo = transferParams->writerThreadInfo.get();
 
     transferParams->storeBase = targetPath + partitionName + "_tmp";
+    transferParams->retryFile = targetPath + partitionName + "_retry";
     LOG(INFO) << "Store base path is " << transferParams->storeBase;
     int32_t ret = Store::CreateNewSpace(transferParams->storeBase, true);
     if (ret == -1) {
@@ -183,7 +184,8 @@ static int32_t ExecuteTransferCommand(int fd, const std::vector<std::string> &li
     }
     if (transferParams->storeCreated != -1) {
         Store::DoFreeSpace(transferParams->storeBase);
-        (void)Utils::DeleteFile(transferParams->storeBase);
+        (void)Utils::RemoveDir(transferParams->storeBase);
+        remove(transferParams->retryFile.c_str());
     }
     return Uscript::USCRIPT_SUCCESS;
 }
