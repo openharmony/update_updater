@@ -156,6 +156,7 @@ static int32_t ExecuteTransferCommand(int fd, const std::vector<std::string> &li
     auto writerThreadInfo = transferParams->writerThreadInfo.get();
 
     transferParams->storeBase = targetPath + partitionName + "_tmp";
+    transferParams->retryFile = targetPath + partitionName + "_retry";
     LOG(INFO) << "Store base path is " << transferParams->storeBase;
     int32_t ret = Store::CreateNewSpace(transferParams->storeBase, true);
     if (ret == -1) {
@@ -183,7 +184,8 @@ static int32_t ExecuteTransferCommand(int fd, const std::vector<std::string> &li
     }
     if (transferParams->storeCreated != -1) {
         Store::DoFreeSpace(transferParams->storeBase);
-        (void)Utils::DeleteFile(transferParams->storeBase);
+        (void)Utils::RemoveDir(transferParams->storeBase);
+        remove(transferParams->retryFile.c_str());
     }
     return Uscript::USCRIPT_SUCCESS;
 }
@@ -367,9 +369,11 @@ static int32_t ExecuteUpdateBlock(Uscript::UScriptEnv &env, const UpdateBlockInf
     size_t transferListSize = 0;
     uint8_t *fileSizeBuffer = nullptr;
     size_t fileListSize = 0;
-    const std::string fileName = "anco_size";
-    if (ExtractFileByNameFunc(env, fileName, outStream, fileSizeBuffer,
-                              fileListSize) != USCRIPT_SUCCESS) {
+    std::string fileName = "anco_size";
+#ifdef UPDATE_PATCH_STATIC
+    fileName = "target_file_size";
+#endif
+    if (ExtractFileByNameFunc(env, fileName, outStream, fileSizeBuffer, fileListSize) != USCRIPT_SUCCESS) {
         return USCRIPT_ERROR_EXECUTE;
     }
     env.GetPkgManager()->ClosePkgStream(outStream);
@@ -391,6 +395,8 @@ static int32_t ExecuteUpdateBlock(Uscript::UScriptEnv &env, const UpdateBlockInf
 
     std::unique_ptr<TransferManager> tm = std::make_unique<TransferManager>();
     auto transferParams = tm->GetTransferParams();
+    transferParams->canWrite = true;
+    transferParams->isUpdaterMode = true;
     /* Save Script Env to transfer manager */
     transferParams->env = &env;
     std::vector<std::string> lines =
@@ -449,8 +455,10 @@ int RestoreOriginalFile(const std::string &packagePath, const std::string &srcIm
         (void)Utils::DeleteFile(destImage);
         LOG(ERROR) << "restore original file fail.";
     }
+#ifndef UPDATE_PATCH_STATIC
     (void)Utils::DeleteFile(packagePath);
     (void)Utils::DeleteFile(infos.devPath);
+#endif
     PkgManager::ReleasePackageInstance(pkgManager);
     delete env;
     env = nullptr;
