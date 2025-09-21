@@ -38,6 +38,7 @@
 #include "updater_main.h"
 #include "updater/updater_const.h"
 #include "update_bin/bin_process.h"
+#include "ring_buffer/ring_buffer.h"
 #include "scope_guard.h"
 
 using namespace Uscript;

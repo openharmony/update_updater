@@ -22,9 +22,12 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include "ring_buffer/ring_buffer.h"
 #include "package/package.h"
 #include "pkg_info_utils.h"
+
+namespace Updater {
+class RingBuffer;
+}
 
 namespace Hpackage {
 class PkgFile;
