@@ -118,7 +118,7 @@ int GetUpdatePackageInfo(PkgManager::PkgManagerPtr pkgManager, const std::string
     return PKG_SUCCESS;
 }
 
-UpdaterStatus IsSpaceCapacitySufficient(const UpdaterParams &upParams)
+UpdaterStatus IsSpaceCapacitySufficient(UpdaterParams &upParams)
 {
     UPDATER_INIT_RECORD;
     std::vector<uint64_t> stashSizeList = GetStashSizeList(upParams);
@@ -136,6 +136,7 @@ UpdaterStatus IsSpaceCapacitySufficient(const UpdaterParams &upParams)
         UPDATER_LAST_WORD(UPDATE_ERROR, "CheckStatvfs error");
         return UPDATE_ERROR;
     }
+    upParams.allMaxStashSize = totalPkgSize;
     return UPDATE_SUCCESS;
 }
 

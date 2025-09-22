@@ -68,6 +68,7 @@ struct UpdaterParams {
     float initialProgress = 0; /* The upgrade starts at the progress bar location */
     float currentPercentage = 0; /* The proportion of progress bars occupied by the upgrade process */
     unsigned int pkgLocation = 0;
+    int64_t allMaxStashSize = -1; // stash needed size for uprade, -1 means not setted
     std::string shrinkInfo = "";
     std::string virtualShrinkInfo = "";
     std::string miscCmd {"boot_updater"};
@@ -121,7 +122,7 @@ int GetUpdatePackageInfo(Hpackage::PkgManager::PkgManagerPtr pkgManager, const s
 int ExecUpdate(Hpackage::PkgManager::PkgManagerPtr pkgManager, int retry, const std::string &pkgPath,
     PostMessageFunction postMessage);
 
-UpdaterStatus IsSpaceCapacitySufficient(const UpdaterParams &upParams);
+UpdaterStatus IsSpaceCapacitySufficient(UpdaterParams &upParams);
 
 std::vector<uint64_t> GetStashSizeList(const UpdaterParams &upParams);
 

@@ -16,6 +16,7 @@
 #define UPDATER_COMMAND_FUNCTION_H
 
 #include "command.h"
+#include "macros_updater.h"
 #include <unordered_map>
 
 namespace Updater {

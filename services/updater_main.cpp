@@ -1418,7 +1418,7 @@ void RebootAfterUpdateSuccess(const UpdaterParams &upParams, const std::vector<s
 int UpdaterMain(int argc, char **argv)
 {
     [[maybe_unused]] UpdaterStatus status = UPDATE_UNKNOWN;
-    UpdaterParams upParams;
+    UpdaterParams upParams {};
     upParams.callbackProgress = [] (float value) { UPDATER_UI_INSTANCE.ShowProgress(value); };
     UpdaterInit::GetInstance().InvokeEvent(UPDATER_PRE_INIT_EVENT);
     std::vector<std::string> args = ParseParams(argc, argv);
