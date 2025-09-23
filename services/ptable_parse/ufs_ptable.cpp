@@ -534,7 +534,7 @@ uint8_t *UfsPtable::GetPtableImageUfsLunEntryStart(uint8_t *imageBuf, const uint
 }
 
 bool UfsPtable::CorrectBufByPtnList(uint8_t *imageBuf, uint64_t imgBufSize, const std::vector<PtnInfo> &srcInfo,
-                                    const std::vector<PtnInfo> &dstInfo)
+                                    const std::vector<PtnInfo> &dstInfo, Ptable::PartType needSkipType)
 {
     int srcSize = static_cast<int>(srcInfo.size());
     int dstSize = static_cast<int>(dstInfo.size());
@@ -552,6 +552,9 @@ bool UfsPtable::CorrectBufByPtnList(uint8_t *imageBuf, uint64_t imgBufSize, cons
     const uint32_t editLen = PARTITION_ENTRY_SIZE * MAX_PARTITION_NUM;
     std::vector<uint8_t> newBuf(ufsLunEntryStart, ufsLunEntryStart + editLen);
     for (int i = startPtnIndex_; i <= endPtnIndex_; i++) {
+        if (dstInfo[i].partType == needSkipType) {
+            continue;
+        }
         if (srcInfo[i].startAddr == dstInfo[i].startAddr && srcInfo[i].partitionSize == dstInfo[i].partitionSize
             && srcInfo[i].dispName == dstInfo[i].dispName) {
             continue;

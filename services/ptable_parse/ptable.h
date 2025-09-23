@@ -38,7 +38,8 @@ public:
         COMMON_TYPE = 0,
         A_TYPE,
         B_TYPE,
-        RESERVED_TYPE
+        RESERVED_TYPE,
+        SKIP_TYPE
     };
 
     static constexpr uint32_t GPT_PARTITION_TYPE_GUID_LEN = 16;
@@ -92,7 +93,7 @@ public:
     virtual bool GetPtableImageBuffer(uint8_t *imageBuf, const uint32_t imgBufSize) = 0;
     virtual void AddChildPtable(std::unique_ptr<Ptable> child) {}
     virtual bool CorrectBufByPtnList(uint8_t *imageBuf, uint64_t imgBufSize, const std::vector<PtnInfo> &srcInfo,
-                                     const std::vector<PtnInfo> &dstInfo);
+                                     const std::vector<PtnInfo> &dstInfo, Ptable::PartType needSkipType);
     virtual bool SyncABLunPtableDevice(const int sourceSlot);
     virtual bool GetABLunPartitionInfo(const int sourceSlot, std::string &srcNode,
         std::string &tgtNode, uint32_t &offset);
