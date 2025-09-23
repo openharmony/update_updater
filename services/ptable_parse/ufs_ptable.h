@@ -32,7 +32,7 @@ public:
     bool EditPartitionBuf(uint8_t *imageBuf, uint64_t imgBufSize, std::vector<PtnInfo> &modifyList) override;
     bool GetPtableImageBuffer(uint8_t *imageBuf, const uint32_t imgBufSize) override;
     bool CorrectBufByPtnList(uint8_t *imageBuf, uint64_t imgBufSize, const std::vector<PtnInfo> &srcInfo,
-                             const std::vector<PtnInfo> &dstInfo) override;
+                             const std::vector<PtnInfo> &dstInfo, Ptable::PartType needSkipType) override;
     bool SyncABLunPtableDevice(const int sourceSlot) override;
     bool GetABLunPartitionInfo(const int sourceSlot, std::string &srcNode,
         std::string &tgtNode, uint32_t &offset) override;
