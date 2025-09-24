@@ -11,7 +11,7 @@
 
 升级包安装组件运行在updater分区，其功能主要包括读取misc分区信息获取升级包状态，对升级包进行校验，确保升级包合法有效；然后从升级包中解析出升级的可执行程序，创建子进程并启动升级程序。具体升级的动作由升级脚本控制。
 
-更多升级子系统相关概念，请参考：[升级子系统](https://gitee.com/openharmony/docs/blob/master/zh-cn/readme/%E5%8D%87%E7%BA%A7%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
+更多升级子系统相关概念，请参考：[升级子系统](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/%E5%8D%87%E7%BA%A7%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
 
 **图 1**  升级子系统架构图
 
@@ -131,10 +131,10 @@ b、 产品中添加需要编译的组件
 
 ## 相关仓<a name="section247mcpsimp"></a>
 
-[升级子系统](https://gitee.com/openharmony/docs/blob/master/zh-cn/readme/%E5%8D%87%E7%BA%A7%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
+[升级子系统](https://gitcode.com/openharmony/docs/blob/master/zh-cn/readme/%E5%8D%87%E7%BA%A7%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
 
-[**update\_updater**](https://gitee.com/openharmony/update_updater)
+[**update\_updater**](https://gitcode.com/openharmony/update_updater)
 
-[build](https://gitee.com/openharmony/build)
+[build](https://gitcode.com/openharmony/build)
 
-[productdefine\_common](https://gitee.com/openharmony/productdefine_common)
+[productdefine\_common](https://gitcode.com/openharmony/productdefine_common)

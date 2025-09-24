@@ -124,9 +124,9 @@ Output: Package each line of the transfer.list as a chunk. Locate the dependent 
 
 Update subsystem
 
-[**update\_updater**](https://gitee.com/openharmony/update_updater)
+[**update\_updater**](https://gitcode.com/openharmony/update_updater)
 
-[build](https://gitee.com/openharmony/build)
+[build](https://gitcode.com/openharmony/build)
 
-[productdefine\_common](https://gitee.com/openharmony/productdefine_common)
+[productdefine\_common](https://gitcode.com/openharmony/productdefine_common)
 
