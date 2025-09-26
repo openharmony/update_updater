@@ -1077,7 +1077,6 @@ UpdaterStatus UpdaterFromSdcard(UpdaterParams &upParams)
         upParams.currentPercentage -= VERIFY_PERCENT;
 
         STAGE(UPDATE_STAGE_BEGIN) << "UpdaterFromSdcard";
-        LOG(INFO) << "UpdaterFromSdcard start, sdcard updaterPath : " << upParams.updatePackage[upParams.pkgLocation];
         UPDATER_UI_INSTANCE.ShowLog(TR(LOG_SDCARD_NOTMOVE));
         status = DoUpdatePackages(upParams);
     }
