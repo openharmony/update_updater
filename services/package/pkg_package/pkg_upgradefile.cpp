@@ -603,7 +603,9 @@ int32_t UpgradePkgFile::SaveEntry(const PkgBuffer &buffer, size_t &parsedLen, Up
     // Extract header information from file
     size_t decodeLen = 0;
     PkgBuffer headerBuff(buffer.buffer + info.currLen, info.readLen - info.currLen);
-    int32_t ret = entry->DecodeHeader(headerBuff, parsedLen + info.srcOffset, info.dataOffset, decodeLen);
+    const size_t headerOffset = parsedLen + info.srcOffset;
+    const size_t dataOffset = info.dataOffset;
+    int32_t ret = entry->DecodeHeader(headerBuff, headerOffset, dataOffset, decodeLen);
     if (ret != PKG_SUCCESS) {
         delete entry;
         PKG_LOGE("Fail to decode header");
@@ -628,8 +630,8 @@ int32_t UpgradePkgFile::SaveEntry(const PkgBuffer &buffer, size_t &parsedLen, Up
 
     info.dataOffset += entry->GetFileInfo()->packedSize;
     pkgInfo_.pkgInfo.entryCount++;
-    PKG_LOGI("Component packedSize %zu unpackedSize %zu %s", entry->GetFileInfo()->packedSize,
-        entry->GetFileInfo()->unpackedSize, entry->GetFileInfo()->identity.c_str());
+    PKG_LOGI("Component offset: %zu %zu packedSize %zu unpackedSize %zu %s", headerOffset, dataOffset,
+        entry->GetFileInfo()->packedSize, entry->GetFileInfo()->unpackedSize, entry->GetFileInfo()->identity.c_str());
     return PKG_SUCCESS;
 }
 
@@ -903,14 +905,15 @@ int32_t UpgradeFileEntry::DecodeHeader(PkgBuffer &buffer, size_t headerOffset, s
     fileInfo_.fileInfo.packMethod = PKG_COMPRESS_METHOD_NONE;
     fileInfo_.fileInfo.digestMethod = PKG_DIGEST_TYPE_NONE;
     fileInfo_.fileInfo.resType = info->resType;
-    int32_t ret = memcpy_s(fileInfo_.digest, sizeof(fileInfo_.digest), info->digest, sizeof(info->digest));
-    if (ret != EOK) {
-        PKG_LOGE("Fail to memcpy_s ret: %d", ret);
-        return ret;
-    }
     PkgFileImpl::ConvertBufferToString(fileInfo_.fileInfo.identity, {info->address, sizeof(info->address)});
     PkgFileImpl::ConvertBufferToString(fileInfo_.version, {info->version, sizeof(info->version)});
     fileName_ = fileInfo_.fileInfo.identity;
+    int32_t ret = memcpy_s(fileInfo_.digest, sizeof(fileInfo_.digest), info->digest, sizeof(info->digest));
+    if (ret != EOK) {
+        PKG_LOGE("Fail to memcpy_s ret: %d Component offset: %zu %zu packedSize:%zu %zu %s", ret, headerOffset,
+            dataOffset, fileInfo_.fileInfo.packedSize, fileInfo_.fileInfo.unpackedSize, fileName_.c_str());
+        return ret;
+    }
     fileInfo_.id = ReadLE16(buffer.buffer + offsetof(UpgradeCompInfo, id));
     fileInfo_.resType = info->resType;
     fileInfo_.compFlags = info->flags;
@@ -920,8 +923,6 @@ int32_t UpgradeFileEntry::DecodeHeader(PkgBuffer &buffer, size_t headerOffset, s
     dataOffset_ = dataOffset;
     decodeLen = sizeof(UpgradeCompInfo);
 
-    PKG_LOGI("Component offset: %zu %zu packedSize:%zu %zu %s", headerOffset, dataOffset,
-        fileInfo_.fileInfo.packedSize, fileInfo_.fileInfo.unpackedSize, fileName_.c_str());
     return PKG_SUCCESS;
 }
 

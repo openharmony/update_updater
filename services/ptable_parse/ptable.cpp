@@ -471,16 +471,8 @@ void Ptable::PrintPtableInfo() const
         LOG(ERROR) << "ptable vector is empty!";
         return;
     }
-
-    LOG(INFO) << "ptnInfo : ===========================================";
-    LOG(INFO) << "partition count = " << std::dec << partitionInfo_.size();
-    for (size_t i = 0; i < partitionInfo_.size(); i++) {
-        LOG(INFO) << "ptable.entry[" << i << "].name=" << partitionInfo_[i].dispName.c_str() <<
-            ", startAddr=0x" << std::hex << partitionInfo_[i].startAddr << ", size=0x" <<
-            partitionInfo_[i].partitionSize << ", lun=" << std::dec << partitionInfo_[i].lun
-            << ", partType=" << static_cast<std::underlying_type<PartType>::type>(partitionInfo_[i].partType);
-    }
-    LOG(INFO) << "ptnInfo : ===========================================";
+    LOG(INFO) << "print inner ptable";
+    PrintPtableChanges(partitionInfo_);
 }
 
 void Ptable::PrintPtableInfo(const std::vector<PtnInfo> &ptnInfo) const
@@ -489,16 +481,8 @@ void Ptable::PrintPtableInfo(const std::vector<PtnInfo> &ptnInfo) const
         LOG(ERROR) << "ptable vector is empty!";
         return;
     }
-
-    LOG(INFO) << "ptnInfo : ===========================================";
-    LOG(INFO) << "partition count = " << std::dec << ptnInfo.size();
-    for (size_t i = 0; i < ptnInfo.size(); i++) {
-        LOG(INFO) << "ptable.entry[" << i << "].name=" << ptnInfo[i].dispName.c_str() << ", startAddr=0x" <<
-        std::hex << ptnInfo[i].startAddr << ", size=0x" << ptnInfo[i].partitionSize << ", lun=" <<
-        std::dec << ptnInfo[i].lun << ", partType=" <<
-        static_cast<std::underlying_type<PartType>::type>(ptnInfo[i].partType);
-    }
-    LOG(INFO) << "ptnInfo : ===========================================";
+    LOG(INFO) << "print outside ptable";
+    PrintPtableChanges(ptnInfo);
 }
 
 void Ptable::SetPartitionType(const std::string &partName, PtnInfo &ptnInfo)
@@ -562,7 +546,6 @@ bool Ptable::WritePartitionName(const std::string &name, const uint32_t nameLen,
         data[n * 2] = static_cast<uint8_t>(tolower(name[n])); // 2 : 2 bytes
         data[n * 2 + 1] = 0; // 2 : 2 bytes
     }
-    LOG(INFO) << "Write Partition Name success: " << name;
     return true;
 }
 
@@ -756,5 +739,40 @@ void Ptable::DeletePartitionTmpFile()
         return;
     }
     LOG(INFO) << "delete ptable tmp file success " << ptablePath;
+}
+
+void Ptable::PrintPtableChanges(const std::vector<Ptable::PtnInfo> &ptnInfo)
+{
+    if (ptnInfo.empty()) {
+        LOG(ERROR) << "ptable vector is empty!";
+        return;
+    }
+
+    static std::vector<PtnInfo> lastPrint;
+
+    bool isSame = std::equal(lastPrint.begin(), lastPrint.end(), ptnInfo.begin(), ptnInfo.end(),
+        [](const PtnInfo &lhs, const PtnInfo &rhs) {
+            return std::tie(lhs.lun, lhs.startAddr, lhs.partitionSize, lhs.dispName, lhs.partType)
+                == std::tie(rhs.lun, rhs.startAddr, rhs.partitionSize, rhs.dispName, rhs.partType);
+        });
+    lastPrint = ptnInfo;
+
+    LOG(INFO) << "ptnInfo : ===========================================";
+    if (isSame) {
+        LOG(INFO) << "partition count = " << ptnInfo.size() << " ptable not change";
+    } else {
+        LOG(INFO) << "partition count = " << ptnInfo.size();
+        for (size_t i = 0; i < ptnInfo.size(); ++i) {
+            PrintPartition(i, ptnInfo[i]);
+        }
+    }
+    LOG(INFO) << "ptnInfo : ===========================================";
+}
+
+void Ptable::PrintPartition(size_t index, const PtnInfo &info)
+{
+    LOG(INFO) << "[" << index << "].name=" << info.dispName << ", addr=0x" << std::hex << info.startAddr
+        << ", size=0x" << info.partitionSize << ", lun=" << std::dec << info.lun
+        << ", type=" << static_cast<std::underlying_type<PartType>::type>(info.partType);
 }
 } // namespace Updater

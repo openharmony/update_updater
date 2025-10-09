@@ -574,9 +574,8 @@ int32_t ZipFileEntry::DecodeLocalFileHeaderCheck(PkgStreamPtr inStream, PkgBuffe
         packedSize = ReadLE32(data.buffer + offsetof(DataDescriptor, compressedSize));
         unpackedSize = ReadLE32(data.buffer + offsetof(DataDescriptor, uncompressedSize));
     }
-    PKG_LOGI("DecodeLocalFileHeaderCheck: packedSize: %zu unpackedSize: %zu", packedSize, unpackedSize);
     if (crc32_ != crc32) {
-        PKG_LOGE("check crc %u %u failed", crc32_, crc32);
+        PKG_LOGE("Check crc failed %u %u packedSize: %zu unpackedSize: %zu", crc32_, crc32, packedSize, unpackedSize);
         return PKG_INVALID_PKG_FORMAT;
     }
     return PKG_SUCCESS;
@@ -669,7 +668,7 @@ int32_t ZipFileEntry::Unpack(PkgStreamPtr outStream)
         PKG_LOGE("Failed to decompress for %s", fileInfo_.fileInfo.identity.c_str());
         return ret;
     }
-    PKG_LOGI("packedSize: %zu unpackedSize: %zu  offset header: %zu data: %zu", fileInfo_.fileInfo.packedSize,
+    PKG_LOGI("Unpack packedSize: %zu unpackedSize: %zu offset header: %zu data: %zu", fileInfo_.fileInfo.packedSize,
         fileInfo_.fileInfo.unpackedSize, fileInfo_.fileInfo.headerOffset, fileInfo_.fileInfo.dataOffset);
     ret = outStream->Flush(fileInfo_.fileInfo.unpackedSize);
     if (ret != PKG_SUCCESS) {
