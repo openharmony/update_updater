@@ -683,10 +683,8 @@ bool UfsPtable::GetPtableImageBuffer(uint8_t *imageBuf, const uint32_t imgBufSiz
 
 void UfsPtable::GetTgtPartitionName(std::string &name, const int sourceSlot)
 {
-    LOG(INFO) << "Get target PartitionName. source: " << name;
     if (name.size() < PARTITION_AB_SUFFIX_SIZE) {
         name += (sourceSlot == SLOT_A ? PARTITION_B_SUFFIX : PARTITION_A_SUFFIX);
-        LOG(INFO) << "Get target PartitionName: " << name;
         return;
     }
     std::string suffix = name.substr(name.size() - PARTITION_AB_SUFFIX_SIZE, PARTITION_AB_SUFFIX_SIZE);
@@ -721,13 +719,15 @@ bool UfsPtable::EditABPartition(uint8_t *gptImage, const uint32_t blockSize, con
             }
             uint8_t *nameOffset = data + (j * PARTITION_ENTRY_SIZE + GPT_PARTITION_NAME_OFFSET);
             // 2 bytes for 1 charactor of partition name
-            std::string name;
-            ParsePartitionName(nameOffset, MAX_GPT_NAME_SIZE, name, MAX_GPT_NAME_SIZE / 2); // 2 : 2 bytes
-            GetTgtPartitionName(name, sourceSlot);
-            if (!WritePartitionName(name, name.length(), nameOffset, MAX_GPT_NAME_SIZE)) {
-                LOG(ERROR) << "Write PartitionName failed: " << name;
+            std::string sourceName;
+            ParsePartitionName(nameOffset, MAX_GPT_NAME_SIZE, sourceName, MAX_GPT_NAME_SIZE / 2); // 2 : 2 bytes
+            std::string targetName(sourceName);
+            GetTgtPartitionName(targetName, sourceSlot);
+            if (!WritePartitionName(targetName, targetName.length(), nameOffset, MAX_GPT_NAME_SIZE)) {
+                LOG(ERROR) << "Write Partition failed, source: " << sourceName << ", target: " << targetName;
                 return false;
             }
+            LOG(INFO) << "Write Partition success, source: " << sourceName << ", target: " << targetName;
             count++;
         }
     }
