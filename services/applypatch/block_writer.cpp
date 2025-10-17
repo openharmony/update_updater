@@ -41,11 +41,9 @@ bool BlockWriter::Write(const uint8_t *addr, size_t len, [[maybe_unused]] const 
         LOG(WARNING) << "BlockWriter: call writer while no more blocks need to write. skip " << len << " byte(s)";
         return false;
     }
-    LOG(DEBUG) << "BlockWriter: try to write " << len << " byte(s)";
     while (len > 0) {
         // Check if blocks can be written.
         // All blocks are written.
-        LOG(DEBUG) << "blockIndex = " << blockIndex_;
 
         // Current block written is done, get next block.
         if (currentBlockLeft_ == 0) {
@@ -58,15 +56,12 @@ bool BlockWriter::Write(const uint8_t *addr, size_t len, [[maybe_unused]] const 
             // where do we start to write.
             off_t offset = static_cast<off_t>(bp.first) * H_BLOCK_SIZE;
             currentBlockLeft_ = (bp.second - bp.first) * H_BLOCK_SIZE;
-            LOG(DEBUG) << "Init currentBlockLeft_ = " << currentBlockLeft_;
             blockIndex_++;
             // Move to right place to write.
             if (lseek(fd_, offset, SEEK_SET) < 0) {
                 LOG(ERROR) << "BlockWriter: Cannot seek to offset: " << offset << " Block index: " << blockIndex_;
                 return false;
             }
-        } else {
-            LOG(DEBUG) << "Current block " << blockIndex_ << " left " << currentBlockLeft_ << " to written.";
         }
         size_t written = len;
         if (currentBlockLeft_ < len) {
