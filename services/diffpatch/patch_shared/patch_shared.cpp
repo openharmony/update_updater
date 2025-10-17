@@ -317,7 +317,7 @@ static int CreateFixedSizeEmptyFile(const UpdateBlockInfo &infos, const std::str
         LOG(ERROR) << "size is " << size;
         return -1;
     }
-    if (!Updater::Utils::CopyFile(infos.devPath, filename)) {
+    if (!Updater::Utils::CopyFileBySendFile(infos.devPath, filename)) {
         LOG(ERROR) << "copy " << infos.devPath << " to " << filename << " failed";
         return -1;
     }

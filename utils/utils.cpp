@@ -25,6 +25,7 @@
 #include <string>
 #include <sys/reboot.h>
 #include <sys/stat.h>
+#include <sys/sendfile.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <vector>
@@ -413,6 +414,39 @@ bool CopyFile(const std::string &src, const std::string &dest, bool isAppend)
     fout.close();
     SyncFile(dest); // no way to get fd from ofstream, so reopen to sync this file
     return true;
+}
+
+bool CopyFile(const std::string &srcFile, const std::string &destFile)
+{
+    char realPath[PATH_MAX + 1] = {0};
+    if (realpath(srcFile.c_str(), realPath) == nullptr) {
+        LOG(ERROR) << srcFile << " get realpath fail";
+        return false;
+    }
+
+    int32_t source = open(realPath, O_RDONLY);
+    if (source == -1) {
+        LOG(ERROR) << srcFile << ", Open source file fail, errno: " << errno;
+        return false;
+    }
+    int32_t dest = open(destFile, O_WRONLY | O_CREAT, 0644); // 0644 : file permission
+    if (dest == -1) {
+        LOG(ERROR) << destFile << ", Open dest file fail, errno: " << errno;
+        close(source);
+        return false;
+    }
+
+    struct stat fst{};
+    bool result = false;
+    if (fstat(source, &fst) == 0) {
+        // copy file content
+        if (sendfile(dest, source, nullptr, fst.st_size) != -1) {
+            result = true;
+        }
+    }
+    close(source);
+    close(dest);
+    return result;
 }
 
 bool CopyDir(const std::string &srcPath, const std::string &dstPath)

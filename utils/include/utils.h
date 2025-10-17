@@ -79,6 +79,7 @@ bool ReadFully(int fd, void* data, size_t size);
 bool ReadFileToString(int fd, std::string &content);
 bool ReadStringFromProcFile(const std::string &filePath, std::string &content);
 bool CopyFile(const std::string &src, const std::string &dest, bool isAppend = false);
+bool CopyFileBySendFile(const std::string &srcFile, const std::string &destFile);
 bool CopyDir(const std::string &srcPath, const std::string &dstPath);
 bool WriteStringToFile(int fd, const std::string& content);
 std::string GetLocalBoardId();
