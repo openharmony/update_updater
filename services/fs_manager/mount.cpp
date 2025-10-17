@@ -278,7 +278,7 @@ void ErasePartition(const std::string &devPath)
     return;
 }
 
-static int UmountRetry(const std::string &path)
+int UmountRetry(const std::string &path)
 {
     int retryCount = 6; // 6: retry times for unmount
     while (retryCount-- > 0) {

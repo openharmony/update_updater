@@ -26,6 +26,7 @@ void LoadSpecificFstab(const std::string &fstabName);
 void ErasePartition(const std::string &devPath);
 int FormatPartition(const std::string &path, bool isZeroErase = false);
 int UmountForPath(const std::string &path);
+int UmountRetry(const std::string &path);
 int MountForPath(const std::string &path);
 int MountSdcard(std::string &mountPoint, std::string &path);
 int SetupPartitions(bool isMountData = true, bool isMountMetadata = false);
