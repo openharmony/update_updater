@@ -416,7 +416,7 @@ bool CopyFile(const std::string &src, const std::string &dest, bool isAppend)
     return true;
 }
 
-bool CopyFile(const std::string &srcFile, const std::string &destFile)
+bool CopyFileBySendFile(const std::string &srcFile, const std::string &destFile)
 {
     char realPath[PATH_MAX + 1] = {0};
     if (realpath(srcFile.c_str(), realPath) == nullptr) {
@@ -429,7 +429,7 @@ bool CopyFile(const std::string &srcFile, const std::string &destFile)
         LOG(ERROR) << srcFile << ", Open source file fail, errno: " << errno;
         return false;
     }
-    int32_t dest = open(destFile, O_WRONLY | O_CREAT, 0644); // 0644 : file permission
+    int32_t dest = open(destFile.c_str(), O_WRONLY | O_CREAT, 0644); // 0644 : file permission
     if (dest == -1) {
         LOG(ERROR) << destFile << ", Open dest file fail, errno: " << errno;
         close(source);
