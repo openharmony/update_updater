@@ -39,13 +39,24 @@ static int g_logLevel = INFO;
 static constexpr unsigned int UPDATER_DOMAIN = 0XD002E01;
 #endif
 
+namespace {
+void OpenLogStream(std::ofstream &ofs, const std::string &file)
+{
+    if (ofs.is_open()) {
+        ofs.close(); // close file
+        ofs.clear(); // clear fail bit
+    }
+    ofs.open(file.c_str(), std::ios::app | std::ios::out);
+}
+}
+
 void InitUpdaterLogger(const std::string &tag, const std::string &logFile, const std::string &stageFile,
     const std::string &errorCodeFile)
 {
     g_logTag = tag;
-    g_updaterLog.open(logFile.c_str(), std::ios::app | std::ios::out);
-    g_updaterStage.open(stageFile.c_str(), std::ios::app | std::ios::out);
-    g_errorCode.open(errorCodeFile.c_str(), std::ios::app | std::ios::out);
+    OpenLogStream(g_updaterLog, logFile);
+    OpenLogStream(g_updaterStage, stageFile);
+    OpenLogStream(g_errorCode, errorCodeFile);
 }
 
 UpdaterLogger::~UpdaterLogger()
