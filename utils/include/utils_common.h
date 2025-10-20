@@ -27,7 +27,7 @@ namespace Utils {
 bool PathToRealPath(const std::string &path, std::string &realPath);
 void UsSleep(int usec);
 bool IsUpdaterMode();
-void* LoadLibrary(const std::string &libName, const std::string &libPath);
+void* LoadLibrary(const std::string &libPath);
 void CloseLibrary(void* handle);
 void* GetFunction(void* handle, const std::string &funcName);
 } // Utils

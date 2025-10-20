@@ -78,22 +78,28 @@ bool IsUpdaterMode()
     return false;
 }
 
-void* LoadLibrary(const std::string &libName, const std::string &libPath)
+void* LoadLibrary(const std::string &libPath)
 {
-    if (libName.empty()) {
-        LOG(ERROR) << "lib name is empty";
+    if (libPath.empty()) {
+        LOG(ERROR) << "lib path is empty";
         return nullptr;
     }
-    if (libPath != "/system/lib64/" && libPath != "/vendor/lib64/") {
-        LOG(ERROR) << "lib path invalid";
-        return nullptr;
-    }
-    std::string libAbsPath = libPath + libName;
     char realPath[PATH_MAX + 1] = {0};
-    if (realpath(libAbsPath.c_str(), realPath) == nullptr) {
+    if (realpath(libPath.c_str(), realPath) == nullptr) {
         LOG(ERROR) << "realpath error";
         return nullptr;
     }
+    std::string libAbsPath = std::string(realPath);
+    std::size_t pos = libAbsPath.find_last_of('/');
+    if (pos == std::string::npos) {
+        LOG(ERROR) << "not find lib path";
+        return nullptr;
+    }
+    std::string dirPath = libAbsPath.substr(0, pos + 1);
+    if (dirPath != "/system/lib64/" && dirPath != "/vendor/lib64/") {
+        LOG(ERROR) << "lib path invalid";
+        return nullptr;
+    }    
     void* handle = dlopen(libAbsPath.c_str(), RTLD_LAZY);
     if (handle == nullptr) {
         LOG(ERROR) << "dlopen fail, lib name = " << libName << "; dlerror = " << dlerror();
