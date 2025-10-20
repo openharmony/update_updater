@@ -99,10 +99,10 @@ void* LoadLibrary(const std::string &libPath)
     if (dirPath != "/system/lib64/" && dirPath != "/vendor/lib64/") {
         LOG(ERROR) << "lib path invalid";
         return nullptr;
-    }    
+    }
     void* handle = dlopen(libAbsPath.c_str(), RTLD_LAZY);
     if (handle == nullptr) {
-        LOG(ERROR) << "dlopen fail, lib name = " << libName << "; dlerror = " << dlerror();
+        LOG(ERROR) << "dlopen fail, lib path = " << libPath << "; dlerror = " << dlerror();
         return nullptr;
     }
     return handle;
