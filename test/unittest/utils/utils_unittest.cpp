@@ -295,7 +295,7 @@ HWTEST_F(UtilsUnitTest, getFunction_NullHandle_Test, TestSize.Level0)
 
 HWTEST_F(UtilsUnitTest, getFunction_EmptyFuncName_Test, TestSize.Level0)
 {
-    void* handle = (void*)0x12345678;
+    void* handle = static_cast<void *>(0x12345678);
     std::string funcName = "";
     void* result = GetFunction(handle, funcName);
     EXPECT_EQ(result, nullptr);
