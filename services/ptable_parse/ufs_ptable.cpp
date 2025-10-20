@@ -513,7 +513,7 @@ bool UfsPtable::WriteBackupPartitionTable(uint32_t lunIdx, uint64_t lunSize)
 uint8_t *UfsPtable::GetPtableImageUfsLunPmbrStart(uint8_t *imageBuf, const uint32_t lunIndex)
 {
     uint32_t pmbrStart = ptableData_.emmcGptDataLen + GetPtableExtraOffset() + lunIndex * ptableData_.imgLuSize;
-    LOG(INFO) << "GetPtableImageUfsLunPmbrStart : " << std::hex << pmbrStart << std::dec;
+    LOG(INFO) << "UfsLunPmbr : " << std::hex << pmbrStart << std::dec;
     return imageBuf + pmbrStart;
 }
 
@@ -521,7 +521,7 @@ uint8_t *UfsPtable::GetPtableImageUfsLunGptHeaderStart(uint8_t *imageBuf, const 
 {
     uint32_t gptHeaderStart = ptableData_.emmcGptDataLen + GetPtableExtraOffset() + lunIndex * ptableData_.imgLuSize +
         ptableData_.lbaLen;
-    LOG(INFO) << "GetPtableImageUfsLunGptHeaderStart : " << std::hex << gptHeaderStart << std::dec;
+    LOG(INFO) << "UfsLunGptHeader : " << std::hex << gptHeaderStart << std::dec;
     return imageBuf + gptHeaderStart;
 }
 
@@ -529,7 +529,7 @@ uint8_t *UfsPtable::GetPtableImageUfsLunEntryStart(uint8_t *imageBuf, const uint
 {
     uint32_t entryStart = ptableData_.emmcGptDataLen + GetPtableExtraOffset() + lunIndex * ptableData_.imgLuSize +
         ptableData_.lbaLen + ptableData_.gptHeaderLen;
-    LOG(INFO) << "GetPtableImageUfsLunEntryStart : " << std::hex << entryStart << std::dec;
+    LOG(INFO) << "UfsLunEntry : " << std::hex << entryStart << std::dec;
     return imageBuf + entryStart;
 }
 

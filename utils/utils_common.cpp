@@ -70,11 +70,9 @@ void UsSleep(int usec)
 bool IsUpdaterMode()
 {
     struct stat st {};
-    if (stat("/bin/updater", &st) == 0 && S_ISREG(st.st_mode)) {
-        LOG(INFO) << "updater mode";
+      if (stat("/bin/updater", &st) == 0 && S_ISREG(st.st_mode)) {
         return true;
     }
-    LOG(INFO) << "normal mode";
     return false;
 }
 

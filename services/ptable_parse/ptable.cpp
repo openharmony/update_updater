@@ -166,7 +166,7 @@ bool Ptable::CheckFileExist(const std::string &fileName)
         LOG(WARNING) << "memset_s fail";
     }
     if (stat(fileName.c_str(), &buffers) == 0) {
-        LOG(INFO) << fileName << " is exist";
+        LOG(DEBUG) << fileName << " is exist";
         return true;
     }
     LOG(INFO) << fileName << " is not exist";
@@ -420,7 +420,6 @@ bool Ptable::CheckGptHeader(uint8_t *buffer, const uint32_t bufferLen, const uin
         LOG(ERROR) << "starting LBA mismatch";
         return false;
     }
-    LOG(INFO) << "gpt header check ok";
     return true;
 }
 
@@ -471,7 +470,7 @@ void Ptable::PrintPtableInfo() const
         LOG(ERROR) << "ptable vector is empty!";
         return;
     }
-    LOG(INFO) << "print inner ptable";
+    LOG(INFO) << "print ptable";
     PrintPtableChanges(partitionInfo_);
 }
 
@@ -481,7 +480,7 @@ void Ptable::PrintPtableInfo(const std::vector<PtnInfo> &ptnInfo) const
         LOG(ERROR) << "ptable vector is empty!";
         return;
     }
-    LOG(INFO) << "print outside ptable";
+    LOG(INFO) << "print ptable";
     PrintPtableChanges(ptnInfo);
 }
 
