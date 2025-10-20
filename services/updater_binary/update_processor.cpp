@@ -534,7 +534,14 @@ int ProcessUpdater(bool retry, int pipeFd, const std::string &packagePath, const
 
 int32_t UScriptInstructionIsUpdaterMode::Execute(Uscript::UScriptEnv &env, Uscript::UScriptContext &context)
 {
-    int32_t ret = Utils::IsUpdaterMode() ? USCRIPT_UPDATER_MODE_VALUE : USCRIPT_SUCCESS;
+    int32_t ret = 0;
+    if (Utils::IsUpdaterMode()) {
+        ret = USCRIPT_UPDATER_MODE_VALUE;
+        LOG(INFO) << "updater mode";
+    } else {
+        ret = USCRIPT_SUCCESS;
+        LOG(INFO) << "normal mode";
+    }
     context.PushParam(ret);
     return ret;
 }
