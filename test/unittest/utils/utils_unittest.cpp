@@ -38,7 +38,8 @@ public:
     void TearDown() {};
 };
 
-void CreateFile(const std::string &filepath, size_t fileSize) {
+void CreateFile(const std::string &filepath, size_t fileSize)
+{
     const char fillChar = '0';
     std::ofstream outFile(filepath, std::ios::binary);
     if (!outFile) {
@@ -295,7 +296,7 @@ HWTEST_F(UtilsUnitTest, getFunction_NullHandle_Test, TestSize.Level0)
 
 HWTEST_F(UtilsUnitTest, getFunction_EmptyFuncName_Test, TestSize.Level0)
 {
-    void* handle = static_cast<void *>(0x12345678);
+    void* handle = reinterpret_cast<void *>(0x12345678);
     std::string funcName = "";
     void* result = GetFunction(handle, funcName);
     EXPECT_EQ(result, nullptr);
