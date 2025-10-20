@@ -49,6 +49,7 @@ group("unittest") {
       "test/unittest/script:script_unittest",
       "test/unittest/stream_update:bin_chunk_update_test",
       "test/unittest/updater_binary:binary_unittest",
+      "test/unittest/updater:updater_unit_test",
       "test/unittest/utils:utils_test",
     ]
     if (!ohos_indep_compiler_enable) {

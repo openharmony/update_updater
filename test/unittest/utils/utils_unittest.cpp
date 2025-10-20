@@ -16,12 +16,16 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <filesystem>
 #include <fstream>
 #include <vector>
+#include <unistd.h>
 #include <unittest_comm.h>
 #include "utils.h"
+#include "utils_common.h"
 
 using namespace Updater;
+using namespace Utils;
 using namespace testing::ext;
 using namespace std;
 
