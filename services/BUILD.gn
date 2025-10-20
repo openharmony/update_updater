@@ -96,7 +96,6 @@ ohos_static_library("libupdater_static") {
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
-    "bounds_checking_function:libsec_static",
     "bzip2:libbz2",
     "cJSON:cjson",
     "init:libbegetutil_static",
@@ -203,6 +202,62 @@ ohos_static_library("libupdater") {
         "graphic_utils_lite:utils_lite",
     ]
   }
+
+  if (build_selinux) {
+    external_deps += [
+      "selinux:libselinux_static",
+      "selinux_adapter:librestorecon_static",
+    ]
+    cflags = [ "-DWITH_SELINUX" ]
+  }
+
+  subsystem_name = "updater"
+  part_name = "updater"
+}
+
+# this updater library is provided for sys_installer
+ohos_static_library("libupdater_sys_installer") {
+  defines = [ "BUILD_OHOS" ]
+  sources = [
+    "hardware_fault/hardware_fault_retry.cpp",
+    "updater.cpp",
+    "updater_preprocess.cpp",
+    "updater_utils.cpp",
+  ]
+
+  include_dirs = updater_common_include
+
+  deps = updater_common_deps
+
+  public_configs = [ ":libupdater_exported_headers" ]
+
+  if (defined(use_ptable)) {
+    include_dirs += [ "${updater_path}/services/ptable_parse" ]
+    deps += [ "${updater_path}/services/ptable_parse:libptableparse" ]
+    defines += [ "UPDATER_USE_PTABLE" ]
+  }
+
+  ldflags = []
+
+  # force link invisible function
+  if (defined(updater_force_link_libs)) {
+    ldflags += [ "-Wl,--whole-archive" ]
+    foreach(lib, updater_force_link_libs) {
+      ldflags += [ "${lib}" ]
+    }
+    ldflags += [ "-Wl,--no-whole-archive" ]
+  }
+
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "bzip2:libbz2",
+    "cJSON:cjson",
+    "init:libbegetutil_static",
+    "openssl:libcrypto_shared",
+    "openssl:libssl_shared",
+    "zlib:libz",
+    "drivers_peripheral_partitionslot:libpartition_slot_manager",
+  ]
 
   if (build_selinux) {
     external_deps += [
