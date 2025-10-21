@@ -17,7 +17,7 @@ import("//build/test.gni")
 MODULE_OUTPUT_PATH = "updater/updater"
 updater_path = rebase_path("${updater_absolutely_path}", ".")
  
-ohos_unittest("updater_unit_test") {
+ohos_unittest("updater_test") {
   resource_config_file = "${updater_path}/test/unittest/test_data/ohos_test.xml"
   module_out_path = MODULE_OUTPUT_PATH
   sources = [
@@ -56,14 +56,19 @@ ohos_unittest("updater_unit_test") {
     "drivers_interface_input:libinput_proxy_1.0",
     "googletest:gmock_main",
     "googletest:gtest_main",
-    "graphic_utils_lite:utils_lite",
     "hilog:libhilog",
     "init:libbegetutil_static",
     "init:libfsmanager_static_real",
     "openssl:libcrypto_shared",
     "openssl:libssl_static",
-    "ui_lite:libupdater_layout",
   ]
+
+  if (updater_ui_support) {
+    external_deps += [
+      "graphic_utils_lite:utils_lite",
+      "ui_lite:libupdater_layout",
+    ]
+  }
  
   install_enable = true
   part_name = "updater"
