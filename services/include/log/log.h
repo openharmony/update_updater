@@ -33,6 +33,7 @@ constexpr int MAX_TIME_SIZE = 20;
 #define UPDATER_LOG_FILE_NAME \
     ((strrchr((__FILE_NAME__), '/') != nullptr) ? strrchr((__FILE_NAME__), '/') + 1 : (__FILE_NAME__))
 #define LOG(level) UpdaterLogger(level).OutputUpdaterLog((UPDATER_LOG_FILE_NAME), (__LINE__))
+#define LOG_LITE(level) UpdaterLoggerLite(level).OutputUpdaterLog()
 #define STAGE(stage) StageLogger(stage).OutputUpdaterStage()
 #define ERROR_CODE(code) ErrorCode(code).OutputErrorCode((UPDATER_LOG_FILE_NAME), (__LINE__), (code))
 
@@ -57,17 +58,18 @@ void InitUpdaterLogger(const std::string &tag, const std::string &logFile, const
     const std::string &errorCodeFile);
 
 extern "C" void Logger(int level, const char* fileName, int32_t line, const char* format, ...);
+extern "C" void LoggerLite(int level, const char* fileName, int32_t line, const char* format, ...);
 
 extern "C" void UpdaterHiLogger(int level, const char* fileName, int32_t line, const char* format, ...);
 
 class UpdaterLogger {
 public:
-    UpdaterLogger(int level) : level_(level) {}
+    explicit UpdaterLogger(int level) : level_(level) {}
 
-    ~UpdaterLogger();
+    virtual ~UpdaterLogger();
 
     std::ostream& OutputUpdaterLog(const std::string &path, int line);
-private:
+protected:
     int level_;
     std::stringstream oss_;
     char realTime_[MAX_TIME_SIZE] = {0};
@@ -78,6 +80,13 @@ private:
         { ERROR, "E" },
         { FATAL, "F" }
     };
+};
+
+class UpdaterLoggerLite : public UpdaterLogger {
+public:
+    explicit UpdaterLoggerLite(int level) : UpdaterLogger(level) {}
+
+    std::ostream& OutputUpdaterLog();
 };
 
 class StageLogger {

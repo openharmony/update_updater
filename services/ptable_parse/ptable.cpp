@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <map>
 #include <sys/stat.h>
+#include <thread>
 
 #include "applypatch/data_writer.h"
 #include "log/log.h"
@@ -761,16 +762,19 @@ void Ptable::PrintPtableChanges(const std::vector<Ptable::PtnInfo> &ptnInfo)
         LOG(INFO) << "partition count = " << ptnInfo.size() << " ptable not change";
     } else {
         LOG(INFO) << "partition count = " << ptnInfo.size();
+        // Prevent log overflow issues caused by excessive hilog printing frequency.
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         for (size_t i = 0; i < ptnInfo.size(); ++i) {
             PrintPartition(i, ptnInfo[i]);
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
     LOG(INFO) << "ptnInfo : ===========================================";
 }
 
 void Ptable::PrintPartition(size_t index, const PtnInfo &info)
 {
-    LOG(INFO) << "[" << index << "].name=" << info.dispName << ", addr=0x" << std::hex << info.startAddr
+    LOG_LITE(INFO) << "[" << index << "].name=" << info.dispName << ", addr=0x" << std::hex << info.startAddr
         << ", size=0x" << info.partitionSize << ", lun=" << std::dec << info.lun
         << ", type=" << static_cast<std::underlying_type<PartType>::type>(info.partType);
 }

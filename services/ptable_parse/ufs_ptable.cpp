@@ -706,6 +706,7 @@ bool UfsPtable::EditABPartition(uint8_t *gptImage, const uint32_t blockSize, con
 
     uint32_t count = 0;
     uint8_t *data = nullptr;
+    LOG(INFO) << "Write Partition begin";
     for (uint32_t i = 0; i < (MAX_PARTITION_NUM / partEntryCnt) && count < MAX_PARTITION_NUM; i++) {
         data = gptImage + (partition0 + i) * blockSize;
         for (uint32_t j = 0; j < partEntryCnt; j++) {
@@ -727,11 +728,11 @@ bool UfsPtable::EditABPartition(uint8_t *gptImage, const uint32_t blockSize, con
                 LOG(ERROR) << "Write Partition failed, source: " << sourceName << ", target: " << targetName;
                 return false;
             }
-            LOG(INFO) << "Write Partition success, source: " << sourceName << ", target: " << targetName;
+            LOG_LITE(INFO) << "Partition source: " << sourceName << ", target: " << targetName;
             count++;
         }
     }
-    LOG(INFO) << "start to Calculate Crc32";
+    LOG(INFO) << "Write Partition success. Start to Calculate Crc32";
     // Updating CRC of the Partition entry array in both headers
     uint32_t partCount = GET_LWORD_FROM_BYTE(gptImage + blockSize + PARTITION_COUNT_OFFSET);
     uint32_t entrySize = GET_LWORD_FROM_BYTE(gptImage + blockSize + PENTRY_SIZE_OFFSET);
