@@ -228,6 +228,7 @@ ohos_static_library("libupdater_sys_installer") {
   include_dirs = updater_common_include
 
   deps = updater_common_deps
+  deps += [ "${updater_path}/interfaces/kits/slot_info:libslotinfo" ]
 
   public_configs = [ ":libupdater_exported_headers" ]
 
