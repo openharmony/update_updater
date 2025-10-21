@@ -153,5 +153,12 @@ std::optional<BootMode> SelectMode(const UpdateMessage &boot);
 bool SetCpuAffinityByPid(const UpdaterParams &upParams, unsigned int reservedCores);
 
 void UpdateBinaryTids(const std::vector<std::string> &output, UpdaterParams &upParams);
+
+bool IsUpdateBasePkg(UpdaterParams &upParams);
+
+UpdaterStatus SetUpdateSlotParam(UpdaterParams &upParams, bool isUpdateCurrSlot);
+
+void ProgressSmoothHandler(int beginProgress, int endProgress,
+    [[maybe_unused]] UpdaterParams upParams, [[maybe_unused]] bool isFinish);
 } // Updater
 #endif /* UPDATER_UPDATER_H */

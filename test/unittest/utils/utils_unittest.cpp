@@ -16,12 +16,16 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <filesystem>
 #include <fstream>
 #include <vector>
+#include <unistd.h>
 #include <unittest_comm.h>
 #include "utils.h"
+#include "utils_common.h"
 
 using namespace Updater;
+using namespace Utils;
 using namespace testing::ext;
 using namespace std;
 
@@ -33,6 +37,19 @@ public:
     void SetUp() {};
     void TearDown() {};
 };
+
+void CreateFile(const std::string &filepath, size_t fileSize)
+{
+    const char fillChar = '0';
+    std::ofstream outFile(filepath, std::ios::binary);
+    if (!outFile) {
+        std::cout << "create file fail: " << filepath << endl;
+        return;
+    }
+    std::string data(fileSize, fillChar);
+    outFile.write(data.c_str(), fileSize);
+    outFile.close();
+}
 
 HWTEST_F(UtilsUnitTest, updater_utils_test_001, TestSize.Level0)
 {
@@ -220,5 +237,227 @@ HWTEST_F(UtilsUnitTest, ConvertStrToNumber_test_005, TestSize.Level0)
     const std::string str = "1.2345";
     float value;
     EXPECT_EQ(Utils::ConvertToFloat(str, value), true);
+}
+
+HWTEST_F(UtilsUnitTest, pathToRealPath_ShouldReturnFalse_WhenPathIsEmpty, TestSize.Level0)
+{
+    std::string realPath;
+    EXPECT_FALSE(PathToRealPath("", realPath));
+}
+
+HWTEST_F(UtilsUnitTest, pathToRealPath_ShouldReturnFalse_WhenPathLenIsError, TestSize.Level0)
+{
+    std::string realPath;
+    std::string longPath(PATH_MAX, 'a');
+    EXPECT_FALSE(PathToRealPath(longPath, realPath));
+}
+
+HWTEST_F(UtilsUnitTest, pathToRealPath_ShouldReturnFalse_WhenPathToRealpathError, TestSize.Level0)
+{
+    std::string realPath;
+    EXPECT_FALSE(PathToRealPath("/path/to/nonexistent/file", realPath));
+}
+
+HWTEST_F(UtilsUnitTest, loadLibrary_ShouldReturnNull_WhenPathIsEmpty, TestSize.Level0)
+{
+    std::string libPath = "";
+    void* handle = LoadLibrary(libPath);
+    EXPECT_EQ(handle, nullptr);
+}
+
+HWTEST_F(UtilsUnitTest, loadLibrary_ShouldReturnNull_WhenRealPathError, TestSize.Level0)
+{
+    std::string libPath = "/invalid/path";
+    void* handle = LoadLibrary(libPath);
+    EXPECT_EQ(handle, nullptr);
+}
+
+HWTEST_F(UtilsUnitTest, loadLibrary_ShouldReturnNull_WhenLibPathInvalid, TestSize.Level0)
+{
+    std::string libPath = "/invalid/lib/path";
+    void* handle = LoadLibrary(libPath);
+    EXPECT_EQ(handle, nullptr);
+}
+
+HWTEST_F(UtilsUnitTest, loadLibrary_ShouldReturnNull_WhenDlopenFail, TestSize.Level0)
+{
+    std::string libPath = "/system/lib64/invalid.so";
+    void* handle = LoadLibrary(libPath);
+    EXPECT_EQ(handle, nullptr);
+}
+
+HWTEST_F(UtilsUnitTest, getFunction_NullHandle_Test, TestSize.Level0)
+{
+    void* handle = nullptr;
+    std::string funcName = "testFunc";
+    void* result = GetFunction(handle, funcName);
+    EXPECT_EQ(result, nullptr);
+}
+
+HWTEST_F(UtilsUnitTest, getFunction_EmptyFuncName_Test, TestSize.Level0)
+{
+    void* handle = reinterpret_cast<void *>(0x12345678);
+    std::string funcName = "";
+    void* result = GetFunction(handle, funcName);
+    EXPECT_EQ(result, nullptr);
+}
+
+HWTEST_F(UtilsUnitTest, readStringFromProcFile_OpenFileFailed_Test, TestSize.Level0)
+{
+    std::string filePath = "/path/to/nonexistent/file";
+    std::string content;
+    EXPECT_FALSE(ReadStringFromProcFile(filePath, content));
+}
+
+HWTEST_F(UtilsUnitTest, readStringFromProcFile_FileOversize_Test, TestSize.Level0)
+{
+    std::string filePath = "/data/updater/updater/invalid_file";
+    CreateFile(filePath, 1024 * 5);
+    std::string content;
+    EXPECT_FALSE(ReadStringFromProcFile(filePath, content));
+    EXPECT_EQ(DeleteFile(filePath), 0);
+}
+
+HWTEST_F(UtilsUnitTest, readStringFromProcFile_Success_Test, TestSize.Level0)
+{
+    std::string filePath = "/data/updater/updater/valid_file";
+    CreateFile(filePath, 1024 * 4);
+    std::string content;
+    EXPECT_TRUE(ReadStringFromProcFile(filePath, content));
+    EXPECT_EQ(DeleteFile(filePath), 0);
+}
+
+HWTEST_F(UtilsUnitTest, copyFile_WhenSrcIsInvalid, TestSize.Level0)
+{
+    std::string src = "/invalid/path/to/file";
+    std::string dest = "/data/updater/updater/valid_file";
+    CreateFile(dest, 1);
+    bool isAppend = false;
+    EXPECT_FALSE(CopyFile(src, dest, isAppend));
+    EXPECT_EQ(DeleteFile(dest), 0);
+}
+
+HWTEST_F(UtilsUnitTest, copyFile_WhenDestIsInvalid, TestSize.Level0)
+{
+    std::string src = "/data/updater/updater/valid_file";
+    std::string dest = "/invalid/path/to/dest";
+    CreateFile(src, 1);
+    bool isAppend = false;
+    EXPECT_FALSE(CopyFile(src, dest, isAppend));
+    EXPECT_EQ(DeleteFile(src), 0);
+}
+
+HWTEST_F(UtilsUnitTest, copyFile__WhenFileCopySuccess, TestSize.Level0)
+{
+    std::string src = "/data/updater/updater/src_file";
+    std::string dest = "/data/updater/updater/dest_file";
+    CreateFile(src, 1);
+    CreateFile(dest, 0);
+    bool isAppend = false;
+    EXPECT_TRUE(CopyFile(src, dest, isAppend));
+    EXPECT_EQ(DeleteFile(src), 0);
+    EXPECT_EQ(DeleteFile(dest), 0);
+}
+
+HWTEST_F(UtilsUnitTest, copyFileAppend_WhenFileCopySuccess, TestSize.Level0)
+{
+    std::string src = "/data/updater/updater/src_file";
+    std::string dest = "/data/updater/updater/dest_file";
+    CreateFile(src, 1);
+    CreateFile(dest, 0);
+    bool isAppend = true;
+    EXPECT_TRUE(CopyFile(src, dest, isAppend));
+    EXPECT_EQ(DeleteFile(src), 0);
+    EXPECT_EQ(DeleteFile(dest), 0);
+}
+
+HWTEST_F(UtilsUnitTest, copyDir_Test_01, TestSize.Level0)
+{
+    std::string srcPath = "/path/to/nonexistent/dir";
+    std::string dstPath = "/data/updater/updater/dest_dir";
+    EXPECT_FALSE(CopyDir(srcPath, dstPath));
+    std::error_code ec;
+    std::filesystem::remove_all(dstPath.c_str(), ec);
+}
+
+HWTEST_F(UtilsUnitTest, copyDir_Test_02, TestSize.Level0)
+{
+    std::string srcPath = "/data/updater/updater/src_dir";
+    EXPECT_EQ(MkdirRecursive(srcPath, 0755), 0);
+    std::string dstPath = "/path/to/nonexistent/dir";
+    EXPECT_FALSE(CopyDir(srcPath, dstPath));
+    std::error_code ec;
+    std::filesystem::remove_all(srcPath.c_str(), ec);
+}
+
+HWTEST_F(UtilsUnitTest, copyDir_Test_03, TestSize.Level0)
+{
+    std::string srcPath = "/data/updater/updater/src_dir";
+    std::string dstPath = "/data/updater/updater/dst_dir";
+    EXPECT_EQ(MkdirRecursive(srcPath, 0755), 0);
+    EXPECT_EQ(MkdirRecursive(dstPath, 0755), 0);
+    EXPECT_TRUE(CopyDir(srcPath, dstPath));
+    std::error_code ec;
+    std::filesystem::remove_all(srcPath.c_str(), ec);
+    std::filesystem::remove_all(dstPath.c_str(), ec);
+}
+
+HWTEST_F(UtilsUnitTest, copyDir_Test_04, TestSize.Level0)
+{
+    std::string srcPath = "/data/updater/updater/sub_dir/dir";
+    std::string dstPath = "/data/updater/updater/dst_dir";
+    EXPECT_EQ(MkdirRecursive(srcPath, 0755), 0);
+    EXPECT_TRUE(CopyDir(srcPath, dstPath));
+    std::error_code ec;
+    std::string path = "/data/updater/updater/sub_dir";
+    std::filesystem::remove_all(path.c_str(), ec);
+    std::filesystem::remove_all(dstPath.c_str(), ec);
+}
+
+HWTEST_F(UtilsUnitTest, deleteOldFile_WhenFolderDoesNotExist, TestSize.Level0)
+{
+    std::string folderPath = "/data/updater/updater/nonexistent_folder";
+    EXPECT_FALSE(DeleteOldFile(folderPath));
+}
+
+HWTEST_F(UtilsUnitTest, deleteOldFile_WhenFolderIsEmpty, TestSize.Level0)
+{
+    std::string dirPath = "/data/updater/updater/dir";
+    EXPECT_EQ(MkdirRecursive(dirPath, 0755), 0);
+    EXPECT_FALSE(DeleteOldFile(dirPath));
+    std::error_code ec;
+    std::filesystem::remove_all(dirPath.c_str(), ec);
+}
+
+HWTEST_F(UtilsUnitTest, deleteOldFile_WhenFileIsDeletedSuccessfully, TestSize.Level0)
+{
+    std::string dirPath = "/data/updater/updater/dir";
+    EXPECT_EQ(MkdirRecursive(dirPath, 0755), 0);
+    std::string fileName = "file";
+    CreateFile(dirPath + "/" + fileName, 1);
+    EXPECT_TRUE(DeleteOldFile(dirPath));
+    std::error_code ec;
+    std::filesystem::remove_all(dirPath.c_str(), ec);
+}
+
+HWTEST_F(UtilsUnitTest, vectorToString_WhenPidsIsEmpty, TestSize.Level0)
+{
+    std::vector<pid_t> pids;
+    std::string result = VectorToString(pids);
+    EXPECT_EQ(result, "");
+}
+
+HWTEST_F(UtilsUnitTest, vectorToString_WhenPidsHasOneElement, TestSize.Level0)
+{
+    std::vector<pid_t> pids = {123};
+    std::string result = VectorToString(pids);
+    EXPECT_EQ(result, "123");
+}
+
+HWTEST_F(UtilsUnitTest, vectorToString_WhenPidsHasMultipleElements, TestSize.Level0)
+{
+    std::vector<pid_t> pids = {123, 456, 789};
+    std::string result = VectorToString(pids);
+    EXPECT_EQ(result, "123,456,789");
 }
 } // updater_ut
