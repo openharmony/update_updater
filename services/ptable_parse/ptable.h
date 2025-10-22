@@ -38,8 +38,7 @@ public:
         COMMON_TYPE = 0,
         A_TYPE,
         B_TYPE,
-        RESERVED_TYPE,
-        SKIP_TYPE
+        RESERVED_TYPE
     };
 
     static constexpr uint32_t GPT_PARTITION_TYPE_GUID_LEN = 16;
@@ -93,7 +92,7 @@ public:
     virtual bool GetPtableImageBuffer(uint8_t *imageBuf, const uint32_t imgBufSize) = 0;
     virtual void AddChildPtable(std::unique_ptr<Ptable> child) {}
     virtual bool CorrectBufByPtnList(uint8_t *imageBuf, uint64_t imgBufSize, const std::vector<PtnInfo> &srcInfo,
-                                     const std::vector<PtnInfo> &dstInfo, Ptable::PartType needSkipType);
+                                     const std::vector<PtnInfo> &dstInfo);
     virtual bool SyncABLunPtableDevice(const int sourceSlot);
     virtual bool GetABLunPartitionInfo(const int sourceSlot, std::string &srcNode,
         std::string &tgtNode, uint32_t &offset);
@@ -122,6 +121,16 @@ public:
     void ClearPtnInfo()
     {
         partitionInfo_.clear();
+    }
+
+    void SetHotABUpdateFlag(bool hotABUpdateFlag)
+    {
+        hotABUpdateFlag_ = hotABUpdateFlag;
+    }
+
+    bool GetHotABUpdateFlag()
+    {
+        return hotABUpdateFlag_;
     }
 
 #ifndef UPDATER_UT
@@ -224,6 +233,7 @@ public:
     int endPtnIndex_ {-1};
     int usrDataPtnIndex_ {-1};
     bool hasTailpart_ {false};
+    bool hotABUpdateFlag_ {false};
 
     PtableData GetPtableData() const;
     bool MemReadWithOffset(const std::string &filePath, const uint64_t offset,

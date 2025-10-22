@@ -32,7 +32,7 @@ public:
     bool EditPartitionBuf(uint8_t *imageBuf, uint64_t imgBufSize, std::vector<PtnInfo> &modifyList) override;
     bool GetPtableImageBuffer(uint8_t *imageBuf, const uint32_t imgBufSize) override;
     bool CorrectBufByPtnList(uint8_t *imageBuf, uint64_t imgBufSize, const std::vector<PtnInfo> &srcInfo,
-                             const std::vector<PtnInfo> &dstInfo, Ptable::PartType needSkipType) override;
+                             const std::vector<PtnInfo> &dstInfo) override;
     bool SyncABLunPtableDevice(const int sourceSlot) override;
     bool GetABLunPartitionInfo(const int sourceSlot, std::string &srcNode,
         std::string &tgtNode, uint32_t &offset) override;
@@ -53,6 +53,7 @@ public:
         uint64_t lunSize; // lun device density
         uint32_t writeDataLen; // data len written to UFS
         uint8_t data[TMP_DATA_SIZE]; // ptable image data
+        bool needWrite {true};
     };
 
     uint32_t deviceLunNum_ { 0 };
@@ -88,6 +89,7 @@ public:
     uint8_t *GetPtableImageUfsLunPmbrStart(uint8_t *imageBuf, const uint32_t lunIndex);
     uint8_t *GetPtableImageUfsLunGptHeaderStart(uint8_t *imageBuf, const uint32_t lunIndex);
     uint8_t *GetPtableImageUfsLunEntryStart(uint8_t *imageBuf, const uint32_t lunIndex);
+    void SetLunPtnDataInfoNeedWrite(UfsPartitionDataInfo *ufsPtnInfo);
 };
 } // namespace Updater
 #endif // UPDATER_UFS_PTABLE_H
