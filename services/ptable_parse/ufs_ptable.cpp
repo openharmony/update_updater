@@ -50,7 +50,7 @@ uint32_t UfsPtable::GetPtableExtraOffset(void)
     return 0;
 }
 
-void UfsPtable::SetLunPtnDataInfoNeedWrite(UfsPartitionDataInfo *ufsPtnInfo)
+void UfsPtable::SetLunPtnDataInfoNeedWrite(UfsPartitionDataInfo &ufsPtnInfo)
 {
     if (!hotABUpdateFlag_) {
         ufsPtnInfo.needWrite = true;
