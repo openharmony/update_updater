@@ -143,7 +143,7 @@ int32_t CheckFile(const std::string &fileName, int type)
     // If not, Create the directory first.
     std::string path = GetFilePath(fileName);
     if (path.empty()) {
-        return PKG_SUCCESS;
+        return PKG_INVALID_FILE;
     }
     if (access(path.c_str(), F_OK) == -1) {
         CreatDirectory(path, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
