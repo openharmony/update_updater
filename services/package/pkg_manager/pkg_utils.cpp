@@ -51,6 +51,9 @@ std::string GetFilePath(const std::string &fileName)
     std::size_t pos = fileName.find_last_of('/');
     if (pos == std::string::npos) {
         pos = fileName.find_last_of('\\');
+        if (pos == std::string::npos) {
+            return "";
+        }
     }
     return fileName.substr(0, pos + 1);
 }
