@@ -161,20 +161,6 @@ void Logger(int level, const char* fileName, int32_t line, const char* format, .
     UpdaterLogger(level).OutputUpdaterLog(fileName, line) << buff;
 }
 
-void LoggerLite(int level, const char* fileName, int32_t line, const char* format, ...)
-{
-    char buff[1024] = {0};
-    va_list list;
-    va_start(list, format);
-    int size = vsnprintf_s(buff, sizeof(buff), sizeof(buff) - 1, format, list);
-    va_end(list);
-    if (size < EOK) {
-        UpdaterLogger(level).OutputUpdaterLog(fileName, line) << "vsnprintf_s failed";
-        return;
-    }
-    LOG_LITE(level) << buff;
-}
-
 #ifndef DIFF_PATCH_SDK
 // used for external module to adapt %{private|public} format log to updater log
 void UpdaterHiLogger(int level, const char* fileName, int32_t line, const char* format, ...)

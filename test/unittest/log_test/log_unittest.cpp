@@ -25,8 +25,6 @@ using namespace std;
 
 namespace UpdaterUt {
 #define CSTYLE_LOGI(format, ...) Logger(Updater::INFO, (UPDATER_LOG_FILE_NAME), (__LINE__), format, ##__VA_ARGS__)
-#define CSTYLE_LOGI_LITE(format, ...) \
-    LoggerLite(Updater::INFO, (UPDATER_LOG_FILE_NAME), (__LINE__), format, ##__VA_ARGS__)
 
 void LogUnitTest::SetUpTestCase(void)
 {
@@ -132,7 +130,6 @@ HWTEST_F(LogUnitTest, log_test_lite, TestSize.Level1)
     logger.OutputUpdaterLog() << "no source file info";
     std::string logText = loggerTest.GetLogText();
     GTEST_LOG_(INFO) << logText;
-    CSTYLE_LOGI_LITE("logSize: %zu, logText: %s", logText.size(), logText.c_str());
     ASSERT_EQ(logText.find(src), std::string::npos);
 }
 } // namespace updater_ut

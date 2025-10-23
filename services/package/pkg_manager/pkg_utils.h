@@ -53,8 +53,6 @@ uint64_t ReadLE64(const uint8_t *buff);
 #define PKG_LOGI(format, ...) Logger(Updater::INFO, (UPDATER_LOG_FILE_NAME), (__LINE__), format, ##__VA_ARGS__)
 #define PKG_LOGW(format, ...) Logger(Updater::WARNING, (UPDATER_LOG_FILE_NAME), (__LINE__), format, ##__VA_ARGS__)
 
-#define PKG_LOGI_LITE(format, ...) LoggerLite(Updater::INFO, (UPDATER_LOG_FILE_NAME), (__LINE__), format, ##__VA_ARGS__)
-
 enum {
     PKG_INFO_BASE = PKG_ERROR_BASE + 100,
     PKG_NOT_EXIST_ALGORITHM,

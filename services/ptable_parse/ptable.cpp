@@ -762,12 +762,12 @@ void Ptable::PrintPtableChanges(const std::vector<Ptable::PtnInfo> &ptnInfo)
         LOG(INFO) << "partition count = " << ptnInfo.size() << " ptable not change";
     } else {
         LOG(INFO) << "partition count = " << ptnInfo.size();
-        // Prevent log overflow issues caused by excessive hilog printing frequency.
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         for (size_t i = 0; i < ptnInfo.size(); ++i) {
             PrintPartition(i, ptnInfo[i]);
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        // Prevent log overflow issues caused by excessive hilog printing frequency.
+        constexpr int waitMilliseconds = 350;
+        std::this_thread::sleep_for(std::chrono::milliseconds(waitMilliseconds));
     }
     LOG(INFO) << "ptnInfo : ===========================================";
 }
