@@ -52,6 +52,7 @@ std::string GetFilePath(const std::string &fileName)
     if (pos == std::string::npos) {
         pos = fileName.find_last_of('\\');
         if (pos == std::string::npos) {
+            PKG_LOGW("pos is not exist");
             return "";
         }
     }
