@@ -61,7 +61,7 @@ void UfsPtable::SetLunPtnDataInfoNeedWrite(UfsPartitionDataInfo &ufsPtnInfo)
         return;
     }
     int slot = Utils::GetUpdateSlot();
-    if (slot != SLOT_A || slot != SLOT_B) {
+    if (slot != SLOT_A && slot != SLOT_B) {
         LOG(ERROR) << "Invalid slot: " << slot;
         return;
     }
