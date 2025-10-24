@@ -51,6 +51,10 @@ std::string GetFilePath(const std::string &fileName)
     std::size_t pos = fileName.find_last_of('/');
     if (pos == std::string::npos) {
         pos = fileName.find_last_of('\\');
+        if (pos == std::string::npos) {
+            PKG_LOGW("pos is not exist");
+            return "";
+        }
     }
     return fileName.substr(0, pos + 1);
 }
@@ -140,7 +144,7 @@ int32_t CheckFile(const std::string &fileName, int type)
     // If not, Create the directory first.
     std::string path = GetFilePath(fileName);
     if (path.empty()) {
-        return PKG_SUCCESS;
+        return PKG_INVALID_FILE;
     }
     if (access(path.c_str(), F_OK) == -1) {
         CreatDirectory(path, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
