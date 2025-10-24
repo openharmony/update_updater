@@ -89,7 +89,8 @@ public:
     uint8_t *GetPtableImageUfsLunPmbrStart(uint8_t *imageBuf, const uint32_t lunIndex);
     uint8_t *GetPtableImageUfsLunGptHeaderStart(uint8_t *imageBuf, const uint32_t lunIndex);
     uint8_t *GetPtableImageUfsLunEntryStart(uint8_t *imageBuf, const uint32_t lunIndex);
-    void SetLunPtnDataInfoNeedWrite(UfsPartitionDataInfo *ufsPtnInfo);
+    void SetLunPtnDataInfoNeedWrite(UfsPartitionDataInfo &ufsPtnInfo);
+    void AddUfsPtnDataInfo(UfsPartitionDataInfo &newLunPtnDataInfo, uint32_t deviceBlockSize, uint32_t lunIndex);
 };
 } // namespace Updater
 #endif // UPDATER_UFS_PTABLE_H

@@ -312,6 +312,17 @@ void UfsPtable::UfsPatchGptHeader(UfsPartitionDataInfo &ptnDataInfo, const uint3
     return;
 }
 
+void UfsPtable::AddUfsPtnDataInfo(UfsPartitionDataInfo &newLunPtnDataInfo, uint32_t deviceBlockSize, uint32_t lunIndex)
+{
+    newLunPtnDataInfo.writeDataLen = ptableData_.writeDeviceLunSize;
+    newLunPtnDataInfo.lunIndex = lunIndex + ptableData_.startLunNumber;
+    newLunPtnDataInfo.lunSize = GetDeviceLunCapacity(newLunPtnDataInfo.lunIndex);
+    UfsPatchGptHeader(newLunPtnDataInfo, deviceBlockSize);
+    newLunPtnDataInfo.isGptVaild = true;
+    SetLunPtnDataInfoNeedWrite(newLunPtnDataInfo);
+    ufsPtnDataInfo_.push_back(newLunPtnDataInfo);
+}
+
 // blocksize is 4096, lbaLen is 512. Because in ptable.img block is 512 while in device block is 4096
 bool UfsPtable::ParsePartitionFromBuffer(uint8_t *ptbImgBuffer, const uint32_t imgBufSize)
 {
@@ -356,13 +367,7 @@ bool UfsPtable::ParsePartitionFromBuffer(uint8_t *ptbImgBuffer, const uint32_t i
             GetPtableImageUfsLunEntryStart(ptbImgBuffer, i), GPT_ENTRYS_SIZE) != EOK) {
             LOG(WARNING) << "memcpy_s gpt data fail";
         }
-        newLunPtnDataInfo.writeDataLen = ptableData_.writeDeviceLunSize;
-        newLunPtnDataInfo.lunIndex = i + ptableData_.startLunNumber;
-        newLunPtnDataInfo.lunSize = GetDeviceLunCapacity(newLunPtnDataInfo.lunIndex);
-        UfsPatchGptHeader(newLunPtnDataInfo, deviceBlockSize);
-        newLunPtnDataInfo.isGptVaild = true;
-        SetLunPtnDataInfoNeedWrite(newLunPtnDataInfo);
-        ufsPtnDataInfo_.push_back(newLunPtnDataInfo);
+        AddUfsPtnDataInfo(newLunPtnDataInfo, deviceBlockSize, i);
         if (!UfsReadGpt(newLunPtnDataInfo.data, newLunPtnDataInfo.writeDataLen,
             newLunPtnDataInfo.lunIndex, deviceBlockSize)) {
             LOG(ERROR) << "parse ufs gpt fail";
