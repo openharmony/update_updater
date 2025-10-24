@@ -116,6 +116,15 @@ std::ostream& UpdaterLogger::OutputUpdaterLog(const std::string &path, int line)
     return g_nullStream;
 }
 
+std::ostream& UpdaterLoggerLite::OutputUpdaterLog()
+{
+    GetFormatTime(realTime_, sizeof(realTime_));
+    if (g_logLevel <= level_) {
+        return oss_;
+    }
+    return g_nullStream;
+}
+
 std::ostream& StageLogger::OutputUpdaterStage()
 {
     std::unordered_map<int, std::string> updaterStageMap = {
@@ -139,17 +148,17 @@ std::ostream& StageLogger::OutputUpdaterStage()
 
 void Logger(int level, const char* fileName, int32_t line, const char* format, ...)
 {
-    std::vector<char> buff(1024); // 1024 : max length of buff
+    // 1024 : max length of buff
+    char buff[1024] = {0};
     va_list list;
     va_start(list, format);
-    int size = vsnprintf_s(reinterpret_cast<char*>(buff.data()), buff.capacity(), buff.capacity() - 1, format, list);
+    int size = vsnprintf_s(buff, sizeof(buff), sizeof(buff) - 1, format, list);
     va_end(list);
     if (size < EOK) {
         UpdaterLogger(level).OutputUpdaterLog(fileName, line) << "vsnprintf_s failed";
         return;
     }
-    std::string str(buff.data(), size);
-    UpdaterLogger(level).OutputUpdaterLog(fileName, line) << str;
+    UpdaterLogger(level).OutputUpdaterLog(fileName, line) << buff;
 }
 
 #ifndef DIFF_PATCH_SDK

@@ -24,6 +24,8 @@ using namespace Updater;
 using namespace std;
 
 namespace UpdaterUt {
+#define CSTYLE_LOGI(format, ...) Logger(Updater::INFO, (UPDATER_LOG_FILE_NAME), (__LINE__), format, ##__VA_ARGS__)
+
 void LogUnitTest::SetUpTestCase(void)
 {
     cout << "SetUpTestCase" << endl;
@@ -32,6 +34,15 @@ void LogUnitTest::SetUpTestCase(void)
 void LogUnitTest::TearDownTestCase(void)
 {
     cout << "TearDownTestCase" << endl;
+}
+
+void LogUnitTest::SetUp()
+{
+    SetLogLevel(INFO);
+}
+
+void LogUnitTest::TearDown()
+{
 }
 
 HWTEST_F(LogUnitTest, log_test_001, TestSize.Level1)
@@ -77,5 +88,48 @@ HWTEST_F(LogUnitTest, log_test_001, TestSize.Level1)
         unlink("/data/updater/m_stage.txt");
         FAIL();
     }
+}
+
+class UpdaterLoggerTest : public UpdaterLogger {
+public:
+    explicit UpdaterLoggerTest(int level) : UpdaterLogger(level) {}
+
+    std::string GetLogText()
+    {
+        return oss_.str();
+    }
+};
+
+HWTEST_F(LogUnitTest, log_test_with_source_file_info, TestSize.Level1)
+{
+    std::string src = (strrchr((__FILE_NAME__), '/') != nullptr) ? strrchr((__FILE_NAME__), '/') + 1 : (__FILE_NAME__);
+    UpdaterLoggerTest loggerTest(Updater::WARNING);
+    UpdaterLogger &logger = loggerTest;
+    logger.OutputUpdaterLog((UPDATER_LOG_FILE_NAME), (__LINE__)) << "log with source file info";
+    std::string logText = loggerTest.GetLogText();
+    GTEST_LOG_(INFO) << logText;
+    CSTYLE_LOGI("logSize: %zu, logText: %s", logText.size(), logText.c_str());
+    ASSERT_NE(logText.find(src), std::string::npos);
+}
+
+class UpdaterLoggerLiteTest : public UpdaterLoggerLite {
+public:
+    explicit UpdaterLoggerLiteTest(int level) : UpdaterLoggerLite(level) {}
+
+    std::string GetLogText()
+    {
+        return oss_.str();
+    }
+};
+
+HWTEST_F(LogUnitTest, log_test_lite, TestSize.Level1)
+{
+    std::string src = (strrchr((__FILE_NAME__), '/') != nullptr) ? strrchr((__FILE_NAME__), '/') + 1 : (__FILE_NAME__);
+    UpdaterLoggerLiteTest loggerTest(Updater::WARNING);
+    UpdaterLoggerLite &logger = loggerTest;
+    logger.OutputUpdaterLog() << "no source file info";
+    std::string logText = loggerTest.GetLogText();
+    GTEST_LOG_(INFO) << logText;
+    ASSERT_EQ(logText.find(src), std::string::npos);
 }
 } // namespace updater_ut

@@ -630,7 +630,7 @@ int32_t UpgradePkgFile::SaveEntry(const PkgBuffer &buffer, size_t &parsedLen, Up
 
     info.dataOffset += entry->GetFileInfo()->packedSize;
     pkgInfo_.pkgInfo.entryCount++;
-    PKG_LOGI("Component offset: %zu %zu packedSize %zu unpackedSize %zu %s", headerOffset, dataOffset,
+    PKG_LOGI("Component offset: %zu %zu packed %zu unpacked %zu %s", headerOffset, dataOffset,
         entry->GetFileInfo()->packedSize, entry->GetFileInfo()->unpackedSize, entry->GetFileInfo()->identity.c_str());
     return PKG_SUCCESS;
 }
