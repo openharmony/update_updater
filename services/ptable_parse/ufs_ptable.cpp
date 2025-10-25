@@ -73,8 +73,8 @@ void UfsPtable::SetLunPtnDataInfoNeedWrite(UfsPartitionDataInfo &ufsPtnInfo)
     // 2 bytes for 1 charactor of partition name
     ParsePartitionName(nameOffset, MAX_GPT_NAME_SIZE, dispName, MAX_GPT_NAME_SIZE / 2);
     std::string dispSuffix = dispName.substr(dispName.size() - PARTITION_AB_SUFFIX_SIZE, PARTITION_AB_SUFFIX_SIZE);
-    LOG(INFO) << "dispSuffix is " << dispSuffix << ", suffix is " << suffix;
     if (dispSuffix == suffix) {
+        LOG(INFO) << "dispSuffix is " << dispSuffix << ", suffix is " << suffix;
         ufsPtnInfo.needWrite = true;
         return;
     }
