@@ -44,7 +44,7 @@ std::vector<Ptable::PtnInfo> Ptable::GetPtablePartitionInfo() const
 }
 
 bool Ptable::CorrectBufByPtnList(uint8_t *imageBuf, uint64_t imgBufSize, const std::vector<PtnInfo> &srcInfo,
-                                 const std::vector<PtnInfo> &dstInfo, Ptable::PartType needSkipType)
+                                 const std::vector<PtnInfo> &dstInfo)
 {
     return false;
 }
