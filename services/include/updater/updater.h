@@ -96,6 +96,8 @@ int32_t ExtractUpdaterBinary(Hpackage::PkgManager::PkgManagerPtr manager, std::s
 
 int GetTmpProgressValue();
 void SetTmpProgressValue(int value);
+void SetCancelStatus(bool isCanceled);
+bool GetCancelStatus(void);
 
 void ProgressSmoothHandler(int beginProgress, int endProgress,
     [[maybe_unused]] UpdaterParams upParams = {}, [[maybe_unused]] bool isFinish = false);

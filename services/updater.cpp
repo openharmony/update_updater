@@ -62,6 +62,17 @@ using namespace Hpackage;
 int g_percentage = 100;
 int g_tmpProgressValue;
 int g_tmpValue;
+bool g_canceled = false;
+ 
+void SetCancelStatus(bool isCanceled)
+{
+    g_canceled = isCanceled;
+}
+ 
+bool GetCancelStatus(void)
+{
+    return g_canceled;
+}
 
 static void SetBinaryDeathSig(void)
 {
@@ -480,6 +491,10 @@ UpdaterStatus DoInstallUpdaterPackage(PkgManager::PkgManagerPtr pkgManager, Upda
         UPDATER_UI_INSTANCE.ShowUpdInfo(TR(UPD_INSTALL_FAIL));
         UPDATER_LAST_WORD(updateRet, "StartUpdaterProc failed");
         LOG(ERROR) << "Install package failed.";
+    }
+    if (g_canceled) {
+        LOG(WARNING) << "install canceled, no need to write result";
+        return updateRet;
     }
     if (WriteResult(upParams.updatePackage[upParams.pkgLocation],
         updateRet == UPDATE_SUCCESS ? "verify_success" : "verify_fail") != UPDATE_SUCCESS) {
