@@ -242,11 +242,19 @@ void BlockSet::MoveBlock(std::vector<uint8_t> &target, const BlockSet& locations
     for (auto it = locations.CrBegin(); it != locations.CrEnd(); it++) {
         size_t blocks = it->second - it->first;
         start -= blocks;
-        if (memmove_s(td + (it->first * H_BLOCK_SIZE), blocks * H_BLOCK_SIZE, sd + (start *
-            H_BLOCK_SIZE), blocks * H_BLOCK_SIZE) != EOK) {
-                LOG(ERROR) << "MoveBlock memmove_s failed!";
-                return;
-            }
+        size_t remainSize = blocks * H_BLOCK_SIZE;
+        size_t offset = 0;
+        while (remainSize > 0) {
+            size_t moveSize = (remainSize > SECUREC_MEM_MAX_LEN) ? SECUREC_MEM_MAX_LEN : remainSize;
+            if (memmove_s(td + (it->first * H_BLOCK_SIZE) + offset, moveSize,
+                sd + (start * H_BLOCK_SIZE) + offset, moveSize) != EOK) {
+                    LOG(ERROR) << "MoveBlock memmove_s failed: " << errno;
+                    return;
+                }
+            remainSize -= moveSize;
+            offset += moveSize;
+        }
+        
     }
 }
 
