@@ -254,7 +254,6 @@ void BlockSet::MoveBlock(std::vector<uint8_t> &target, const BlockSet& locations
             remainSize -= moveSize;
             offset += moveSize;
         }
-        
     }
 }
 
