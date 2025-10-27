@@ -355,10 +355,10 @@ static std::string GetFileName(const std::string &srcImage)
     std::vector<std::string> lines =
         Updater::Utils::SplitString(std::string(srcImage), "/");
     LOG(INFO) << "lines.size is " << lines.size();
-    if (lines.size() == 0) {
-        return nullptr;
+    if (lines.empty()) {
+        return "";
     }
-    return lines[lines.size() - 1];
+    return lines.back();
 }
 
 static int32_t ExecuteUpdateBlock(Uscript::UScriptEnv &env, const UpdateBlockInfo &infos,
