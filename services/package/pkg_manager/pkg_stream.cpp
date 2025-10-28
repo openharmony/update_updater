@@ -250,12 +250,12 @@ int32_t MemoryMapStream::Write(const PkgBuffer &data, size_t size, size_t start)
     }
 
     currOffset_ = start;
-    size_t copyLen = memSize_ - start;
+    size_t copyLen = (memSize_ - start > SECUREC_MEM_MAX_LEN) ? SECUREC_MEM_MAX_LEN : memSize_ - start;
     if (copyLen < size) {
         PKG_LOGE("Write fail copyLen %zu, %zu", copyLen, size);
         return PKG_INVALID_STREAM;
     }
-    int32_t ret = memcpy_s(memMap_ + currOffset_, memSize_ - currOffset_, data.buffer, size);
+    int32_t ret = memcpy_s(memMap_ + currOffset_, copyLen, data.buffer, size);
     if (ret != PKG_SUCCESS) {
         PKG_LOGE("Write fail");
         return PKG_INVALID_STREAM;
