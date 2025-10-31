@@ -56,10 +56,12 @@ bool PtableProcess(UpdaterParams &upParams)
         }
         DevicePtable& devicePtb = DevicePtable::GetInstance();
         if (!devicePtb.LoadPartitionInfo()) {
+            Hpackage::PkgManager::ReleasePackageInstance(pkgManager);
             return false;
         }
         PackagePtable& packagePtb = PackagePtable::GetInstance();
         if (!packagePtb.LoadPartitionInfo(pkgManager)) {
+            Hpackage::PkgManager::ReleasePackageInstance(pkgManager);
             return false;
         }
         if (!devicePtb.ComparePtable(packagePtb)) {
