@@ -21,6 +21,7 @@
 #include "dump.h"
 #include "pkg_manager.h"
 #include "pkg_utils.h"
+#include "ring_buffer/ring_buffer.h"
 #include "securec.h"
 
 #ifdef __APPLE__

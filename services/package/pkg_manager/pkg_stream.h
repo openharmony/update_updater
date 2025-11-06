@@ -18,9 +18,13 @@
 #include <sys/mman.h>
 #endif
 #include <atomic>
+#include <mutex>
 #include "pkg_manager.h"
 #include "pkg_utils.h"
-#include "ring_buffer/ring_buffer.h"
+
+namespace Updater {
+class RingBuffer;
+}
 
 namespace Hpackage {
 class PkgStreamImpl : public PkgStream {
