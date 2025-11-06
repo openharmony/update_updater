@@ -77,6 +77,7 @@
                 "//base/update/updater/resources:updater_resources",
                 "//base/update/updater/services/etc:updater_files",
                 "//base/update/updater/services/package:libupdaterpackage",
+                "//base/update/updater/services/package:libverify_shared",
                 "//base/update/updater/services/script:libupdaterscript",
                 "//base/update/updater/services/log:libupdaterlog",
                 "//base/update/updater/services/updater_binary:updater_binary",
@@ -275,6 +276,13 @@
                 },
                 {
                     "name": "//base/update/updater/services/package:libupdaterpackage_shared",
+                    "header": {
+                        "header_files": [],
+                        "header_base": "//base/update/updater/services/include"
+                    }
+                },
+                {
+                    "name": "//base/update/updater/services/package:libverify_shared",
                     "header": {
                         "header_files": [],
                         "header_base": "//base/update/updater/services/include"

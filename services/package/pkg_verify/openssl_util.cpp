@@ -19,6 +19,7 @@
 #include <openssl/sha.h>
 #include <openssl/x509.h>
 #include "dump.h"
+#include "pkg_utils.h"
 
 namespace Hpackage {
 namespace {

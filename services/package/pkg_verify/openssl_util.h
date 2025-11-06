@@ -19,7 +19,10 @@
 #include <vector>
 #include <openssl/asn1.h>
 #include "pkg_manager.h"
-#include "pkg_stream.h"
+
+namespace Hpackage {
+    class PkgStream;
+}
 
 namespace Hpackage {
 int32_t GetASN1OctetStringData(const ASN1_OCTET_STRING *octString, std::vector<uint8_t> &asn1Data);

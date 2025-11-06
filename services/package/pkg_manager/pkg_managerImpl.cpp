@@ -32,6 +32,7 @@
 #include "pkg_upgradefile.h"
 #include "pkg_verify_util.h"
 #include "pkg_zipfile.h"
+#include "ring_buffer/ring_buffer.h"
 #include "scope_guard.h"
 #include "securec.h"
 #include "updater/updater_const.h"
