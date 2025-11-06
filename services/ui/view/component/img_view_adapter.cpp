@@ -109,7 +109,8 @@ bool ImgViewAdapter::IsValid(const UxImageInfo &info)
 void ImgViewAdapter::GetRealImgPath()
 {
     using namespace Lang;
-    if (Fs::exists(dir_)) {
+    std::error_code errorCode
+    if (Fs::exists(dir_, errorCode)) {
         return;
     }
     const static std::unordered_map<Language, std::string> postFixMap {
@@ -122,7 +123,7 @@ void ImgViewAdapter::GetRealImgPath()
         return;
     }
     std::string newPath = dir_ + "_" + iter->second + ".png";
-    if (!Fs::exists(newPath)) {
+    if (!Fs::exists(newPath, errorCode)) {
         LOG(WARNING) << "newPath not existed " << newPath;
         return;
     }
