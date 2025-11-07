@@ -161,10 +161,10 @@ HWTEST_F(FstabApiUnitTest, ReadFstabUpdaterFromFile_unitest, TestSize.Level1)
     Fstab *fstab = nullptr;
     fstab = ReadFstabFromFile(fstabUpdaterPath.c_str(), false);
     ASSERT_NE(fstab, nullptr);
-    if (strcmp(item->fsType, "vfat") == 0 || strcmp(item->fsType, "emmc") == 0) {
-        continue;
-    }
     for (FstabItem *item = fstab->head; item != nullptr; item = item->next) {
+        if (strcmp(item->fsType, "vfat") == 0 || strcmp(item->fsType, "emmc") == 0) {
+            continue;
+        }
         EXPECT_EQ(IsSupportedFilesystem(item->fsType), true);
         GTEST_LOG_(INFO) << "fstype = " << item->fsType << "; support = " << IsSupportedFilesystem(item->fsType);
     }
