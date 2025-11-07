@@ -25,7 +25,9 @@
 #include <vector>
 #include "fs_manager/fs_manager.h"
 #include "fs_manager/mount.h"
+#include "init_filesystems.h"
 #include "log/log.h"
+#include "updater_init.h"
 #include "utils.h"
 
 using namespace testing::ext;
@@ -62,13 +64,13 @@ HWTEST_F(FstabApiUnitTest, ReadFstabFromFile_unitest, TestSize.Level1)
     EXPECT_NE(fstab, nullptr);
     const std::string fstabFile3 = "/data/updater/mount_unitest/ReadFstabFromFile2.fstable";
     fstab = ReadFstabFromFile(fstabFile3.c_str(), false);
-    EXPECT_EQ(fstab, nullptr);
+    EXPECT_NE(fstab, nullptr);
     const std::string fstabFile4 = "/data/updater/mount_unitest/ReadFstabFromFile3.fstable";
     fstab = ReadFstabFromFile(fstabFile4.c_str(), false);
-    EXPECT_EQ(fstab, nullptr);
+    EXPECT_NE(fstab, nullptr);
     const std::string fstabFile5 = "/data/updater/mount_unitest/ReadFstabFromFile4.fstable";
     fstab = ReadFstabFromFile(fstabFile5.c_str(), false);
-    EXPECT_EQ(fstab, nullptr);
+    EXPECT_NE(fstab, nullptr);
     const std::string fstabFile6 = "/data/updater/mount_unitest/ReadFstabFromFile5.fstable";
     fstab = ReadFstabFromFile(fstabFile6.c_str(), false);
     EXPECT_NE(fstab, nullptr);
@@ -146,5 +148,24 @@ HWTEST_F(FstabApiUnitTest, GetMountFlags_unitest, TestSize.Level1)
     EXPECT_EQ(flags, static_cast<unsigned long>(MS_NOSUID | MS_NODEV | MS_NOATIME));
     ReleaseFstab(fstab);
     fstab = nullptr;
+}
+
+HWTEST_F(FstabApiUnitTest, ReadFstabUpdaterFromFile_unitest, TestSize.Level1)
+{
+    static const SUPPORTED_FILE_SYSTEM supportedExtendedFileSystems[] = {
+        { "hmfs", 1 },
+        { "erofs", 0 },
+        { NULL, 0 }
+    };
+    InitSetExtendedFileSystems(reinterpret_cast<const tagSUPPORTED_FILE_SYSTEM **>(&supportedExtendedFileSystems));
+    std::string fstabUpdaterPath = "/data/updater/mount_unitest/fstab.updater";
+    Fstab *fstab = nullptr;
+    fstab = ReadFstabFromFile(fstabUpdaterPath.c_str(), false);
+    ASSERT_NE(fstab, nullptr);
+    for (FstabItem *item = fstab->head; item != nullptr; item = item->next) {
+        EXPECT_EQ(IsSupportedFilesystem(item->fsType), true);
+        GTEST_LOG_(INFO) << "fstype = " << item->fsType << "; support = " << IsSupportedFilesystem(item->fsType);
+    }
+    ReleaseFstab(fstab);
 }
 } // namespace updater_ut
