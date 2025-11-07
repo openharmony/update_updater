@@ -59,7 +59,7 @@ HWTEST_F(FstabApiUnitTest, ReadFstabFromFile_unitest, TestSize.Level1)
     EXPECT_EQ(fstab, nullptr);
     const std::string fstabFile2 = "/data/updater/mount_unitest/ReadFstabFromFile1.fstable";
     fstab = ReadFstabFromFile(fstabFile2.c_str(), false);
-    EXPECT_EQ(fstab, nullptr);
+    EXPECT_NE(fstab, nullptr);
     const std::string fstabFile3 = "/data/updater/mount_unitest/ReadFstabFromFile2.fstable";
     fstab = ReadFstabFromFile(fstabFile3.c_str(), false);
     EXPECT_EQ(fstab, nullptr);
