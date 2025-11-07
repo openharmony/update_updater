@@ -27,7 +27,6 @@
 #include "fs_manager/mount.h"
 #include "init_filesystems.h"
 #include "log/log.h"
-#include "updater_init.h"
 #include "utils.h"
 
 using namespace testing::ext;
