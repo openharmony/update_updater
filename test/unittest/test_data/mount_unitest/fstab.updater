@@ -1,1 +1,6 @@
-#
+#<src> <mnt_point> <type> <mnt_flags and options> <fs_mgr_flags>
+/dev/block/by-name/misc       /misc       ext4      defaults        defaults
+/dev/block/by-name/misc       /misc       f2fs      defaults        defaults
+/dev/block/by-name/misc       /misc       overlay   defaults        defaults
+/dev/block/by-name/misc       /misc       hmfs      defaults        defaults
+/dev/block/by-name/misc       /misc       erofs     defaults        defaults
