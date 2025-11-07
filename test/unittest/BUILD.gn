@@ -171,7 +171,7 @@ ohos_unittest("updater_unittest") {
     "googletest:gtest_main",
     "hilog:libhilog_base",
     "init:libbegetutil_static",
-    "init:libfsmanaget_static_real",
+    "init:libfsmanager_static_real",
     "libuv:uv",
     "lz4:liblz4_static",
     "openssl:libcrypto_shared",
