@@ -44,7 +44,7 @@
             <option name="push" value="mount_unitest/ReadFstabFromFile5.fstable -> /data/updater/mount_unitest" src="res"/>
             <option name="push" value="mount_unitest/ReadFstabFromFile2.fstable -> /data/updater/mount_unitest" src="res"/>
             <option name="push" value="mount_unitest/SetupPartitions2.fstable -> /data/updater/mount_unitest" src="res"/>
-            <option name="push" value="mount_unitest/fstab.updater -> /data/updater/mount_unitest" src="res"/>            
+            <option name="push" value="mount_unitest/fstab.updater -> /data/updater/mount_unitest" src="res"/>
             <option name="push" value="applypatch/TestGZipModeImagePatch.gz.patch -> /data/updater/applypatch" src="res"/>
             <option name="push" value="applypatch/cmd_001_correct.transfer.list -> /data/updater/applypatch" src="res"/>
             <option name="push" value="applypatch/TestDecompressGzip.new.gz -> /data/updater/applypatch" src="res"/>
