@@ -223,21 +223,21 @@ bool ShmRbBlock::Push(const uint8_t* buf, size_t len)
 
 bool ShmRbBlock::Pop(uint8_t* buf, size_t expectedLen, size_t &realLen)
 {
-        if (buf == nullptr) {
+    if (buf == nullptr) {
         PKG_LOGE("Pop error : buf is nullptr");
         return false;
     }
-    if (len == 0 || len > SINGLE_BLOCK_SIZE) {
+    if (expectedlen == 0 || expectedlen > SINGLE_BLOCK_SIZE) {
         PKG_LOGE("Pop error : invalid expectedLen : %zu", expectedLen);
         return false;
     }
 
-    realLen = expectedLen < realLen_ ? expectedLen : readLen_;
-    if (memcpy_s(buf, expectedLen, data_ + blkOffset_, readLen) != EOK) {
+    realLen = expectedLen < realLen_ ? expectedLen : realLen_;
+    if (memcpy_s(buf, expectedLen, data_ + blkOffset_, realLen) != EOK) {
         PKG_LOGE("memcpy_s error, expectedLen : %zu, realLen : %zu", expectedLen, realLen);
         return false;
     }
-    readLen_ -= realLen;
+    realLen_ -= realLen;
     blkOffset_ += realLen;
     return true;
 }
@@ -272,14 +272,14 @@ int32_t ShmDataStream::CreateShmRingBuffer()
     }
 
     // 共享内存控制变量初始化
-    ret = sem_init(&rb->sem_empty, 1, BLOCK_NUM);
+    ret = sem_init(&rb_->sem_empty, 1, BLOCK_NUM);
     if (ret != 0) {
-        PKG_LOGE("ret : %d, error = %d %s", errno, strerror(errno));
+        PKG_LOGE("ret : %d, error = %d %s", ret, errno, strerror(errno));
         return PKG_INVALID_STREAM;
     }
     ret = sem_init(&rb_->sem_full, 1, 0);
     if (ret != 0) {
-        PKG_LOGE("ret : %d, error = %d %s", errno, strerror(errno));
+        PKG_LOGE("ret : %d, error = %d %s", ret, errno, strerror(errno));
         return PKG_INVALID_STREAM;
     }
     rb_->head = 0;
@@ -403,7 +403,7 @@ void ShmDataStream::Stop()
         return;
     }
     if (munmap(rb_, sizeof(ShmRingBuffer)) != 0) {
-        PKG_LOGE("munmap failed : %s", strerror(error));
+        PKG_LOGE("munmap failed : %s", strerror(errno));
         return;
     }
     rb_ = nullptr;
@@ -416,12 +416,12 @@ void ShmdataStream::Exit()
         return;
     }
     if (munmap(rb_, sizeof(ShmRingBuffer)) != 0) {
-        PKG_LOGE("munmap failed : %s", strerror(error));
+        PKG_LOGE("munmap failed : %s", strerror(errno));
         return;
     }
     rb_ = nullptr;
     if (shm_unlink(shmId_.c_str()) != 0) {
-        PKG_LOGE("shm_unlink failed : %s", strerror(error));
+        PKG_LOGE("shm_unlink failed : %s", strerror(errno));
     }
 }
 
