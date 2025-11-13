@@ -120,7 +120,7 @@ private:
     std::recursive_mutex fileStreamLock_;
 };
 
-constexpr int32_t BLOCK_NUM =32;
+constexpr int32_t BLOCK_NUM = 32;
 constexpr size_t SINGLE_BLOCK_SIZE = 50 * 1024;
 constexpr size_t RING_BUFFER_SIZE = BLOCK_NUM * SINGLE_BLOCK_SIZE;
 
@@ -137,8 +137,8 @@ private:
 };
 
 struct ShmRingBuffer {
-    sem_t sem_empty;            // 空闲块信号量
-    sem_t sem_full;             // 已用块信号量
+    sem_t semEmpty;            // 空闲块信号量
+    sem_t semFull;             // 已用块信号量
     int32_t head = 0;           // 消费者写入位置
     int32_t tail = 0;           // 生产者写入位置
     ShmRbBlock data[BLOCK_NUM]; // 环形数据缓冲区
@@ -155,12 +155,12 @@ struct ShmParameter {
 
 class ShmDataStream : public PkgStreamImpl {
 public:
-    ShmDataStream(PkgManager::PkgManagerPtr pkgManager, const std::string fileName, const ShmParameter &ShmParameter, 
-        int32_t streamType) : PkgStreamImpl(pkgManager, fileName), streamType_(streamType) 
+    ShmDataStream(PkgManager::PkgManagerPtr pkgManager, const std::string fileName, const ShmParameter &shmParameter,
+        int32_t streamType) : PkgStreamImpl(pkgManager, fileName), streamType_(streamType)
     {
-        shmId_ = ShmParameter.shmId;
-        pkgLen_ = ShmParameter.pkgLen;
-        offset_ = ShmParameter.offset;
+        shmId_ = shmParameter.shmId;
+        pkgLen_ = shmParameter.pkgLen;
+        offset_ = shmParameter.offset;
     }
 
     ~ShmDataStream() override
