@@ -227,7 +227,7 @@ bool ShmRbBlock::Pop(uint8_t* buf, size_t expectedLen, size_t &realLen)
         PKG_LOGE("Pop error : buf is nullptr");
         return false;
     }
-    if (expectedlen == 0 || expectedlen > SINGLE_BLOCK_SIZE) {
+    if (expectedLen == 0 || expectedLen > SINGLE_BLOCK_SIZE) {
         PKG_LOGE("Pop error : invalid expectedLen : %zu", expectedLen);
         return false;
     }
