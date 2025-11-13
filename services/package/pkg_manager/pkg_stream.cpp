@@ -334,7 +334,7 @@ int32_t ShmDataStream::Read(PkgBuffer &data, size_t start, size_t needRead, size
     readLen = 0;
     size_t needReadLen = needRead;
     while (needReadLen > 0) {
-        sem_wait(&rb_->sem_full);
+        sem_wait(&rb_->semFull);
         
         size_t realLen = 0;
         size_t readingLen = needReadLen < SINGLE_BLOCK_SIZE ? needReadLen : SINGLE_BLOCK_SIZE;
@@ -346,11 +346,11 @@ int32_t ShmDataStream::Read(PkgBuffer &data, size_t start, size_t needRead, size
         readLen += realLen;
 
         if (rb_->data[rb_->head].GetRealLen() > 0) {
-            sem_post(&rb_->sem_full); // 信号量回弹
+            sem_post(&rb_->semFull); // 信号量回弹
             continue;
         }
         rb_->head = (rb_->head + 1) % BLOCK_NUM;
-        sem_post(&rb_->sem_empty);
+        sem_post(&rb_->semEmpty);
     }
 
     offset_ += readLen;
@@ -378,7 +378,7 @@ int32_t ShmDataStream::Write(const PkgBuffer &data, size_t size, size_t start)
     size_t needWriteLen = size;
     size_t writedLen = 0;
     while (needWriteLen > 0) {
-        sem_wait(&rb_->sem_empty);
+        sem_wait(&rb_->semEmpty);
         
         size_t writingLen = needWriteLen < SINGLE_BLOCK_SIZE ? needWriteLen : SINGLE_BLOCK_SIZE;
         if (!(rb_->data[rb_->tail].Push(data.buffer + writedLen, writingLen))) {
@@ -389,7 +389,7 @@ int32_t ShmDataStream::Write(const PkgBuffer &data, size_t size, size_t start)
         needWriteLen -= writingLen;
         writedLen += writingLen;
 
-        sem_post(&rb_->sem_full);
+        sem_post(&rb_->semFull);
     }
 
     offset_ += size;
