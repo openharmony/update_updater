@@ -19,6 +19,7 @@
 #endif
 #include <atomic>
 #include <mutex>
+#include <semaphore.h>
 #include "pkg_manager.h"
 #include "pkg_utils.h"
 
@@ -117,6 +118,106 @@ private:
     size_t fileLength_;
     int32_t streamType_;
     std::recursive_mutex fileStreamLock_;
+};
+
+constexpr int32_t BLOCK_NUM =32;
+constexpr size_t SINGLE_BLOCK_SIZE = 50 * 1024;
+constexpr size_t RING_BUFFER_SIZE = BLOCK_NUM * SINGLE_BLOCK_SIZE;
+
+class ShmRbBlock {
+public:
+    bool Push(const uint8_t* buf, size_t len);
+    bool Pop(uint8_t* buf, size_t expectedLen, size_t &realLen);
+    size_t GetRealLen();
+
+private:
+    size_t realLen_ = 0;              // 块内偏移数据
+    size_t blkOffset_ = 0;            // 头偏移
+    uint8_t data_[SINGLE_BLOCK_SIZE]; // 数据域
+};
+
+struct ShmRingBuffer {
+    sem_t sem_empty;            // 空闲块信号量
+    sem_t sem_full;             // 已用块信号量
+    int32_t head = 0;           // 消费者写入位置
+    int32_t tail = 0;           // 生产者写入位置
+    ShmRbBlock data[BLOCK_NUM]; // 环形数据缓冲区
+}
+
+struct ShmParameter {
+    std::string shmId;
+    size_t pkgLen = 0;
+    size_t offset = 0;
+
+    ShmParameter(const std::string &shmId, size_t pkgLen, size_t offset)
+        : shmId(shmId), pkgLen(pkgLen), offset(offset) {}
+}
+
+class ShmDataStream : public PkgStreamImpl {
+public:
+    ShmDataStream(PkgManager::PkgManagerPtr pkgManager, const std::string fileName, const ShmParameter &ShmParameter, 
+        int32_t streamType) : PkgStreamImpl(pkgManager, fileName), streamType_(streamType) 
+    {
+        shmId_ = ShmParameter.shmId;
+        pkgLen_ = ShmParameter.pkgLen;
+        offset_ = ShmParameter.offset;
+    }
+
+    ~ShmDataStream() override
+    {
+        Stop();
+    }
+
+    int32_t CreateShmRingBuffer();
+    
+    int32_t InitShmRingBuffer();
+    
+    int32_t Read(PkgBuffer &data, size_t start, size_t needRead, size_t &readLen) override;
+
+    int32_t Write(const PkgBuffer &data, size_t size, size_t start);
+
+    void Stop() override;
+
+    void Exit();
+
+    int32_t Seek(long int size, int whence) override
+    {
+        UNUSED(size);
+        UNUSED(whence);
+        return PKG_SUCCESS;
+    }
+
+    void SetOffset(size_t offset)
+    {
+        offset_ = offset;
+    }
+
+    size_t GetReadOffset() const override
+    {
+        return offset_;
+    }
+
+    void SetPkgLen(size_t pkgLen)
+    {
+        pkgLen_ = pkgLen;
+    }
+
+    size_t GetFileLength() override
+    {
+        return pkgLen_;
+    }
+
+    int32_t GetStreamType() const override
+    {
+        return streamType_;
+    }
+
+private:
+    ShmRingBuffer* rb_ = nullptr;
+    std::string shmId_;
+    int32_t streamType_ = PkgStreamType_ShmData;
+    size_t pkgLen_ = 0; // 整包大小
+    size_t offset_ = 0; // 偏移
 };
 
 class MemoryMapStream : public PkgStreamImpl {
