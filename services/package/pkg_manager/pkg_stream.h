@@ -142,7 +142,7 @@ struct ShmRingBuffer {
     int32_t head = 0;           // 消费者写入位置
     int32_t tail = 0;           // 生产者写入位置
     ShmRbBlock data[BLOCK_NUM]; // 环形数据缓冲区
-}
+};
 
 struct ShmParameter {
     std::string shmId;
@@ -151,7 +151,7 @@ struct ShmParameter {
 
     ShmParameter(const std::string &shmId, size_t pkgLen, size_t offset)
         : shmId(shmId), pkgLen(pkgLen), offset(offset) {}
-}
+};
 
 class ShmDataStream : public PkgStreamImpl {
 public:
@@ -174,7 +174,7 @@ public:
     
     int32_t Read(PkgBuffer &data, size_t start, size_t needRead, size_t &readLen) override;
 
-    int32_t Write(const PkgBuffer &data, size_t size, size_t start);
+    int32_t Write(const PkgBuffer &data, size_t size, size_t start) override;
 
     void Stop() override;
 
