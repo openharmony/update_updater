@@ -272,12 +272,12 @@ int32_t ShmDataStream::CreateShmRingBuffer()
     }
 
     // 共享内存控制变量初始化
-    ret = sem_init(&rb_->sem_empty, 1, BLOCK_NUM);
+    ret = sem_init(&rb_->semEmpty, 1, BLOCK_NUM);
     if (ret != 0) {
         PKG_LOGE("ret : %d, error = %d %s", ret, errno, strerror(errno));
         return PKG_INVALID_STREAM;
     }
-    ret = sem_init(&rb_->sem_full, 1, 0);
+    ret = sem_init(&rb_->semFull, 1, 0);
     if (ret != 0) {
         PKG_LOGE("ret : %d, error = %d %s", ret, errno, strerror(errno));
         return PKG_INVALID_STREAM;
