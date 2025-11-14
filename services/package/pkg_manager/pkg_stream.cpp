@@ -409,7 +409,7 @@ void ShmDataStream::Stop()
     rb_ = nullptr;
 }
 
-void ShmdataStream::Exit()
+void ShmDataStream::Exit()
 {
     // 创建者销毁共享内存
     if (rb_ == nullptr) {
