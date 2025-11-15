@@ -16,7 +16,9 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifndef _WIN32
 #include <sys/mman.h>
+#endif
 #include <unistd.h>
 #include <cstdio>
 #include "dump.h"
