@@ -252,9 +252,9 @@ size_t ShmRbBlock::GetRealLen()
 
 int32_t ShmDataStream::CreateShmRingBuffer()
 {
-    #ifdef _WIN32
+#ifdef _WIN32
     return PKG_SUCCESS;
-    #else 
+#else 
     int fd = shm_open(shmId_.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0666);
     if (fd < 0) {
         PKG_LOGE("shm_open failed, errno = %d %s", errno, strerror(errno));
@@ -292,14 +292,14 @@ int32_t ShmDataStream::CreateShmRingBuffer()
     rb_->tail = 0;
     PKG_LOGI("CreateShmRingBuffer success");
     return PKG_SUCCESS;
-    #endif
+#endif
 }
 
 int32_t ShmDataStream::InitShmRingBuffer()
 {
-    #ifdef _WIN32
+#ifdef _WIN32
     return PKG_SUCCESS;
-    #else
+#else
     int fd = shm_open(shmId_.c_str(), O_RDWR, 0);
     if (fd < 0) {
         PKG_LOGE("shm_open failed, errno = %d %s", errno, strerror(errno));
@@ -317,7 +317,7 @@ int32_t ShmDataStream::InitShmRingBuffer()
     }
     PKG_LOGI("InitShmRingBuffer success");
     return PKG_SUCCESS;
-    #endif
+#endif
 }
 
 int32_t ShmDataStream::Read(PkgBuffer &data, size_t start, size_t needRead, size_t &readLen)
@@ -431,11 +431,11 @@ void ShmDataStream::Exit()
         return;
     }
     rb_ = nullptr;
-    #ifndef _WIN32
+#ifndef _WIN32
     if (shm_unlink(shmId_.c_str()) != 0) {
         PKG_LOGE("shm_unlink failed : %s", strerror(errno));
     }
-    #endif
+#endif
 }
 
 MemoryMapStream::~MemoryMapStream()
