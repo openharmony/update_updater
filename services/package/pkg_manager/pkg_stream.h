@@ -120,6 +120,7 @@ private:
     std::recursive_mutex fileStreamLock_;
 };
 
+#ifndef _WIN32
 constexpr int32_t BLOCK_NUM = 32;
 constexpr size_t SINGLE_BLOCK_SIZE = 50 * 1024;
 constexpr size_t RING_BUFFER_SIZE = BLOCK_NUM * SINGLE_BLOCK_SIZE;
@@ -219,6 +220,7 @@ private:
     size_t pkgLen_ = 0; // 整包大小
     size_t offset_ = 0; // 偏移
 };
+#endif
 
 class MemoryMapStream : public PkgStreamImpl {
 public:
