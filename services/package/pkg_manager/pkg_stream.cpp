@@ -254,7 +254,7 @@ int32_t ShmDataStream::CreateShmRingBuffer()
 {
 #ifdef _WIN32
     return PKG_SUCCESS;
-#else 
+#else
     int fd = shm_open(shmId_.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0666);
     if (fd < 0) {
         PKG_LOGE("shm_open failed, errno = %d %s", errno, strerror(errno));
