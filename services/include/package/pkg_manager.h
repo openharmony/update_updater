@@ -57,6 +57,7 @@ public:
         PkgStreamType_Buffer,       // buffer
         PKgStreamType_FileMap,      // file map to memory
         PkgStreamType_FlowData,     // flow data
+        PkgStreamType_ShmData       // shm data
     };
 
     virtual ~PkgStream() = default;

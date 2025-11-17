@@ -16,6 +16,9 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifndef _WIN32
+#include <sys/mman.h>
+#endif
 #include <unistd.h>
 #include <cstdio>
 #include "dump.h"
@@ -200,6 +203,232 @@ int32_t FileStream::Flush(size_t size)
     }
     return PKG_SUCCESS;
 }
+
+#ifndef _WIN32
+bool ShmRbBlock::Push(const uint8_t* buf, size_t len)
+{
+    if (buf == nullptr) {
+        PKG_LOGE("Push error : buf is nullptr");
+        return false;
+    }
+    if (len == 0 || len > SINGLE_BLOCK_SIZE) {
+        PKG_LOGE("Push error : invalid len : %zu", len);
+        return false;
+    }
+    
+    if (memcpy_s(data_, SINGLE_BLOCK_SIZE, buf, len) != EOK) {
+        PKG_LOGE("memcpy_s error, len : %zu", len);
+        return false;
+    }
+    realLen_ = len;
+    blkOffset_ = 0;
+    return true;
+}
+
+bool ShmRbBlock::Pop(uint8_t* buf, size_t expectedLen, size_t &realLen)
+{
+    if (buf == nullptr) {
+        PKG_LOGE("Pop error : buf is nullptr");
+        return false;
+    }
+    if (expectedLen == 0 || expectedLen > SINGLE_BLOCK_SIZE) {
+        PKG_LOGE("Pop error : invalid expectedLen : %zu", expectedLen);
+        return false;
+    }
+
+    realLen = expectedLen < realLen_ ? expectedLen : realLen_;
+    if (memcpy_s(buf, expectedLen, data_ + blkOffset_, realLen) != EOK) {
+        PKG_LOGE("memcpy_s error, expectedLen : %zu, realLen : %zu", expectedLen, realLen);
+        return false;
+    }
+    realLen_ -= realLen;
+    blkOffset_ += realLen;
+    return true;
+}
+
+size_t ShmRbBlock::GetRealLen()
+{
+    return realLen_;
+}
+
+int32_t ShmDataStream::CreateShmRingBuffer()
+{
+    int fd = shm_open(shmId_.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0666);
+    if (fd < 0) {
+        PKG_LOGE("shm_open failed, errno = %d %s", errno, strerror(errno));
+        return PKG_INVALID_STREAM;
+    }
+    int ret = ftruncate(fd, sizeof(ShmRingBuffer));
+    if (ret < 0) {
+        PKG_LOGE("ftruncate failed : error = %d %s", errno, strerror(errno));
+        close(fd);
+        return PKG_INVALID_STREAM;
+    }
+    // 映射内存空间
+    if (rb_ != nullptr) {
+        Stop();
+    }
+    rb_ = static_cast<ShmRingBuffer*>(mmap(nullptr, sizeof(ShmRingBuffer), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
+    close(fd);
+    if (rb_ == MAP_FAILED) {
+        PKG_LOGE("ShmRingBuffer mmap failed, error = %d %s", errno, strerror(errno));
+        return PKG_INVALID_STREAM;
+    }
+
+    // 共享内存控制变量初始化
+    ret = sem_init(&rb_->semEmpty, 1, BLOCK_NUM);
+    if (ret != 0) {
+        PKG_LOGE("ret : %d, error = %d %s", ret, errno, strerror(errno));
+        return PKG_INVALID_STREAM;
+    }
+    ret = sem_init(&rb_->semFull, 1, 0);
+    if (ret != 0) {
+        PKG_LOGE("ret : %d, error = %d %s", ret, errno, strerror(errno));
+        return PKG_INVALID_STREAM;
+    }
+    rb_->head = 0;
+    rb_->tail = 0;
+    PKG_LOGI("CreateShmRingBuffer success");
+    return PKG_SUCCESS;
+}
+
+int32_t ShmDataStream::InitShmRingBuffer()
+{
+    int fd = shm_open(shmId_.c_str(), O_RDWR, 0);
+    if (fd < 0) {
+        PKG_LOGE("shm_open failed, errno = %d %s", errno, strerror(errno));
+        return PKG_INVALID_STREAM;
+    }
+    // 映射内存空间
+    if (rb_ != nullptr) {
+        Stop();
+    }
+    rb_ = static_cast<ShmRingBuffer*>(mmap(nullptr, sizeof(ShmRingBuffer), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
+    close(fd);
+    if (rb_ == MAP_FAILED) {
+        PKG_LOGE("ShmRingBuffer mmap failed, error = %d %s", errno, strerror(errno));
+        return PKG_INVALID_STREAM;
+    }
+    PKG_LOGI("InitShmRingBuffer success");
+    return PKG_SUCCESS;
+}
+
+int32_t ShmDataStream::Read(PkgBuffer &data, size_t start, size_t needRead, size_t &readLen)
+{
+    if (start != offset_) {
+        PKG_LOGE("offset_ not matched, start : %zu, offset : %zu", start, offset_);
+        UPDATER_LAST_WORD(PKG_INVALID_STREAM, "offset_ not matched");
+        return PKG_INVALID_STREAM;
+    }
+    if (data.length < needRead) {
+        PKG_LOGE("insufficient buffer capacity");
+        UPDATER_LAST_WORD(PKG_INVALID_STREAM, "insufficient buffer capacity");
+        return PKG_INVALID_STREAM;
+    }
+    if (data.buffer == nullptr) {
+        data.data.resize(needRead);
+        data.buffer = data.data.data();
+    }
+    if (rb_ == nullptr) {
+        PKG_LOGE("rb_ is nullptr");
+        UPDATER_LAST_WORD(PKG_INVALID_STREAM, "rb_ is nullptr");
+        return PKG_INVALID_STREAM;
+    }
+
+    readLen = 0;
+    size_t needReadLen = needRead;
+    while (needReadLen > 0) {
+        sem_wait(&rb_->semFull);
+        
+        size_t realLen = 0;
+        size_t readingLen = needReadLen < SINGLE_BLOCK_SIZE ? needReadLen : SINGLE_BLOCK_SIZE;
+        if (!(rb_->data[rb_->head].Pop(data.buffer + readLen, readingLen, realLen))) {
+            PKG_LOGE("pop error, start : %zu, needRead : %zu", start, needRead);
+            return PKG_INVALID_STREAM;
+        }
+        needReadLen -= realLen;
+        readLen += realLen;
+
+        if (rb_->data[rb_->head].GetRealLen() > 0) {
+            sem_post(&rb_->semFull); // 信号量回弹
+            continue;
+        }
+        rb_->head = (rb_->head + 1) % BLOCK_NUM;
+        sem_post(&rb_->semEmpty);
+    }
+
+    offset_ += readLen;
+    return PKG_SUCCESS;
+}
+
+int32_t ShmDataStream::Write(const PkgBuffer &data, size_t size, size_t start)
+{
+    if (start != offset_) {
+        PKG_LOGE("offset_ not matched, start : %zu, offset : %zu", start, offset_);
+        UPDATER_LAST_WORD(PKG_INVALID_STREAM, "offset_ not matched");
+        return PKG_INVALID_STREAM;
+    }
+    if (data.length < size || data.buffer == nullptr) {
+        PKG_LOGE("insufficient buffer capacity");
+        UPDATER_LAST_WORD(PKG_INVALID_STREAM, "insufficient buffer capacity");
+        return PKG_INVALID_STREAM;
+    }
+    if (rb_ == nullptr) {
+        PKG_LOGE("rb_ is nullptr");
+        UPDATER_LAST_WORD(PKG_INVALID_STREAM, "rb_ is nullptr");
+        return PKG_INVALID_STREAM;
+    }
+
+    size_t needWriteLen = size;
+    size_t writedLen = 0;
+    while (needWriteLen > 0) {
+        sem_wait(&rb_->semEmpty);
+        
+        size_t writingLen = needWriteLen < SINGLE_BLOCK_SIZE ? needWriteLen : SINGLE_BLOCK_SIZE;
+        if (!(rb_->data[rb_->tail].Push(data.buffer + writedLen, writingLen))) {
+            PKG_LOGE("push error, start : %zu, size : %zu", start, size);
+            return PKG_INVALID_STREAM;
+        }
+        rb_->tail = (rb_->tail + 1) % BLOCK_NUM;
+        needWriteLen -= writingLen;
+        writedLen += writingLen;
+
+        sem_post(&rb_->semFull);
+    }
+
+    offset_ += size;
+    return PKG_SUCCESS;
+}
+
+void ShmDataStream::Stop()
+{
+    // 使用者取消关联共享内存
+    if (rb_ == nullptr) {
+        return;
+    }
+    if (munmap(rb_, sizeof(ShmRingBuffer)) != 0) {
+        PKG_LOGE("munmap failed : %s", strerror(errno));
+        return;
+    }
+    rb_ = nullptr;
+}
+
+void ShmDataStream::Exit()
+{
+    // 创建者销毁共享内存
+    if (rb_ == nullptr) {
+        return;
+    }
+    if (munmap(rb_, sizeof(ShmRingBuffer)) != 0) {
+        PKG_LOGE("munmap failed : %s", strerror(errno));
+        return;
+    }
+    rb_ = nullptr;
+    if (shm_unlink(shmId_.c_str()) != 0) {
+        PKG_LOGE("shm_unlink failed : %s", strerror(errno));
+    }
+}
+#endif
 
 MemoryMapStream::~MemoryMapStream()
 {
