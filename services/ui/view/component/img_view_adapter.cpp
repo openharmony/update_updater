@@ -109,7 +109,7 @@ bool ImgViewAdapter::IsValid(const UxImageInfo &info)
 void ImgViewAdapter::GetRealImgPath()
 {
     using namespace Lang;
-    std::error_code errorCode
+    std::error_code errorCode;
     if (Fs::exists(dir_, errorCode)) {
         return;
     }
