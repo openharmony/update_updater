@@ -243,7 +243,7 @@ int32_t UScriptInstructionBinFlowWrite::ProcessBinFile(Uscript::UScriptEnv &env,
         std::string partitionName = iter;
         const FileInfo *info = manager->GetFileInfo(partitionName);
         LOG(INFO) << " start process Component " << partitionName << " unpackedSize " << info->unpackedSize;
-        if (ComponentProcess(env, stream, partitionName, *info) != USCRIPT_SUCCESS) {
+        if (info == nullptr || ComponentProcess(env, stream, partitionName, *info) != USCRIPT_SUCCESS) {
             LOG(ERROR) << "Error to process " << partitionName;
             return USCRIPT_ERROR_EXECUTE;
         }
