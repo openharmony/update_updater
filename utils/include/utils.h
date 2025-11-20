@@ -100,6 +100,7 @@ std::string DurationToString(std::vector<std::chrono::duration<double>> &duratio
 std::string GetRealPath(const std::string &path);
 std::string GetPartitionRealPath(const std::string &name);
 void SetMessageToMisc(const std::string &miscCmd, const int message, const std::string headInfo);
+std::string GetFaultInfo(void);
 bool CheckFaultInfo(const std::string &faultInfo);
 void SetCmdToMisc(const std::string &miscCmd);
 void AddUpdateInfoToMisc(const std::string headInfo, const std::optional<int> message);

@@ -211,7 +211,6 @@ int32_t UScriptInstructionBinFlowWrite::ProcessBinFile(Uscript::UScriptEnv &env,
     }
     ON_SCOPE_EXIT(failExecute) {
         isStopRun_ = true;
-        stream->Stop();
     };
     std::string pkgFileName;
     int32_t ret = context.GetParam(0, pkgFileName);
@@ -226,6 +225,9 @@ int32_t UScriptInstructionBinFlowWrite::ProcessBinFile(Uscript::UScriptEnv &env,
         LOG(ERROR) << "Error to get pkg manager";
         return USCRIPT_INVALID_PARAM;
     }
+    ON_SCOPE_EXIT(streamStop) {
+        stream->Stop();
+    };
     std::vector<std::string> innerFileNames;
     ret = manager->LoadPackageWithStream(pkgFileName, Utils::GetCertName(),
         innerFileNames, PkgFile::PKG_TYPE_UPGRADE, stream);
@@ -240,18 +242,14 @@ int32_t UScriptInstructionBinFlowWrite::ProcessBinFile(Uscript::UScriptEnv &env,
         // 根据镜像名称获取分区名称和大小
         std::string partitionName = iter;
         const FileInfo *info = manager->GetFileInfo(partitionName);
-        if (info == nullptr) {
-            LOG(ERROR) << "Error to get file info";
-            return USCRIPT_ERROR_EXECUTE;
-        }
-
         LOG(INFO) << " start process Component " << partitionName << " unpackedSize " << info->unpackedSize;
-        if (ComponentProcess(env, stream, partitionName, *info) != USCRIPT_SUCCESS) {
+        if (info == nullptr || ComponentProcess(env, stream, partitionName, *info) != USCRIPT_SUCCESS) {
             LOG(ERROR) << "Error to process " << partitionName;
             return USCRIPT_ERROR_EXECUTE;
         }
     }
     CANCEL_SCOPE_EXIT_GUARD(failExecute);
+    CANCEL_SCOPE_EXIT_GUARD(streamStop);
     LOG(INFO)<<"UScriptInstructionBinFlowWrite finish";
     return USCRIPT_SUCCESS;
 }
