@@ -967,18 +967,20 @@ void SetFaultInfoToMisc(const std::string &faultInfo)
     }
 }
 
-bool CheckFaultInfo(const std::string &faultInfo)
+std::string GetFaultInfo(void)
 {
     struct UpdateMessage msg = {};
     if (!ReadUpdaterMiscMsg(msg)) {
         LOG(ERROR) << "read misc data failed";
-        return false;
+        return "";
     }
+    msg.faultinfo[MAX_FAULTINFO_SIZE - 1] = '\0';
+    return msg.faultinfo;
+}
 
-    if (strcmp(msg.faultinfo, faultInfo.c_str()) == 0) {
-        return true;
-    }
-    return false;
+bool CheckFaultInfo(const std::string &faultInfo)
+{
+    return strcmp(GetFaultInfo().c_str(), faultInfo.c_str()) == 0;
 }
 
 void GetTagValInStr(const std::string &str, const std::string &tag, std::string &val)
