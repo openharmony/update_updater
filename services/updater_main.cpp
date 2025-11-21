@@ -955,7 +955,6 @@ static void PostUpdate(UpdaterParams &upParams, UpdaterStatus &status,
     }
     ClearUpdateSlotParam();
     ClearUpdateSuffixParam();
-    ShowSuccessUi(upParams, status);
     bool updateResult = (status == UPDATE_SUCCESS);
 
     std::string writeBuffer;
@@ -1428,6 +1427,7 @@ int UpdaterMain(int argc, char **argv)
     UpdaterInit::GetInstance().InvokeEvent(UPDATER_INIT_EVENT);
     PackageUpdateMode mode = UNKNOWN_UPDATE;
     status = StartUpdater(args, argv, mode, upParams);
+    ShowSuccessUi(upParams, status);
 #if !defined(UPDATER_UT) && defined(UPDATER_UI_SUPPORT)
     UPDATER_UI_INSTANCE.Sleep(UI_SHOW_DURATION);
     if (status != UPDATE_SUCCESS && status != UPDATE_SKIP) {
