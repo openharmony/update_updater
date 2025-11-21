@@ -1415,7 +1415,6 @@ void RebootAfterUpdateSuccess(const UpdaterParams &upParams, const std::vector<s
 
 int UpdaterMain(int argc, char **argv)
 {
-    [[maybe_unused]] UpdaterStatus status = UPDATE_UNKNOWN;
     UpdaterParams upParams {};
     upParams.callbackProgress = [] (float value) { UPDATER_UI_INSTANCE.ShowProgress(value); };
     UpdaterInit::GetInstance().InvokeEvent(UPDATER_PRE_INIT_EVENT);
@@ -1426,7 +1425,7 @@ int UpdaterMain(int argc, char **argv)
 #endif
     UpdaterInit::GetInstance().InvokeEvent(UPDATER_INIT_EVENT);
     PackageUpdateMode mode = UNKNOWN_UPDATE;
-    status = StartUpdater(args, argv, mode, upParams);
+    [[maybe_unused]] UpdaterStatus status = StartUpdater(args, argv, mode, upParams);
     ShowSuccessUi(upParams, status);
 #if !defined(UPDATER_UT) && defined(UPDATER_UI_SUPPORT)
     UPDATER_UI_INSTANCE.Sleep(UI_SHOW_DURATION);
