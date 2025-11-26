@@ -86,9 +86,10 @@ bool DoMountSdCard(std::vector<std::string> &sdCardStr, std::string &mountPoint,
             }
             if (umount(mountPoint.c_str()) == 0) {
                 LOG(INFO) << "the mounted SD card does not contain the upgrade package "
-                    << item <<"; success to unmount " << mountPoint;
+                    << item << "; success to unmount " << mountPoint;
+                mountSuccess = false;
             } else {
-                LOG(ERROR) << "The current mount point " << mountPoint << "unmount failed.";
+                LOG(ERROR) << "The current mount point " << mountPoint << " unmount failed.";
                 return false;
             }
         }
