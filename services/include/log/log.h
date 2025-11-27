@@ -21,6 +21,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <map>
 #include "error_code.h"
 
 namespace Updater {
@@ -30,6 +31,7 @@ namespace Updater {
 
 constexpr size_t MIN_UPDATE_SPACE = 50 * 1024 * 1024;
 constexpr int MAX_TIME_SIZE = 20;
+extern std::map<std::string, std::string> replaceMap_;
 #define UPDATER_LOG_FILE_NAME \
     ((strrchr((__FILE_NAME__), '/') != nullptr) ? strrchr((__FILE_NAME__), '/') + 1 : (__FILE_NAME__))
 #define LOG(level) UpdaterLogger(level).OutputUpdaterLog((UPDATER_LOG_FILE_NAME), (__LINE__))
@@ -68,6 +70,8 @@ public:
     virtual ~UpdaterLogger();
 
     std::ostream& OutputUpdaterLog(const std::string &path, int line);
+
+    std::string ReplaceLog(const std::string& str);
 protected:
     int level_;
     std::stringstream oss_;
