@@ -123,6 +123,7 @@ std::string UpdaterLogger::ReplaceLog(const std::string& str) {
     }
     return result;
 }
+
 std::ostream& UpdaterLogger::OutputUpdaterLog(const std::string &path, int line)
 {
     GetFormatTime(realTime_, sizeof(realTime_));
