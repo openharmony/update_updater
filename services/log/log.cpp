@@ -34,6 +34,7 @@ static std::ofstream g_updaterStage;
 static std::ofstream g_errorCode;
 static std::ofstream g_nullStream;
 static std::string g_logTag;
+std::map<std::string, std::string> replaceMap_
 static int g_logLevel = INFO;
 #ifndef DIFF_PATCH_SDK
 static constexpr unsigned int UPDATER_DOMAIN = 0XD002E01;
@@ -74,6 +75,7 @@ UpdaterLogger::~UpdaterLogger()
     oss_ << std::endl << std::flush;
     if (g_updaterLog.is_open()) {
         std::lock_guard<std::mutex> lock(g_updaterLogLock);
+        str = ReplaceLog(str);
         g_updaterLog << realTime_ <<  " " << g_logTag << " " <<  tid << " "
             << logLevelMap_[level_] << " " << str << std::endl << std::flush;
     }
@@ -107,6 +109,20 @@ void GetFormatTime(char time[], int size)
 #endif
 }
 
+std::string UpdaterLogger::ReplaceLog(const std::string& str) {
+    if(str.empty() || replaceMap_.empty()) {
+        return str;
+    }
+    std::string result = str;
+    for (const auto& [key, value] : replaceMap_) {
+        size_t pos = 0;
+        while ((pos = result.find(key, pos)) != std::string::npos) {
+            result.replace(pos, key.length(), value);
+            pos += value.length();
+        }
+    }
+    return result;
+}
 std::ostream& UpdaterLogger::OutputUpdaterLog(const std::string &path, int line)
 {
     GetFormatTime(realTime_, sizeof(realTime_));
