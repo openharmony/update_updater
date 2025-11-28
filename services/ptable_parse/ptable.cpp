@@ -585,7 +585,7 @@ bool Ptable::GetPartionInfoByName(const std::string &partitionName, PtnInfo &ptn
         return false;
     };
     if (findPart(partitionName)) {
-        LOG(INFO) << "find partition name " << partitionName;
+        LOG_SEN(INFO) << "find partition name " << partitionName;
         return true;
     }
     std::string partitionNameAB = partitionName;
@@ -774,7 +774,7 @@ void Ptable::PrintPtableChanges(const std::vector<Ptable::PtnInfo> &ptnInfo)
 
 void Ptable::PrintPartition(size_t index, const PtnInfo &info)
 {
-    LOG_LITE(INFO) << "[" << index << "].name=" << info.dispName << ", addr=0x" << std::hex << info.startAddr
+    LOG_LITE_SEN(INFO) << "[" << index << "].name=" << info.dispName << ", addr=0x" << std::hex << info.startAddr
         << ", size=0x" << info.partitionSize << ", lun=" << std::dec << info.lun
         << ", type=" << static_cast<std::underlying_type<PartType>::type>(info.partType);
 }
