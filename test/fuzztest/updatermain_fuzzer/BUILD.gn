@@ -80,6 +80,7 @@ ohos_fuzztest("UpdaterMainFuzzTest") {
     "${updater_path}/services/updater_main.cpp",
     "${updater_path}/utils/utils.cpp",
     "${updater_path}/utils/utils_fs.cpp",
+    "${updater_path}/services/trace/io_collect.cpp",
     "updatermain_fuzzer.cpp",
   ]
 }

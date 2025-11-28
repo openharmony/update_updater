@@ -44,6 +44,7 @@
 #include "sdcard_update/sdcard_update.h"
 #include "scope_guard.h"
 #include "securec.h"
+#include "trace/io_collect.h"
 #include "updater/updater_const.h"
 #include "updater/hardware_fault_retry.h"
 #include "updater/updater_preprocess.h"
@@ -712,6 +713,7 @@ static UpdaterStatus PreUpdatePackages(UpdaterParams &upParams)
     ON_SCOPE_EXIT(syncresult) {
         NotifyPreCheck(status, upParams);
     };
+    ResetCollectTotalIo();
     if (upParams.updateBin.size() > 0) {
         upParams.installTime.resize(upParams.updateBin.size(), std::chrono::duration<double>(0));
         if (CheckMountData() != 0) {
@@ -1008,6 +1010,7 @@ static UpdaterStatus PreSdcardUpdatePackages(UpdaterParams &upParams)
     ON_SCOPE_EXIT(syncresult) {
         NotifyPreCheck(status, upParams);
     };
+    ResetCollectTotalIo();
     upParams.installTime.resize(upParams.updatePackage.size(), std::chrono::duration<double>(0));
     // verify packages first
     if (upParams.retryCount == 0 && !IsBatteryCapacitySufficient()) {

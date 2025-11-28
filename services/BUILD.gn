@@ -69,6 +69,7 @@ ohos_static_library("libupdater_static") {
     "updater_main.cpp",
     "updater_preprocess.cpp",
     "updater_utils.cpp",
+    "trace/io_collect.cpp",
   ]
 
   if (updater_ui_support) {
@@ -151,6 +152,7 @@ ohos_static_library("libupdater") {
     "updater.cpp",
     "updater_preprocess.cpp",
     "updater_utils.cpp",
+    "trace/io_collect.cpp",
   ]
 
   include_dirs = updater_common_include
@@ -223,6 +225,7 @@ ohos_static_library("libupdater_sys_installer") {
     "updater.cpp",
     "updater_preprocess.cpp",
     "updater_utils.cpp",
+    "trace/io_collect.cpp",
   ]
 
   include_dirs = updater_common_include

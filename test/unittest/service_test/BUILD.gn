@@ -30,6 +30,7 @@ ohos_unittest("updater_service_unittest") {
     "${updater_path}/services/updater_main.cpp",
     "${updater_path}/services/updater_preprocess.cpp",
     "${updater_path}/services/updater_utils.cpp",
+    "${updater_path}/services/trace/io_collect.cpp",
     "${updater_path}/utils/utils.cpp",
     "updater_service_unittest.cpp",
   ]
