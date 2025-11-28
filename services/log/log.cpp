@@ -34,7 +34,7 @@ static std::ofstream g_updaterStage;
 static std::ofstream g_errorCode;
 static std::ofstream g_nullStream;
 static std::string g_logTag;
-std::map<std::string, std::string> replaceMap_
+static ReplaceLogType g_replaceMap;
 static int g_logLevel = INFO;
 #ifndef DIFF_PATCH_SDK
 static constexpr unsigned int UPDATER_DOMAIN = 0XD002E01;
@@ -51,6 +51,24 @@ void OpenLogStream(std::ofstream &ofs, const std::string &file)
 }
 }
 
+void SetReplaceMap(const ReplaceLogType &replaceMap)
+{
+    g_replaceMap = replaceMap;
+}
+
+void ReplaceLog(std::string &str)
+{
+    if (str.empty() || g_replaceMap.empty()) {
+        return;
+    }
+    for (const auto& [key,value] : g_replaceMap) {
+        size_t pos = 0;
+        if ((pos = str.find(key, pos)) != std::string::npos) {
+            str.replace(pos, key.length(), value);
+        }
+    }
+}
+
 void InitUpdaterLogger(const std::string &tag, const std::string &logFile, const std::string &stageFile,
     const std::string &errorCodeFile)
 {
@@ -63,7 +81,7 @@ void InitUpdaterLogger(const std::string &tag, const std::string &logFile, const
 UpdaterLogger::~UpdaterLogger()
 {
     std::string str = oss_.str();
-    if (g_logLevel > level_) {
+    if (g_logLevel > level_ || replaceFunc_ == nullptr) {
         return;
     }
     pid_t tid = 0;
@@ -75,7 +93,7 @@ UpdaterLogger::~UpdaterLogger()
     oss_ << std::endl << std::flush;
     if (g_updaterLog.is_open()) {
         std::lock_guard<std::mutex> lock(g_updaterLogLock);
-        str = ReplaceLog(str);
+        replaceFunc_(str);
         g_updaterLog << realTime_ <<  " " << g_logTag << " " <<  tid << " "
             << logLevelMap_[level_] << " " << str << std::endl << std::flush;
     }
@@ -107,21 +125,6 @@ void GetFormatTime(char time[], int size)
         tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,
         static_cast<int>(tv.tv_usec / 1000)); // need div 1000
 #endif
-}
-
-std::string UpdaterLogger::ReplaceLog(const std::string& str) {
-    if(str.empty() || replaceMap_.empty()) {
-        return str;
-    }
-    std::string result = str;
-    for (const auto& [key, value] : replaceMap_) {
-        size_t pos = 0;
-        while ((pos = result.find(key, pos)) != std::string::npos) {
-            result.replace(pos, key.length(), value);
-            pos += value.length();
-        }
-    }
-    return result;
 }
 
 std::ostream& UpdaterLogger::OutputUpdaterLog(const std::string &path, int line)
