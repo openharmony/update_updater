@@ -21,7 +21,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
-#include <map>
+#include <functional>
 #include "error_code.h"
 
 namespace Updater {
@@ -29,12 +29,16 @@ namespace Updater {
 #undef ERROR
 #endif
 
+void ReplaceLog(std::string &str);
+
 constexpr size_t MIN_UPDATE_SPACE = 50 * 1024 * 1024;
 constexpr int MAX_TIME_SIZE = 20;
-extern std::map<std::string, std::string> replaceMap_;
 #define UPDATER_LOG_FILE_NAME \
     ((strrchr((__FILE_NAME__), '/') != nullptr) ? strrchr((__FILE_NAME__), '/') + 1 : (__FILE_NAME__))
 #define LOG(level) UpdaterLogger(level).OutputUpdaterLog((UPDATER_LOG_FILE_NAME), (__LINE__))
+// log for sensitive information
+#define LOG_SEN(level) UpdaterLogger(level, ReplaceLog).OutputUpdaterLog((UPDATER_LOG_FILE_NAME), (__LINE__))
+#define LOG_LITE_SEN(level) UpdaterLoggerLite(level, ReplaceLog).OutputUpdaterLog()
 #define LOG_LITE(level) UpdaterLoggerLite(level).OutputUpdaterLog()
 #define STAGE(stage) StageLogger(stage).OutputUpdaterStage()
 #define ERROR_CODE(code) ErrorCode(code).OutputErrorCode((UPDATER_LOG_FILE_NAME), (__LINE__), (code))
@@ -54,6 +58,11 @@ enum {
     UPDATE_STAGE_OUT,
 };
 
+using ReplaceLogType = std::unordered_map<std::string, std::string>;
+using ReplaceFunc = std::function<void(std::string &)>;
+
+void SetReplaceMap(const ReplaceLogType &replaceMap);
+
 void SetLogLevel(int level);
 
 void InitUpdaterLogger(const std::string &tag, const std::string &logFile, const std::string &stageFile,
@@ -67,15 +76,16 @@ class UpdaterLogger {
 public:
     explicit UpdaterLogger(int level) : level_(level) {}
 
+    explicit UpdaterLogger(int level, ReplaceFunc replaceFunc) : level_(level), replaceFunc_(replaceFunc) {}
+
     virtual ~UpdaterLogger();
 
     std::ostream& OutputUpdaterLog(const std::string &path, int line);
-
-    std::string ReplaceLog(const std::string& str);
 protected:
     int level_;
     std::stringstream oss_;
     char realTime_[MAX_TIME_SIZE] = {0};
+    ReplaceFunc replaceFunc_ {[](std::string &str) {}};
     static inline std::unordered_map<int, std::string> logLevelMap_ = {
         { DEBUG, "D" },
         { INFO, "I" },
@@ -88,6 +98,8 @@ protected:
 class UpdaterLoggerLite : public UpdaterLogger {
 public:
     explicit UpdaterLoggerLite(int level) : UpdaterLogger(level) {}
+
+    explicit UpdaterLoggerLite(int level, ReplaceFunc replaceFunc) : UpdaterLogger(level, replaceFunc) {}
 
     std::ostream& OutputUpdaterLog();
 };
