@@ -301,7 +301,7 @@ int RawImgProcessor::RawImageWriteProcessor(const PkgBuffer &buffer, size_t size
 int32_t SkipImgProcessor::PreProcess(Uscript::UScriptEnv &env)
 {
     std::string partitionName = name_;
-    LOG(INFO) << "SkipImgProcessor::PreProcess " << partitionName;
+    LOG_SEN(INFO) << "SkipImgProcessor::PreProcess " << partitionName;
     if (env.GetPkgManager() == nullptr) {
         LOG(ERROR) << "Error to get pkg manager";
         return USCRIPT_ERROR_EXECUTE;
@@ -379,7 +379,7 @@ int32_t SkipImgProcessor::PostProcess(Uscript::UScriptEnv &env)
     PartitionRecord::GetInstance().RecordPartitionUpdateStatus(name_, true);
     DataWriter::ReleaseDataWriter(writer_);
     totalSize_ = 0;
-    LOG(INFO) << name_ << " SkipImgProcess finish";
+    LOG_SEN(INFO) << name_ << " SkipImgProcess finish";
     return USCRIPT_SUCCESS;
 }
 }
