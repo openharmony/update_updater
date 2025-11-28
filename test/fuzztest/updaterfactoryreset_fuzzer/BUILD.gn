@@ -83,6 +83,7 @@ ohos_fuzztest("UpdaterFactoryResetFuzzTest") {
   sources = [
     "${updater_path}/services/updater_main.cpp",
     "${updater_path}/test/fuzztest/utils/fuzz_utils.cpp",
+    "${updater_path}/services/trace/io_collect.cpp",
     "updaterfactoryreset_fuzzer.cpp",
   ]
 }

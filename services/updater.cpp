@@ -45,6 +45,8 @@
 #include "ptable_parse/ptable_manager.h"
 #endif
 #include "scope_guard.h"
+#include "slot_info/slot_info.h"
+#include "trace/io_collect.h"
 #include "updater/hardware_fault_retry.h"
 #include "updater/updater_preprocess.h"
 #include "updater/updater_const.h"
@@ -52,7 +54,6 @@
 #include "updater_ui_stub.h"
 #include "utils.h"
 #include "write_state/write_state.h"
-#include "slot_info/slot_info.h"
 
 namespace Updater {
 using Updater::Utils::SplitString;
@@ -578,6 +579,7 @@ void HandleChildOutput(const std::string &buffer, int32_t bufferLen, bool &retry
             g_percentage = static_cast<int>(frac * FULL_PERCENT_PROGRESS);
         }
     } else if (outputHeader == "set_progress") {
+        CollectTmpProcessIo(upParams.binaryPid);
         SetProgress(output, upParams);
     } else if (outputHeader == "set_binary_tids") {
         UpdateBinaryTids(output, upParams);
@@ -654,6 +656,7 @@ UpdaterStatus CheckProcStatus(UpdaterParams &upParams, bool retryUpdate)
     ON_SCOPE_EXIT(resetBinaryPid) {
         upParams.binaryPid = -1;
     };
+    CollectTotalProcessIo(upParams.binaryPid);
     if (waitpid(upParams.binaryPid, &status, 0) == -1) {
         LOG(ERROR) << "waitpid error";
         return UPDATE_ERROR;
@@ -765,6 +768,7 @@ UpdaterStatus StartUpdaterProc(PkgManager::PkgManagerPtr pkgManager, UpdaterPara
         close(pipeRead);   // close read endpoint
         ExcuteSubProc(upParams, fullPath, pipeWrite);
     }
+    ResetCollectTmpIo();
     upParams.binaryPid = pid;
     close(pipeWrite); // close write endpoint
     bool retryUpdate = false;

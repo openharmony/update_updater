@@ -46,8 +46,8 @@ constexpr const char* ON_SERVER = "ON_SERVER";
 template<class T>
 T String2Int(const std::string &str, int base = N_HEX)
 {
-    static_assert(std::is_same_v<T, int> || std::is_same_v<T, size_t> || std::is_same_v<T, unsigned long long int>,
-                  "type should be int or size_t or unsigned long long int");
+    static_assert(std::is_same_v<T, int> || std::is_same_v<T, size_t> || std::is_same_v<T, unsigned long long int> ||
+        std::is_same_v<T, int64_t>, "type should be int or size_t or unsigned long long int");
     char *end = nullptr;
     if (str.empty()) {
         errno = EINVAL;
@@ -61,6 +61,8 @@ T String2Int(const std::string &str, int base = N_HEX)
         result = strtol(str.c_str(), &end, base);
     } else if constexpr (std::is_same_v<T, size_t> || std::is_same_v<T, unsigned long long int>) {
         result = strtoull(str.c_str(), &end, base);
+    } else if constexpr (std::is_same_v<T, int64_t>) {
+        result = strtoll(str.c_str(), &end, base);
     } else {
         errno = EINVAL;
     }
