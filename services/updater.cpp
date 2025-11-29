@@ -504,6 +504,12 @@ UpdaterStatus DoInstallUpdaterPackage(PkgManager::PkgManagerPtr pkgManager, Upda
     return updateRet;
 }
 
+__attribute__((weak)) void ReportPID([[maybe_unused]] const pid_t &pid, [[maybe_unused]] const int &reportMode)
+{
+    LOG(INFO) << "ReportPID";
+    return;
+}
+
 namespace {
 void SetProgress(const std::vector<std::string> &output, UpdaterParams &upParams)
 {
@@ -654,6 +660,7 @@ UpdaterStatus CheckProcStatus(UpdaterParams &upParams, bool retryUpdate)
 {
     int status;
     ON_SCOPE_EXIT(resetBinaryPid) {
+        ReportPID(upParams.binaryPid, 0);
         upParams.binaryPid = -1;
     };
     CollectTotalProcessIo(upParams.binaryPid);
@@ -724,6 +731,13 @@ static std::string GetFullPath(PkgManager::PkgManagerPtr pkgManager, UpdaterPara
     if (chmod(fullPath.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) != 0) {
         LOG(ERROR) << "Failed to change mode";
     }
+#ifdef WITH_SELINUX
+    Restorecon(fullPath.c_str());
+#endif // WITH_SELINUX
+    if (!EnableCodeSignForBinary(fullPath)) {
+        LOG(ERROR) << "Failed to sign for binary";
+        return "";
+    }
     return fullPath;
 }
 
@@ -744,10 +758,7 @@ UpdaterStatus StartUpdaterProc(PkgManager::PkgManagerPtr pkgManager, UpdaterPara
     int pipeRead = pfd[0];
     int pipeWrite = pfd[1];
     std::string fullPath = GetFullPath(pkgManager, upParams);
-#ifdef WITH_SELINUX
-    Restorecon(fullPath.c_str());
-#endif // WITH_SELINUX
-    if (!EnableCodeSignForBinary(fullPath)) {
+    if (fullPath == "") {
         LOG(ERROR) << "Failed to sign for binary";
         UPDATER_LAST_WORD(UPDATE_ERROR, "Failed to sign for binary");
         return UPDATE_ERROR;
@@ -770,6 +781,7 @@ UpdaterStatus StartUpdaterProc(PkgManager::PkgManagerPtr pkgManager, UpdaterPara
     }
     ResetCollectTmpIo();
     upParams.binaryPid = pid;
+    ReportPID(upParams.binaryPid, 1);
     close(pipeWrite); // close write endpoint
     bool retryUpdate = false;
     if (HandlePipeMsg(upParams, pipeRead, retryUpdate) != UPDATE_SUCCESS) {
