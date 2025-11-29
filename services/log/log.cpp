@@ -61,7 +61,7 @@ void ReplaceLog(std::string &str)
     if (str.empty() || g_replaceMap.empty()) {
         return;
     }
-    for (const auto& [key,value] : g_replaceMap) {
+    for (const auto& [key, value] : g_replaceMap) {
         size_t pos = 0;
         if ((pos = str.find(key, pos)) != std::string::npos) {
             str.replace(pos, key.length(), value);
