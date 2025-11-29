@@ -20,6 +20,7 @@
 #include <limits>
 #include <memory>
 #include "dump.h"
+#include "log/log.h"
 #include "openssl_util.h"
 #include "pkg_verify_util.h"
 #include "pkg_lz4file.h"
@@ -30,7 +31,6 @@
 #include "pkg_zipfile.h"
 #include "securec.h"
 #include "utils.h"
-#include "log/log.h"
 #include "updater/updater_const.h"
 
 #define TLV_CHECK_AND_RETURN(tlv, tlvType, len, fileLen)                                         \
