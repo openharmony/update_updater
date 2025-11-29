@@ -242,9 +242,9 @@ int32_t UScriptInstructionBinFlowWrite::ProcessBinFile(Uscript::UScriptEnv &env,
         // 根据镜像名称获取分区名称和大小
         std::string partitionName = iter;
         const FileInfo *info = manager->GetFileInfo(partitionName);
-        LOG(INFO) << " start process Component " << partitionName << " unpackedSize " << info->unpackedSize;
+        LOG_SEN(INFO) << " start process Component " << partitionName << " unpackedSize " << info->unpackedSize;
         if (info == nullptr || ComponentProcess(env, stream, partitionName, *info) != USCRIPT_SUCCESS) {
-            LOG(ERROR) << "Error to process " << partitionName;
+            LOG_SEN(ERROR) << "Error to process " << partitionName;
             return USCRIPT_ERROR_EXECUTE;
         }
     }
@@ -303,7 +303,7 @@ int32_t UScriptInstructionBinFlowWrite::ComponentProcess(Uscript::UScriptEnv &en
 
     if ((processor == nullptr && fileInfo.resType == UPGRADE_FILE_COMP_OTHER_TPYE) ||
         !IsMatchedCsEsIamge(fileInfo)) {
-        LOG(INFO) << name << " comp is not register and comp file is not image, or not match cs es image, skip";
+        LOG_SEN(INFO) << name << " comp is not register and comp file is not image, or not match cs es image, skip";
         processor.reset();
         processor = std::make_unique<SkipImgProcessor>(name, fileSize);
     }

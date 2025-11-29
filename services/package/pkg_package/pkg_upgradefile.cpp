@@ -20,6 +20,7 @@
 #include <limits>
 #include <memory>
 #include "dump.h"
+#include "log/log.h"
 #include "openssl_util.h"
 #include "pkg_verify_util.h"
 #include "pkg_lz4file.h"
@@ -630,8 +631,9 @@ int32_t UpgradePkgFile::SaveEntry(const PkgBuffer &buffer, size_t &parsedLen, Up
 
     info.dataOffset += entry->GetFileInfo()->packedSize;
     pkgInfo_.pkgInfo.entryCount++;
-    PKG_LOGI("Component offset: %zu %zu packed %zu unpacked %zu %s", headerOffset, dataOffset,
-        entry->GetFileInfo()->packedSize, entry->GetFileInfo()->unpackedSize, entry->GetFileInfo()->identity.c_str());
+    PKG_LOGSEN(Updater::INFO) << "Component offset: " << headerOffset << " " << dataOffset << " packed "
+        << entry->GetFileInfo()->packedSize << " unpacked " << entry->GetFileInfo()->unpackedSize
+        << " " << entry->GetFileInfo()->identity.c_str();
     return PKG_SUCCESS;
 }
 
@@ -954,11 +956,11 @@ int32_t UpgradeFileEntry::Unpack(PkgStreamPtr outStream)
             return Verify(buffer, len, offset);
         });
     if (ret != PKG_SUCCESS) {
-        PKG_LOGE("Fail Decompress for %s", fileName_.c_str());
+        PKG_LOGSEN(Updater::INFO) << "Fail Decompress for " << fileName_.c_str();
         return ret;
     }
-    PKG_LOGI("Unpack %s data offset:%zu packedSize:%zu unpackedSize:%zu", fileName_.c_str(), dataOffset_,
-        fileInfo_.fileInfo.packedSize, fileInfo_.fileInfo.unpackedSize);
+    PKG_LOGSEN(Updater::INFO) << "Unpack " << fileName_.c_str() << " data offset:" << dataOffset_
+        << " packedSize:" << fileInfo_.fileInfo.packedSize << " unpackedSize:" << fileInfo_.fileInfo.unpackedSize;
     outStream->Flush(fileInfo_.fileInfo.unpackedSize);
     return PKG_SUCCESS;
 }
