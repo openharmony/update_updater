@@ -16,12 +16,12 @@
 #define UPDATE_LOG_H__
 
 #include <cstring>
+#include <functional>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <unordered_map>
-#include <functional>
 #include "error_code.h"
 
 namespace Updater {
