@@ -504,6 +504,12 @@ UpdaterStatus DoInstallUpdaterPackage(PkgManager::PkgManagerPtr pkgManager, Upda
     return updateRet;
 }
 
+__attribute__((weak)) void ReportPID([[maybe_unused]] const pid_t &pid, [[maybe_unused]] const int &reportMode)
+{
+    LOG(INFO) << "ReportPID";
+    return;
+}
+
 namespace {
 void SetProgress(const std::vector<std::string> &output, UpdaterParams &upParams)
 {
@@ -654,6 +660,7 @@ UpdaterStatus CheckProcStatus(UpdaterParams &upParams, bool retryUpdate)
 {
     int status;
     ON_SCOPE_EXIT(resetBinaryPid) {
+        ReportPID(upParams.binaryPid, 0);
         upParams.binaryPid = -1;
     };
     CollectTotalProcessIo(upParams.binaryPid);
@@ -770,6 +777,7 @@ UpdaterStatus StartUpdaterProc(PkgManager::PkgManagerPtr pkgManager, UpdaterPara
     }
     ResetCollectTmpIo();
     upParams.binaryPid = pid;
+    ReportPID(upParams.binaryPid, 1);
     close(pipeWrite); // close write endpoint
     bool retryUpdate = false;
     if (HandlePipeMsg(upParams, pipeRead, retryUpdate) != UPDATE_SUCCESS) {
