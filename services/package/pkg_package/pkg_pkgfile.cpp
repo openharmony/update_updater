@@ -17,13 +17,13 @@
 #include <limits>
 #include <memory>
 #include "dump.h"
+#include "log/log.h"
 #include "pkg_gzipfile.h"
 #include "pkg_lz4file.h"
 #include "pkg_stream.h"
 #include "pkg_upgradefile.h"
 #include "pkg_utils.h"
 #include "pkg_zipfile.h"
-#include "log/log.h"
 
 namespace Hpackage {
 PkgFileImpl::~PkgFileImpl()
