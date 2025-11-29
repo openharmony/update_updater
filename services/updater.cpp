@@ -731,6 +731,13 @@ static std::string GetFullPath(PkgManager::PkgManagerPtr pkgManager, UpdaterPara
     if (chmod(fullPath.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) != 0) {
         LOG(ERROR) << "Failed to change mode";
     }
+#ifdef WITH_SELINUX
+    Restorecon(fullPath.c_str());
+#endif // WITH_SELINUX
+    if (!EnableCodeSignForBinary(fullPath)) {
+        LOG(ERROR) << "Failed to sign for binary";
+        return "";
+    }
     return fullPath;
 }
 
@@ -751,10 +758,7 @@ UpdaterStatus StartUpdaterProc(PkgManager::PkgManagerPtr pkgManager, UpdaterPara
     int pipeRead = pfd[0];
     int pipeWrite = pfd[1];
     std::string fullPath = GetFullPath(pkgManager, upParams);
-#ifdef WITH_SELINUX
-    Restorecon(fullPath.c_str());
-#endif // WITH_SELINUX
-    if (!EnableCodeSignForBinary(fullPath)) {
+    if (fullPath == "") {
         LOG(ERROR) << "Failed to sign for binary";
         UPDATER_LAST_WORD(UPDATE_ERROR, "Failed to sign for binary");
         return UPDATE_ERROR;
