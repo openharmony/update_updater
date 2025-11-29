@@ -121,7 +121,6 @@ impl<T: Default + ReadLeBytes> TLVStruct for HashHeader<T> {
         }
 
         self.image_name = String::from_utf8(Vec::from(&buffer[0..32])).unwrap().trim_end_matches('\0').to_owned();
-        updaterlog!(INFO, "HashHeader  read_from_le_bytes image_name {}", self.image_name);
         self.hash_num = u16::from_le_bytes(buffer[32..34].try_into().unwrap());
         self.img_size =  T::read_le_bytes(&buffer[34..]);
         true
