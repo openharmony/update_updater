@@ -1,0 +1,6 @@
+UPDATE_HDI_IMPL_1.0 {
+    global:
+        GetInterfaceInstance;
+    local:
+        *;
+};

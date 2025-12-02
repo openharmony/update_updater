@@ -21,6 +21,15 @@ ohos_shared_library("libupdate_hdi_impl") {
   include_dirs = [ "${updater_path}/interfaces/kits/include" ]
 
   deps = []
+
+  ldflags = [
+    "-Wl,--version-script=" +
+      rebase_path("${updater_path}/services/hdi/server/libupdate_hdi_impl.map", root_build_dir),
+  ]
+  public_configs = [
+    "${updater_path}/config/shared_library:updater_shared_config"
+  ]
+
   install_images = [ "updater" ]
   subsystem_name = "updater"
   part_name = "updater"

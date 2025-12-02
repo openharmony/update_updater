@@ -54,7 +54,16 @@ ohos_shared_library("libupdater_shared") {
     "platformsdk",
     "sasdk",
   ]
-  public_configs = [ ":libring_buffer_headers" ]
+
+  ldflags = [
+    "-Wl,--version-script=" +
+      rebase_path("${updater_path}/interfaces/kits/updaterkits/libupdater_shared.map", root_build_dir),
+  ]
+  public_configs = [
+    ":libring_buffer_headers",
+    "${updater_path}/config/shared_library:updater_shared_config"
+  ]
+
   install_enable = true
   install_images = [
     "system",

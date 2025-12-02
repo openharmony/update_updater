@@ -1,0 +1,10 @@
+PACKAGE_SHARED_1.0 {
+    global:
+        CreatePackage;
+        VerifyPackage;
+        VerifyPackageWithCallback;
+        ExtraPackageDir;
+        ExtraPackageFile;
+    local:
+        *;
+};

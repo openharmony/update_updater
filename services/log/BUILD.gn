@@ -39,7 +39,14 @@ ohos_shared_library("libupdaterlog_shared") {
     "${updater_path}/utils/include",
   ]
 
-  public_configs = [ ":log_config" ]
+  ldflags = [
+    "-Wl,--version-script=" +
+      rebase_path("${updater_path}/services/log/libupdaterlog_shared.map", root_build_dir),
+  ]
+  public_configs = [
+    ":log_config",
+    "${updater_path}/config/shared_library:updater_shared_config"
+  ]
 
   external_deps = [ "bounds_checking_function:libsec_static" ]
 

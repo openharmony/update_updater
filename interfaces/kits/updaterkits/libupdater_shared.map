@@ -1,0 +1,8 @@
+UPDATER_SHARED_1.0 {
+    global:
+        _Z29RebootAndInstallSdcardPackage*;
+        _Z30RebootAndInstallUpgradePackage*;
+        _Z22RebootAndCleanUserData*;
+    local:
+        *;
+};
