@@ -201,6 +201,7 @@ pub unsafe extern fn check_data_hash_template<T>(img_hash_data: *const ImgHashDa
     };
 
     let hash_value_vec: Vec<u8> = unsafe {Vec::from_raw_parts(hash_value as *mut u8, len, len)};
+    updater!(DEBUG, "check_data_hash, img_name: {}, start: {}, hash_value_vec: {:?}", img_name, start, hash_value_vec);
     let is_valid = hash_data.check_img_hash(img_name, start, end, &hash_value_vec[..]);
     std::mem::forget(hash_value_vec);
     is_valid
