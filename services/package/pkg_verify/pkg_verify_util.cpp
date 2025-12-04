@@ -210,30 +210,28 @@ std::string PkgVerifyUtil::GetPkgTime(const std::string &pkgPath) const
     return fileInfo;
 }
 
-void PkgVerifyUtil::WriteHash(std::vector<uint8_t> &hash, const std::string &pkgPath) const
+void PkgVerifyUtil::RecordHash(const std::string &orgHash, const std::string &hash,
+    const std::string &pkgPath) const
 {
     Updater::UPDATER_INIT_RECORD;
     std::string path = "/data/updater/hash_file";
     if (access(path.c_str(), F_OK) != 0) {
-        std::ofstream file(path, std::ios::out);
+        std::ofstream file(path);
         if (!file) {
             PKG_LOGE("open file failed");
             return;
         }
-        file.write(reinterpret_cast<char *>(hash.data()), sizeof(hash));
+        file << hash << std::endl;
         return;
     }
-    std::ifstream file(path, std::ios::in);
+    std::ifstream file(path);
     if (!file) {
         PKG_LOGE("open file failed");
         return;
     }
     std::string lastHash {};
-    if (getline(file, lastHash)) {
-        std::vector<unsigned char> lastHashVector {};
-        lastHashVector.assign(lastHash.begin(), lastHash.end());
-        UPDATER_LAST_WORD(ConvertShaHex(static_cast<std::vector<uint8_t>>(lastHashVector)),
-                          ConvertShaHex(hash), GetPkgTime(pkgPath));
+    if (getline(file, lastHash) && !lastHash.empty()) {
+        UPDATER_LAST_WORD(PKG_INVALID_DIGEST, orgHash, lastHash, hash, GetPkgTime(pkgPath));
     }
 }
 
@@ -262,11 +260,12 @@ int32_t PkgVerifyUtil::HashCheck(const PkgStreamPtr srcData, const size_t dataLe
     }
 
     if (memcmp(hash.data(), sourceDigest.data(), digestLen) != EOK) {
-        PKG_LOGW("Failed to memcmp data.");
+        PKG_LOGW("Failed to memcmp data. %lu", dataLen);
         UPDATER_LAST_WORD(PKG_INVALID_DIGEST,
                           ConvertShaHex(hash).substr(0, INTERCEPT_HASH_LENGTH),
                           ConvertShaHex(sourceDigest).substr(0, INTERCEPT_HASH_LENGTH), fileInfo);
-        WriteHash(sourceDigest, path);
+        RecordHash(ConvertShaHex(hash).substr(0, INTERCEPT_HASH_LENGTH),
+            ConvertShaHex(sourceDigest).substr(0, INTERCEPT_HASH_LENGTH), path);
         return PKG_INVALID_DIGEST;
     }
 
