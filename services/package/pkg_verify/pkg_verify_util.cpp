@@ -232,8 +232,6 @@ void PkgVerifyUtil::RecordHash(const std::string &orgHash, const std::string &ha
     std::string lastHash {};
     if (getline(file, lastHash) && !lastHash.empty()) {
         UPDATER_LAST_WORD(PKG_INVALID_DIGEST, orgHash, lastHash, hash, GetPkgTime(pkgPath));
- 
- 
     }
 }
 
