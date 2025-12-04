@@ -210,7 +210,7 @@ std::string PkgVerifyUtil::GetPkgTime(const std::string &pkgPath) const
     return fileInfo;
 }
 
-void PkgVerifyUtil::WriteHash(std::vector<uint8_t> &hash, const std::string &pkgPath) const
+void PkgVerifyUtil::Write123Hash(std::vector<uint8_t> &hash, const std::string &pkgPath) const
 {
     Updater::UPDATER_INIT_RECORD;
     std::string path = "/data/updater/hash_file";
