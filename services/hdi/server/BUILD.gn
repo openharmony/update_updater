@@ -22,10 +22,8 @@ ohos_shared_library("libupdate_hdi_impl") {
 
   deps = []
 
-  ldflags = [
-    "-Wl,--version-script=" +
-      rebase_path("${updater_path}/services/hdi/server/libupdate_hdi_impl.map", root_build_dir),
-  ]
+  version_script = "libupdate_hdi_impl.versionscript"
+
   public_configs = [
     "${updater_path}/config/shared_library:updater_shared_config"
   ]

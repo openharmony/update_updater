@@ -35,10 +35,8 @@ ohos_shared_library("libpackage_shared") {
     "${updater_path}/utils/include",
   ]
 
-  ldflags = [
-    "-Wl,--version-script=" +
-      rebase_path("${updater_path}/interfaces/kits/packages/libpackage_shared.map", root_build_dir),
-  ]
+  version_script = "libpackage_shared.versionscript"
+
   public_configs = [
     ":libpackageExt_exported_headers",
     "${updater_path}/config/shared_library:updater_shared_config"
