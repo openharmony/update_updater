@@ -166,7 +166,8 @@ static int HandleCommand(int argc, char** argv, struct UpdateMessage& boot, stru
     } else if (strcmp(argv[1], "updater") == 0) {
         return ExceptionUpdater(argc, argv, boot);
     } else if (strcmp(argv[1], "user_factory_reset") == 0) {
-        if (strncpy_s(boot.update, sizeof(boot.update), "--user_wipe_data", sizeof(boot.update) - 1) != 0) {
+        if (strncpy_s(boot.update, sizeof(boot.update), "--user_wipe_data\n--reset_enter:211",
+            sizeof(boot.update) - 1) != 0) {
             cout << "strncpy_s failed!" << endl;
             return -1;
         }
