@@ -46,7 +46,11 @@ ohos_static_library("libutils") {
 
   public_configs = [ ":libutils_exported_headers" ]
 
-  deps = []
+  deps = [
+    "${updater_path}/services/fs_manager:libfsmanager",
+    "${updater_path}/interfaces/kits/misc_info:libmiscinfo",
+    "${updater_path}/services/package:libupdaterpackage",
+  ]
   external_deps = [
     "bounds_checking_function:libsec_static",
     "cJSON:cjson_static",
