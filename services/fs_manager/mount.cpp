@@ -78,7 +78,7 @@ void SetRealUserdataBlockDevice()
         if (item->deviceName != std::string("/dev/block/by-name/userdata")) {
             continue;
         }
-        if (UpdateUserDataMEDevice(item) == nullptr) {
+        if (UpdateUserDataMEDevice(item) != 0) {
             LOG(ERROR) << "UpdateUserDataMEDevice failed, item is nullptr.";
         }
     }
