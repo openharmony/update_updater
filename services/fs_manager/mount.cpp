@@ -68,6 +68,22 @@ MountStatus GetMountStatusForPath(const std::string &path)
 }
 #endif
 
+void SetRealUserdataBlockDevice()
+{
+    if (g_fstab == nullptr) {
+        LOG(ERROR) << "g_fstab is nullptr";
+        return;
+    }
+    for (FstabItem *item = g_fstab->head; item != nullptr; item = item->next) {
+        if (item->deviceName != std::string("/dev/block/by-name/userdata")) {
+            continue;
+        }
+        if (UpdateUserDataMEDevice(item) != 0) {
+            LOG(ERROR) << "UpdateUserDataMEDevice failed, item is nullptr.";
+        }
+    }
+}
+
 void LoadFstab()
 {
     std::string fstabFile = g_defaultUpdaterFstab;
@@ -86,6 +102,7 @@ void LoadFstab()
         LOG(WARNING) << "Read " << fstabFile << " failed";
         return;
     }
+    SetRealUserdataBlockDevice();
 
     LOG(DEBUG) << "Updater filesystem config info:";
     for (FstabItem *item = g_fstab->head; item != nullptr; item = item->next) {
