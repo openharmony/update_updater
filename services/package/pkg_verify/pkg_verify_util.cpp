@@ -215,6 +215,7 @@ void PkgVerifyUtil::RecordHash(const std::string &orgHash, const std::string &ha
 {
     Updater::UPDATER_INIT_RECORD;
     std::string path = "/data/updater/hash_file";
+    stat 
     if (access(path.c_str(), F_OK) != 0) {
         std::ofstream file(path);
         if (!file) {
