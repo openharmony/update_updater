@@ -215,15 +215,15 @@ void PkgVerifyUtil::RecordHash(const std::string &orgHash, const std::string &ha
 {
     Updater::UPDATER_INIT_RECORD;
     std::string path = "/data/updater/hash_file";
-    stat 
-    if (access(path.c_str(), F_OK) != 0) {
-        std::ofstream file(path);
+    const size_t maxFileLen = 128;
+    struct stat st {};
+    if (stat(path.c_str(), &st) != 0 || st.st_size < maxFileLen) {
+        std::ofstream file(path, std::ios::app);
         if (!file) {
             PKG_LOGE("open file failed");
             return;
         }
-        file << hash << std::endl;
-        return;
+        file << orgHash << "," << hash << std::endl;
     }
     std::ifstream file(path);
     if (!file) {
@@ -231,8 +231,8 @@ void PkgVerifyUtil::RecordHash(const std::string &orgHash, const std::string &ha
         return;
     }
     std::string lastHash {};
-    if (getline(file, lastHash) && !lastHash.empty()) {
-        UPDATER_LAST_WORD(PKG_INVALID_DIGEST, orgHash, lastHash, hash, GetPkgTime(pkgPath));
+    if (getline(file, lastHash) && !lastHash.empty() && st.st_size < maxFileLen) {
+        UPDATER_LAST_WORD(PKG_INVALID_DIGEST, lastHash, GetPkgTime(pkgPath));
     }
 }
 
