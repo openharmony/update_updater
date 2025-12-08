@@ -228,7 +228,7 @@ void PkgVerifyUtil::RecordHash(const std::string &orgHash, const std::string &ha
             PKG_LOGE("open file failed");
             return;
         }
-        if (stat == 0 && st.st_size != 0) {
+        if (ret == 0 && st.st_size != 0) {
             file << ",";
         }
         file << orgHash << "," << hash;
