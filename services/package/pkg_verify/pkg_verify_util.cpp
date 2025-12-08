@@ -133,6 +133,10 @@ int32_t PkgVerifyUtil::VerifyPackageSign(const PkgStreamPtr pkgStream, const std
         srcDataLen = pkgStream->GetFileLength() - signatureSize - ZIP_EOCD_FIXED_PART_LEN;
         ret = HashCheck(pkgStream, srcDataLen, hash, path);
     }
+    // add dump
+    if (ret == PKG_INVALID_DIGEST) {
+        GetRecordHash(path);
+    }
     if (ret == PKG_SUCCESS) {
         UPDATER_CLEAR_RECORD;
     }
@@ -277,7 +281,7 @@ int32_t PkgVerifyUtil::HashCheck(const PkgStreamPtr srcData, const size_t dataLe
                           ConvertShaHex(hash).substr(0, INTERCEPT_HASH_LENGTH),
                           ConvertShaHex(sourceDigest).substr(0, INTERCEPT_HASH_LENGTH), fileInfo);
         RecordHash(ConvertShaHex(hash).substr(0, INTERCEPT_HASH_LENGTH),
-            ConvertShaHex(sourceDigest).substr(0, INTERCEPT_HASH_LENGTH), path);
+            ConvertShaHex(sourceDigest).substr(0, INTERCEPT_HASH_LENGTH));
         return PKG_INVALID_DIGEST;
     }
 
