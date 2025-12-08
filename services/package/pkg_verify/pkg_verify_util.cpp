@@ -221,13 +221,14 @@ void PkgVerifyUtil::RecordHash(const std::string &orgHash, const std::string &ha
 {
     Updater::UPDATER_INIT_RECORD;
     struct stat st {};
-    if (stat(HASH_PATH.c_str(), &st) != 0 || static_cast<size_t>(st.st_size) < HASH_CONTENT_SIZE) {
+    int ret = stat(HASH_PATH.c_str(), &st);
+    if (ret != 0 || static_cast<size_t>(st.st_size) < HASH_CONTENT_SIZE) {
         std::ofstream file(HASH_PATH, std::ios::app);
         if (!file) {
             PKG_LOGE("open file failed");
             return;
         }
-        if (st.st_size != 0) {
+        if (stat == 0 && st.st_size != 0) {
             file << ",";
         }
         file << orgHash << "," << hash;
