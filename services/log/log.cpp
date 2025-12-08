@@ -89,7 +89,7 @@ UpdaterLogger::~UpdaterLogger()
     std::string cpu_id_tag = "[" + std::to_string(cpu_id) + "]";
 #ifndef DIFF_PATCH_SDK
     HiLogBasePrint(LOG_CORE, (LogLevel)level_, UPDATER_DOMAIN, g_logTag.c_str(), "[%{public}d] %{public}s",
-        cput_id, str.c_str());
+        cpu_id, str.c_str());
     tid = gettid();
 #endif
     oss_.str("");
