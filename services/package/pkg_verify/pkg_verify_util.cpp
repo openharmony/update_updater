@@ -17,6 +17,7 @@
 #include <ctime>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "dump.h"
 #include "openssl_util.h"
 #include "pkcs7_signed_data.h"
@@ -33,6 +34,8 @@ constexpr uint32_t ZIP_EOCD_FIXED_PART_LEN = 22;
 constexpr uint32_t PKG_FOOTER_SIZE = 6;
 constexpr uint32_t PKG_HASH_CONTENT_LEN = SHA256_DIGEST_LENGTH;
 constexpr uint32_t INTERCEPT_HASH_LENGTH = 8;
+const std::string HASH_PATH = "/data/updater/hash_file";
+constexpr size_t HASH_CONTENT_SIZE = 128;
 }
 
 int32_t PkgVerifyUtil::VerifySourceDigest(std::vector<uint8_t> &signature, std::vector<uint8_t> &sourceDigest,
@@ -130,6 +133,10 @@ int32_t PkgVerifyUtil::VerifyPackageSign(const PkgStreamPtr pkgStream, const std
         srcDataLen = pkgStream->GetFileLength() - signatureSize - ZIP_EOCD_FIXED_PART_LEN;
         ret = HashCheck(pkgStream, srcDataLen, hash, path);
     }
+    // add dump
+    if (ret == PKG_INVALID_DIGEST) {
+        GetRecordHash(path);
+    }
     if (ret == PKG_SUCCESS) {
         UPDATER_CLEAR_RECORD;
     }
@@ -210,28 +217,38 @@ std::string PkgVerifyUtil::GetPkgTime(const std::string &pkgPath) const
     return fileInfo;
 }
 
-void PkgVerifyUtil::RecordHash(const std::string &orgHash, const std::string &hash,
-    const std::string &pkgPath) const
+void PkgVerifyUtil::RecordHash(const std::string &orgHash, const std::string &hash) const
 {
     Updater::UPDATER_INIT_RECORD;
-    std::string path = "/data/updater/hash_file";
-    if (access(path.c_str(), F_OK) != 0) {
-        std::ofstream file(path);
+    struct stat st {};
+    int ret = stat(HASH_PATH.c_str(), &st);
+    if (ret != 0 || static_cast<size_t>(st.st_size) < HASH_CONTENT_SIZE) {
+        std::ofstream file(HASH_PATH, std::ios::app);
         if (!file) {
             PKG_LOGE("open file failed");
             return;
         }
-        file << hash << std::endl;
-        return;
+        if (ret == 0 && st.st_size != 0) {
+            file << ",";
+        }
+        file << orgHash << "," << hash;
+        file.flush();
     }
-    std::ifstream file(path);
+}
+
+void PkgVerifyUtil::GetRecordHash(const std::string &pkgPath) const
+{
+    Updater::UPDATER_INIT_RECORD;
+    struct stat st {};
+    std::ifstream file(HASH_PATH);
     if (!file) {
         PKG_LOGE("open file failed");
         return;
     }
     std::string lastHash {};
-    if (getline(file, lastHash) && !lastHash.empty()) {
-        UPDATER_LAST_WORD(PKG_INVALID_DIGEST, orgHash, lastHash, hash, GetPkgTime(pkgPath));
+    if (stat(HASH_PATH.c_str(), &st) == 0 && static_cast<size_t>(st.st_size) < HASH_CONTENT_SIZE &&
+        getline(file, lastHash) && !lastHash.empty()) {
+        UPDATER_LAST_WORD(PKG_INVALID_DIGEST, lastHash, GetPkgTime(pkgPath));
     }
 }
 
@@ -265,7 +282,7 @@ int32_t PkgVerifyUtil::HashCheck(const PkgStreamPtr srcData, const size_t dataLe
                           ConvertShaHex(hash).substr(0, INTERCEPT_HASH_LENGTH),
                           ConvertShaHex(sourceDigest).substr(0, INTERCEPT_HASH_LENGTH), fileInfo);
         RecordHash(ConvertShaHex(hash).substr(0, INTERCEPT_HASH_LENGTH),
-            ConvertShaHex(sourceDigest).substr(0, INTERCEPT_HASH_LENGTH), path);
+            ConvertShaHex(sourceDigest).substr(0, INTERCEPT_HASH_LENGTH));
         return PKG_INVALID_DIGEST;
     }
 

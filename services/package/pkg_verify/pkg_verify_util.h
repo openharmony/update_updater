@@ -51,8 +51,8 @@ public:
 
     std::string GetPkgTime(const std::string &pkgPath) const;
 
-    void RecordHash(const std::string &orgHash, const std::string &hash,
-        const std::string &pkgPath) const;
+    void RecordHash(const std::string &orgHash, const std::string &hash) const;
+    void GetRecordHash(const std::string &pkgPath) const;
 private:
     bool isOldSigSupport_ {true};
 };
