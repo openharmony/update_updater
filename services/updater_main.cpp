@@ -1372,9 +1372,9 @@ static UpdaterStatus StartUpdater(const std::vector<std::string> &args,
 // add updater mode
 REGISTER_MODE(Updater, "updater.hdc.configfs");
 
-__attribute__((weak)) bool IsNeedWipe()
+__attribute__((weak)) const char* GetResetMisc()
 {
-    return false;
+    return "";
 }
 
 __attribute__((weak)) bool NotifySdUpdateReboot(const UpdaterParams &upParams)
@@ -1386,6 +1386,7 @@ __attribute__((weak)) bool NotifySdUpdateReboot(const UpdaterParams &upParams)
     if (upParams.sdExtMode == SDCARD_UPDATE_FROM_DATA) {
         std::string extData = "--user_wipe_data\n--";
         extData += ERASE_LOG_OEMINFO;
+        extData += RESET_MESSAGE_INFO;
         NotifyReboot("updater", "Updater wipe data after upgrade success", extData);
         return true;
     }
@@ -1404,8 +1405,9 @@ void RebootAfterUpdateSuccess(const UpdaterParams &upParams, const std::vector<s
         LOG(INFO) << "Need reboot to updater again.";
         NotifyReboot("updater", "Updater update dev node after upgrade success when ptable change", extData);
     }
-    if (IsNeedWipe()) {
-        NotifyReboot("updater", "Updater wipe data after upgrade success", "--user_wipe_data");
+    std::string resetData = GetResetMisc();
+    if (!resetData.empty()) {
+        NotifyReboot("updater", "Updater wipe data after upgrade success", resetData);
         return;
     }
     if (NotifySdUpdateReboot(upParams)) {
