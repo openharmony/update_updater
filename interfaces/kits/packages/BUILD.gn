@@ -35,12 +35,7 @@ ohos_shared_library("libpackage_shared") {
     "${updater_path}/utils/include",
   ]
 
-  version_script = "libpackage_shared.versionscript"
-
-  public_configs = [
-    ":libpackageExt_exported_headers",
-    "${updater_path}/config/shared_library:updater_shared_config"
-  ]
+  public_configs = [ ":libpackageExt_exported_headers" ]
 
   deps = [
     "${updater_path}/services/log:libupdaterlog_shared",

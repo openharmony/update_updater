@@ -54,14 +54,7 @@ ohos_shared_library("libupdater_shared") {
     "platformsdk",
     "sasdk",
   ]
-
-  version_script = "libupdater_shared.versionscript"
-
-  public_configs = [
-    ":libring_buffer_headers",
-    "${updater_path}/config/shared_library:updater_shared_config"
-  ]
-
+  public_configs = [ ":libring_buffer_headers" ]
   install_enable = true
   install_images = [
     "system",
