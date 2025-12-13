@@ -206,7 +206,7 @@ int32_t DiffAndMoveCommandFn::WriteFileToBlock(const Command &params, std::vecto
     }
     std::unique_ptr<uint8_t[]> patchBuffer = std::make_unique<uint8_t[]>(patchLength);
     (void)memset_s(patchBuffer.get(), patchLength, 0, patchLength);
-    if ((!fin.seekg(static_cast<int>(offset), std::ios::beg)) ||
+    if ((!fin.seekg(static_cast<int64_t>(offset), std::ios::beg)) ||
         (!fin.read(reinterpret_cast<char *>(patchBuffer.get()), patchLength))) {
         LOG(ERROR) << "read dat file failed gcount " << fin.gcount() << ", patch len " << patchLength;
         fin.close();
