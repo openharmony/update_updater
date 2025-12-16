@@ -242,11 +242,11 @@ int32_t UScriptInstructionBinFlowWrite::ProcessBinFile(Uscript::UScriptEnv &env,
         // 根据镜像名称获取分区名称和大小
         std::string partitionName = iter;
         const FileInfo *info = manager->GetFileInfo(partitionName);
-        LOG_SEN(INFO) << " start process Component " << partitionName << " unpackedSize " << info->unpackedSize;
         if (info == nullptr || ComponentProcess(env, stream, partitionName, *info) != USCRIPT_SUCCESS) {
             LOG_SEN(ERROR) << "Error to process " << partitionName;
             return USCRIPT_ERROR_EXECUTE;
         }
+        LOG_SEN(INFO) << " start process Component " << partitionName << " unpackedSize " << info->unpackedSize;
     }
     CANCEL_SCOPE_EXIT_GUARD(failExecute);
     CANCEL_SCOPE_EXIT_GUARD(streamStop);
