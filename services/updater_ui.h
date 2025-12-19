@@ -24,5 +24,6 @@
 
 namespace Updater {
 void DoProgress();
+void SDUpdateNoDelay();
 } // namespace Updater
 #endif /* UPDATE_UI_HOS_UPDATER_H */

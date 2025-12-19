@@ -104,7 +104,7 @@ DEFINE_ASYN_CALLBACK(OnLabelSDCardEvt)
     NotifyReboot("", "Updater sdcard update success reboot");
 }
 
-DEFINE_ASYN_CALLBACK(OnLabelSDCardNoDelayEvt)
+void SDUpdateNoDelay()
 {
     LOG(INFO) << "On Label SDCard No Delay";
     if (!GetFacade().SetMode(UPDATERMODE_SDCARD)) {
@@ -126,6 +126,11 @@ DEFINE_ASYN_CALLBACK(OnLabelSDCardNoDelayEvt)
     Utils::UsSleep(SUCCESS_DELAY);
     PostUpdater(true);
     NotifyReboot("", "Updater sdcard update success reboot");
+}
+
+DEFINE_ASYN_CALLBACK(OnLabelSDCardNoDelayEvt)
+{
+    SDUpdateNoDelay();
 }
 
 DEFINE_ASYN_CALLBACK(OnLabelSDUpdateResEvt)
