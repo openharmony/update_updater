@@ -253,7 +253,7 @@ int32_t Pkcs7SignedData::GetDigestFromContentInfo(std::vector<uint8_t> &digestBl
     offset += static_cast<size_t>(sizeof(uint16_t));
     if ((GetDigestLength(algoId) != digestLen) || ((digestLen + offset) != digestBlock.size())) {
         PKG_LOGE("invalid digestLen[%zu] and digestBlock len[%zu]", digestLen, digestBlock.size());
-        UPDATER_LAST_WORD(-1, "invalid digestLen[%zu] and digestBlock len[%zu]", digestLen, digestBlock.size());
+        UPDATER_LAST_WORD(-1, "invalid digestLen and digestBlock len is ", digestLen, digestBlock.size());
         return -1;
     }
     digest_.assign(digestBlock.begin() + offset, digestBlock.end());
@@ -331,7 +331,7 @@ int32_t Pkcs7SignedData::ReadSig(const uint8_t *sourceData, const uint32_t sourc
     int signerInfoNum = sk_PKCS7_SIGNER_INFO_num(p7SignerInfos);
     if (signerInfoNum <= 0) {
         PKG_LOGE("invalid signers info num %d!", signerInfoNum);
-        UPDATER_LAST_WORD(PKCS7_INVALID_VALUE_ERR, "invalid signers info num %d!", signerInfoNum);
+        UPDATER_LAST_WORD(PKCS7_INVALID_VALUE_ERR, "invalid signers info num ", signerInfoNum);
         return PKCS7_INVALID_VALUE_ERR;
     }
     for (int i = 0; i < signerInfoNum; i++) {

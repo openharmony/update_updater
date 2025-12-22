@@ -56,7 +56,7 @@ int32_t ZipPkgParse::DoParseZipPkg(PkgStreamPtr pkgStream, PkgSignComment &pkgSi
     size_t eocdTotalLen = ZIP_EOCD_FIXED_PART_LEN + signCommentTotalLen;
     if (fileLen <= eocdTotalLen) {
         PKG_LOGE("Invalid eocd len[%zu]", eocdTotalLen);
-        UPDATER_LAST_WORD(PKG_INVALID_PKG_FORMAT, "Invalid eocd len[%zu]", eocdTotalLen);
+        UPDATER_LAST_WORD(PKG_INVALID_PKG_FORMAT, "Invalid eocd len ", eocdTotalLen);
         return PKG_INVALID_PKG_FORMAT;
     }
 
@@ -142,7 +142,7 @@ int32_t ZipPkgParse::ParsePkgFooter(const uint8_t *footer, size_t length,
     if (signFooter.signDataFlag != PKG_ZIP_EOCD_FOOTER_FLAG) {
         PKG_LOGE("error FooterFlag[0x%04X], start is %zu, size is %zu, len is %zu, offset is %zu",
             signFooter.signDataFlag, signFooter.signDataStart, signFooter.signDataSize, length, offset);
-        UPDATER_LAST_WORD(PKG_INVALID_PKG_FORMAT, "flag 0x%04X, start %zu, size %zu, len %zu, offset %zu",
+        UPDATER_LAST_WORD(PKG_INVALID_PKG_FORMAT, "signFooter.signDataFlag != PKG_ZIP_EOCD_FOOTER_FLAG",
             signFooter.signDataFlag, signFooter.signDataStart, signFooter.signDataSize, length, offset);
         return PKG_INVALID_PKG_FORMAT;
     }
