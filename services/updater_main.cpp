@@ -1398,6 +1398,11 @@ __attribute__((weak)) void NotifyAutoReboot(PackageUpdateMode &mode)
     return;
 }
 
+__attribute__((weak)) void DeleteOtaPkg([[maybe_unused]] const UpdaterParams &upParams)
+{
+    LOG(INFO) << "Delete ota package";
+}
+
 void RebootAfterUpdateSuccess(const UpdaterParams &upParams, const std::vector<std::string> &args)
 {
     std::string extData;
@@ -1413,6 +1418,9 @@ void RebootAfterUpdateSuccess(const UpdaterParams &upParams, const std::vector<s
     if (NotifySdUpdateReboot(upParams)) {
         LOG(INFO) << "sd update and wipe data";
         return;
+    }
+    if (upParams.updateMode == HOTA_UPDATE) {
+        DeleteOtaPkg(upParams);
     }
     upParams.forceUpdate ? Utils::DoShutdown("Updater update success go shut down") :
         NotifyReboot("", "Updater update success");
