@@ -1419,9 +1419,7 @@ void RebootAfterUpdateSuccess(const UpdaterParams &upParams, const std::vector<s
         LOG(INFO) << "sd update and wipe data";
         return;
     }
-    if (upParams.updateMode == HOTA_UPDATE) {
-        DeleteOtaPkg(upParams);
-    }
+    DeleteOtaPkg(upParams);
     upParams.forceUpdate ? Utils::DoShutdown("Updater update success go shut down") :
         NotifyReboot("", "Updater update success");
 }
