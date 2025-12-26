@@ -87,6 +87,7 @@ bool PostUpdateSyncProcess([[maybe_unused]] bool isOtaUpdate, [[maybe_unused]] c
 void UpdaterVerifyFailEntry(bool verifyret);
 bool IsSpareBoardBoot(void);
 const char* GetResetMisc();
+void DeleteOtaPkg([[maybe_unused]] const UpdaterParams &upParams);
 void NotifyAutoReboot(PackageUpdateMode &mode);
 bool NotifySdUpdateReboot(const UpdaterParams &upParams);
 void NotifyReboot(const std::string& rebootTarget, const std::string &rebootReason, const std::string &extData = "");
