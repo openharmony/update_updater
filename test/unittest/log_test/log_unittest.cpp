@@ -94,7 +94,7 @@ class UpdaterLoggerTest : public UpdaterLogger {
 public:
     explicit UpdaterLoggerTest(int level) : UpdaterLogger(level) {}
 
-    std::string GetLogText()
+    std::string GetLogText() const
     {
         return oss_.str();
     }
@@ -116,7 +116,7 @@ class UpdaterLoggerLiteTest : public UpdaterLoggerLite {
 public:
     explicit UpdaterLoggerLiteTest(int level) : UpdaterLoggerLite(level) {}
 
-    std::string GetLogText()
+    std::string GetLogText() const
     {
         return oss_.str();
     }
