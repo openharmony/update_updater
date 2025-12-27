@@ -24,8 +24,8 @@ class LogUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
+    void SetUp() const;
+    void TearDown() const;
 };
 } // updater_ut
 #endif /* UPDATER_LOG_UNITTEST_H */
