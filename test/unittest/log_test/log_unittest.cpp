@@ -36,12 +36,12 @@ void LogUnitTest::TearDownTestCase(void)
     cout << "TearDownTestCase" << endl;
 }
 
-void LogUnitTest::SetUp() const
+void LogUnitTest::SetUp()
 {
     SetLogLevel(INFO);
 }
 
-void LogUnitTest::TearDown() const
+void LogUnitTest::TearDown()
 {
 }
 
