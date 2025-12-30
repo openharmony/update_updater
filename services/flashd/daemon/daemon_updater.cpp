@@ -35,7 +35,7 @@ DaemonUpdater::DaemonUpdater(HTaskInfo hTaskInfo) : HdcTransferBase(hTaskInfo)
 
 DaemonUpdater::~DaemonUpdater()
 {
-    FLASHD_LOGI("~DaemonUpdater refCount %d", refCount);
+    FLASHD_LOGI("~DaemonUpdater refCount %d", refCount.load());
 }
 
 bool DaemonUpdater::CommandDispatch(const uint16_t command, uint8_t *payload, const int payloadSize)
@@ -206,7 +206,7 @@ InvalidDaemon::InvalidDaemon(HTaskInfo hTaskInfo) : HdcTransferBase(hTaskInfo)
 
 InvalidDaemon::~InvalidDaemon()
 {
-    FLASHD_LOGI("~InvalidDaemon refCount %d", refCount);
+    FLASHD_LOGI("~InvalidDaemon refCount %d", refCount.load());
 }
 
 bool InvalidDaemon::CommandDispatch(const uint16_t command, uint8_t *payload, const int payloadSize)
