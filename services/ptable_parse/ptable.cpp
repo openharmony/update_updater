@@ -766,7 +766,7 @@ void Ptable::PrintPtableChanges(const std::vector<Ptable::PtnInfo> &ptnInfo)
             PrintPartition(i, ptnInfo[i]);
         }
         // Prevent log overflow issues caused by excessive hilog printing frequency.
-        constexpr int waitMilliseconds = 350;
+        constexpr int waitMilliseconds = 500;
         std::this_thread::sleep_for(std::chrono::milliseconds(waitMilliseconds));
     }
     LOG(INFO) << "ptnInfo : ===========================================";
