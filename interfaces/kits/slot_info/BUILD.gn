@@ -30,7 +30,6 @@ ohos_static_library("libslotinfo") {
     external_deps = [
       "c_utils:utils",
       "drivers_peripheral_partitionslot:libpartition_slot_manager",
-      "hilog:libhilog_base",
       "init:libbegetutil_static",
     ]
   }

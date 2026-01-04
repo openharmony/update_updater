@@ -29,24 +29,6 @@
 #include "updater_env.h"
 #include <cstdarg>
 #include <securec.h>
-#include "hilog/log.h"
-
-constexpr int64_t MAX_BUF_SIZE = 1024;
-
-int HiLogPrint(LogType type, LogLevel level, unsigned int domain, const char *tag, const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    char buf[MAX_BUF_SIZE] = {0};
-    if (vsnprintf_s(buf, MAX_BUF_SIZE, MAX_BUF_SIZE - 1, fmt, ap) == -1) {
-        va_end(ap);
-        return 0;
-    }
-    va_end(ap);
-    /* save log to log partition */
-    printf("%s", buf);
-    return 0;
-}
 
 using namespace Uscript;
 using namespace Hpackage;
