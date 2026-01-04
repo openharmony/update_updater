@@ -22,8 +22,7 @@
 #include <unistd.h>
 #include <mutex>
 #ifndef DIFF_PATCH_SDK
-#include "hilog_base/log_base.h"
-#include "vsnprintf_s_p.h"
+#include <log_base.h>
 #endif
 #include "securec.h"
 
@@ -180,23 +179,6 @@ void Logger(int level, const char* fileName, int32_t line, const char* format, .
     }
     UpdaterLogger(level).OutputUpdaterLog(fileName, line) << buff;
 }
-
-#ifndef DIFF_PATCH_SDK
-// used for external module to adapt %{private|public} format log to updater log
-void UpdaterHiLogger(int level, const char* fileName, int32_t line, const char* format, ...)
-{
-    char buf[MAX_LOG_LEN] = {0};
-    va_list list;
-    va_start(list, format);
-    int size = vsnprintfp_s(buf, MAX_LOG_LEN, MAX_LOG_LEN - 1, true, format, list);
-    va_end(list);
-    if (size < EOK) {
-        UpdaterLogger(level).OutputUpdaterLog(fileName, line) << "vsnprintfp_s failed " << size;
-    } else {
-        UpdaterLogger(level).OutputUpdaterLog(fileName, line) << std::string(buf, size);
-    }
-}
-#endif
 
 std::ostream& ErrorCode::OutputErrorCode(const std::string &path, int line, UpdaterErrorCode code)
 {
