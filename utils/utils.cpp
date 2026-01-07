@@ -49,7 +49,6 @@ using namespace Hpackage;
 namespace Utils {
 constexpr uint8_t SHIFT_RIGHT_FOUR_BITS = 4;
 constexpr int MAX_TIME_SIZE = 20;
-constexpr size_t PARAM_SIZE = 32;
 constexpr const char *PREFIX_PARTITION_NODE = "/dev/block/by-name/";
 constexpr mode_t DEFAULT_DIR_MODE = 0775;
 constexpr long MAX_FILE_LENGTH = 4096;

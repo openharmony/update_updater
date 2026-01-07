@@ -121,6 +121,8 @@ UpdaterStatus StartUpdaterProc(Hpackage::PkgManager::PkgManagerPtr pkgManager,
 
 int GetUpdatePackageInfo(Hpackage::PkgManager::PkgManagerPtr pkgManager, const std::string& path);
 
+std::string GetCurrentPackagePath(const UpdaterParams &upParams);
+
 int ExecUpdate(Hpackage::PkgManager::PkgManagerPtr pkgManager, int retry, const std::string &pkgPath,
     PostMessageFunction postMessage);
 

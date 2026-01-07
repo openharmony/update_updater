@@ -35,6 +35,7 @@ constexpr int N_BIN = 2;
 constexpr int N_OCT = 8;
 constexpr int N_DEC = 10;
 constexpr int N_HEX = 16;
+constexpr size_t PARAM_SIZE = 32;
 constexpr int O_USER_GROUP_ID = 1000;
 constexpr int ARGC_TWO_NUMS = 2;
 constexpr int USER_ROOT_AUTHORITY = 0;
