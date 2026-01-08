@@ -325,7 +325,7 @@ int32_t USInstrImageShaCheck::CheckHash(const CheckPara &para)
 int32_t USInstrImageShaCheck::ExecuteShaCheck(Uscript::UScriptEnv &env, Uscript::UScriptContext &context)
 {
     UPDATER_INIT_RECORD;
-    if (env.IsRetry() && !Utils::CheckFaultInfo(VERIFY_FAILED_REBOOT)) {
+    if (env.IsRetry() && Utils::IsUpdaterMode() && !Utils::CheckFaultInfo(VERIFY_FAILED_REBOOT)) {
         return USCRIPT_SUCCESS;
     }
 

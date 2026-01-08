@@ -751,7 +751,7 @@ int32_t UScriptInstructionShaCheck::Execute(Uscript::UScriptEnv &env, Uscript::U
         UPDATER_LAST_WORD(USCRIPT_INVALID_PARAM, "Invalid param");
         return ReturnAndPushParam(USCRIPT_INVALID_PARAM, context);
     }
-    if (env.IsRetry() && !Utils::CheckFaultInfo(VERIFY_FAILED_REBOOT)) {
+    if (env.IsRetry() && Utils::IsUpdaterMode() && !Utils::CheckFaultInfo(VERIFY_FAILED_REBOOT)) {
         return ReturnAndPushParam(USCRIPT_SUCCESS, context);
     }
 

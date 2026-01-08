@@ -111,10 +111,11 @@ bool TransferManager::CommandsParser(int fd, const std::vector<std::string> &con
         }
         if (!retryCmd.empty() && transferParams_->env->IsRetry()) {
             if (*ct == retryCmd) {
+                LOG(INFO) << "Start Retry from Command: " << retryCmd;
                 retryCmd.clear();
             }
             if (cmd->GetCommandType() != CommandType::NEW) {
-                LOG(INFO) << "Retry: Command " << *ct << " passed";
+                LOG(DEBUG) << "Retry: Command " << *ct << " passed";
                 continue;
             }
         }
