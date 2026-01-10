@@ -260,7 +260,7 @@ void UpdaterDoReboot(const std::string& rebootTarget, const std::string &rebootR
             LOG(INFO) << "UpdaterDoReboot: WriteUpdaterMiscMsg error";
         }
     }
-    UmountUserdata()
+    UmountUserdata();
     sync();
 #ifndef UPDATER_UT
     DoRebootExt(rebootTarget.c_str(), rebootReason.c_str());
@@ -279,7 +279,7 @@ void DoShutdown(const std::string &shutdownReason)
         LOG(ERROR) << "DoShutdown: WriteUpdaterMessage empty error";
         return;
     }
-    UmountUserdata()
+    UmountUserdata();
     sync();
     DoRebootExt("shutdown", shutdownReason.c_str());
 }
