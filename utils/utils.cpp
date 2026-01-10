@@ -225,6 +225,20 @@ bool SetRebootMisc(const std::string& rebootTarget, const std::string &extData, 
     return true;
 }
 
+void UmountUserdata()
+{
+#ifndef UPDATER_UT
+    LOG(INFO) << "Umount data start";
+    sync();
+    if (UmountForPath("/data") != 0) {
+        LOG(WARNING) << "Umount /data fail";
+    }
+    if (UmountForPath(INTERNAL_DATA_PATH) != 0) {
+        LOG(WARNING) << "Umount " << INTERNAL_DATA_PATH << " fail";
+    }
+#else
+}
+
 void UpdaterDoReboot(const std::string& rebootTarget, const std::string &rebootReason, const std::string &extData)
 {
     LOG(INFO) << ", rebootTarget: " << rebootTarget;
@@ -246,6 +260,7 @@ void UpdaterDoReboot(const std::string& rebootTarget, const std::string &rebootR
             LOG(INFO) << "UpdaterDoReboot: WriteUpdaterMiscMsg error";
         }
     }
+    UmountUserdata()
     sync();
 #ifndef UPDATER_UT
     DoRebootExt(rebootTarget.c_str(), rebootReason.c_str());
@@ -264,6 +279,7 @@ void DoShutdown(const std::string &shutdownReason)
         LOG(ERROR) << "DoShutdown: WriteUpdaterMessage empty error";
         return;
     }
+    UmountUserdata()
     sync();
     DoRebootExt("shutdown", shutdownReason.c_str());
 }
