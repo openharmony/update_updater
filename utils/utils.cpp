@@ -236,7 +236,7 @@ void UmountUserdata()
     if (UmountForPath(INTERNAL_DATA_PATH) != 0) {
         LOG(WARNING) << "Umount " << INTERNAL_DATA_PATH << " fail";
     }
-#else
+#endif
 }
 
 void UpdaterDoReboot(const std::string& rebootTarget, const std::string &rebootReason, const std::string &extData)
