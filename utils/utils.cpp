@@ -229,7 +229,6 @@ void UmountUserdata()
 {
 #ifndef UPDATER_UT
     LOG(INFO) << "Umount data start";
-    sync();
     if (UmountForPath("/data") != 0) {
         LOG(WARNING) << "Umount /data fail";
     }
