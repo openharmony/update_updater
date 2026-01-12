@@ -1276,6 +1276,41 @@ std::string VectorToString(const std::vector<pid_t> &pids)
     return oss.str();
 }
 
+bool GetBatteryCapacity(int &capacity)
+{
+    const static std::vector<const char *> vec = {
+        "/sys/class/power_supply/battery/capacity",
+        "/sys/class/power_supply/Battery/capacity"
+    };
+    for (auto &it : vec) {
+        std::ifstream ifs { it };
+        if (!ifs.is_open()) {
+            continue;
+        }
+
+        int tmpCapacity = 0;
+        ifs >> tmpCapacity;
+        if ((ifs.fail()) || (ifs.bad())) {
+            continue;
+        }
+
+        capacity = tmpCapacity;
+        return true;
+    }
+
+    return false;
+}
+
+bool RecordBatteryLevel()
+{
+    int capacity = 0;
+    if (!GetBatteryCapacity(capacity) {
+        LOG(WARNING) << "Maybe no battery or error value";
+        return;
+    }
+    LOG(ERROR) << "battery level is " << capacity;
+}
+
 #ifndef __WIN32
 void SetFileAttributes(const std::string& file, uid_t owner, gid_t group, mode_t mode)
 {
