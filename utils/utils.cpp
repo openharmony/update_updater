@@ -1301,7 +1301,7 @@ bool GetBatteryCapacity(int &capacity)
     return false;
 }
 
-bool RecordBatteryLevel()
+void RecordBatteryLevel()
 {
     int capacity = 0;
     if (!GetBatteryCapacity(capacity)) {
