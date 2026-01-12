@@ -225,6 +225,19 @@ bool SetRebootMisc(const std::string& rebootTarget, const std::string &extData, 
     return true;
 }
 
+void UmountUserdata()
+{
+#ifndef UPDATER_UT
+    LOG(INFO) << "Umount data start";
+    if (UmountForPath("/data") != 0) {
+        LOG(WARNING) << "Umount /data fail";
+    }
+    if (UmountForPath(INTERNAL_DATA_PATH) != 0) {
+        LOG(WARNING) << "Umount " << INTERNAL_DATA_PATH << " fail";
+    }
+#endif
+}
+
 void UpdaterDoReboot(const std::string& rebootTarget, const std::string &rebootReason, const std::string &extData)
 {
     LOG(INFO) << ", rebootTarget: " << rebootTarget;
@@ -246,6 +259,7 @@ void UpdaterDoReboot(const std::string& rebootTarget, const std::string &rebootR
             LOG(INFO) << "UpdaterDoReboot: WriteUpdaterMiscMsg error";
         }
     }
+    UmountUserdata();
     sync();
 #ifndef UPDATER_UT
     DoRebootExt(rebootTarget.c_str(), rebootReason.c_str());
@@ -264,6 +278,7 @@ void DoShutdown(const std::string &shutdownReason)
         LOG(ERROR) << "DoShutdown: WriteUpdaterMessage empty error";
         return;
     }
+    UmountUserdata();
     sync();
     DoRebootExt("shutdown", shutdownReason.c_str());
 }
@@ -1259,6 +1274,41 @@ std::string VectorToString(const std::vector<pid_t> &pids)
         oss << "," << *it++;
     }
     return oss.str();
+}
+
+bool GetBatteryCapacity(int &capacity)
+{
+    const static std::vector<const char *> vec = {
+        "/sys/class/power_supply/battery/capacity",
+        "/sys/class/power_supply/Battery/capacity"
+    };
+    for (auto &it : vec) {
+        std::ifstream ifs { it };
+        if (!ifs.is_open()) {
+            continue;
+        }
+
+        int tmpCapacity = 0;
+        ifs >> tmpCapacity;
+        if ((ifs.fail()) || (ifs.bad())) {
+            continue;
+        }
+
+        capacity = tmpCapacity;
+        return true;
+    }
+
+    return false;
+}
+
+void RecordBatteryLevel()
+{
+    int capacity = 0;
+    if (!GetBatteryCapacity(capacity)) {
+        LOG(WARNING) << "Maybe no battery or error value";
+        return;
+    }
+    LOG(ERROR) << "battery level is " << capacity;
 }
 
 #ifndef __WIN32

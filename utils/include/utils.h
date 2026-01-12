@@ -73,6 +73,7 @@ int32_t DeleteFile(const std::string& filename);
 std::vector<std::string> SplitString(const std::string &str, const std::string del = " \t");
 std::string Trim(const std::string &str);
 std::string ConvertSha256Hex(const uint8_t* shaDigest, size_t length);
+void UmountUserdata();
 void UpdaterDoReboot(const std::string& rebootTarget, const std::string &rebootReason,
     const std::string& extData = "");
 void DoShutdown(const std::string &shutdownReason);
@@ -129,6 +130,8 @@ std::string GetUpdateSuffix();
 std::string GetUpdateActiveSuffix();
 std::vector<pid_t> GetAllTids(pid_t pid);
 std::string VectorToString(const std::vector<pid_t> &pids);
+bool GetBatteryCapacity(int &capacity);
+void RecordBatteryLevel();
 #ifndef __WIN32
 void SetFileAttributes(const std::string& file, uid_t owner, gid_t group, mode_t mode);
 #endif

@@ -223,6 +223,7 @@ void PostUpdater(bool clearMisc)
     if (clearMisc && !ClearMisc()) {
         LOG(ERROR) << "PostUpdater clear misc failed";
     }
+    RecordBatteryLevel();
     if (!access(COMMAND_FILE, 0) && unlink(COMMAND_FILE) != 0) {
         LOG(ERROR) << "Delete command failed";
     }

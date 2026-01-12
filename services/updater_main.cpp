@@ -424,31 +424,6 @@ static UpdaterStatus VerifyPackages(UpdaterParams &upParams)
     return UPDATE_SUCCESS;
 }
 
-bool GetBatteryCapacity(int &capacity)
-{
-    const static std::vector<const char *> vec = {
-        "/sys/class/power_supply/battery/capacity",
-        "/sys/class/power_supply/Battery/capacity"
-    };
-    for (auto &it : vec) {
-        std::ifstream ifs { it };
-        if (!ifs.is_open()) {
-            continue;
-        }
-
-        int tmpCapacity = 0;
-        ifs >> tmpCapacity;
-        if ((ifs.fail()) || (ifs.bad())) {
-            continue;
-        }
-
-        capacity = tmpCapacity;
-        return true;
-    }
-
-    return false;
-}
-
 __attribute__((weak)) bool IsSpareBoardBoot(void)
 {
     LOG(INFO) << "no need check spareboardboot";
@@ -457,6 +432,7 @@ __attribute__((weak)) bool IsSpareBoardBoot(void)
 
 bool IsBatteryCapacitySufficient()
 {
+    RecordBatteryLevel();
     if (Utils::CheckUpdateMode(OTA_MODE)) {
         LOG(INFO) << "this is OTA update, on need to determine the battery";
         return true;
