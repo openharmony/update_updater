@@ -1304,7 +1304,7 @@ bool GetBatteryCapacity(int &capacity)
 bool RecordBatteryLevel()
 {
     int capacity = 0;
-    if (!GetBatteryCapacity(capacity) {
+    if (!GetBatteryCapacity(capacity)) {
         LOG(WARNING) << "Maybe no battery or error value";
         return;
     }
