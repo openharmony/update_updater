@@ -61,12 +61,4 @@ HWTEST_F(RecordInstallTimeUnittest, UpdaterRecordInstallTime, TestSize.Level1)
             Utils::DurationToString(params.installTime, i, 2)); // 2:precision
     }
 }
-
-HWTEST_F(RecordInstallTimeUnittest, UpdaterTestIsDouble, TestSize.Level1)
-{
-    std::string installTime = "12.11";
-    std::string exceptionData = "12.11.11";
-    EXPECT_EQ(IsDouble(installTime), true);
-    EXPECT_EQ(IsDouble(exceptionData), false);
-}
 }  // namespace

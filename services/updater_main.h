@@ -57,8 +57,6 @@ void WriteInstallTime(UpdaterParams &upParams);
 
 void ReadInstallTime(UpdaterParams &upParams);
 
-bool IsDouble(const std::string& str);
-
 UpdaterStatus InstallUpdaterPackages(UpdaterParams &upParams);
 
 int OtaUpdatePreCheck(Hpackage::PkgManager::PkgManagerPtr pkgManager, const std::string &packagePath);
