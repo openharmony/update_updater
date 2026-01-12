@@ -49,8 +49,6 @@ UpdaterStatus DoFactoryRstEntry(UpdaterParams &upParams);
 
 UpdaterStatus UpdaterFromSdcard(UpdaterParams &upParams);
 
-bool GetBatteryCapacity(int &capacity);
-
 bool IsBatteryCapacitySufficient();
 
 void DeleteInstallTimeFile();
