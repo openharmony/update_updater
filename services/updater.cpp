@@ -790,7 +790,7 @@ UpdaterStatus StartUpdaterProc(PkgManager::PkgManagerPtr pkgManager, UpdaterPara
     if (pid < 0) {
         ERROR_CODE(CODE_FORK_FAIL);
         upParams.binaryPid = -1;
-        UPDATER_LAST_WORD(UPDATE_ERROR, "fork failed");
+        UPDATER_LAST_WORD(UPDATE_ERROR, "fork failed, error no is ", errno);
         close(pipeRead);
         close(pipeWrite);
         return UPDATE_ERROR;
