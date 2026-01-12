@@ -432,6 +432,7 @@ __attribute__((weak)) bool IsSpareBoardBoot(void)
 
 bool IsBatteryCapacitySufficient()
 {
+    RecordBatteryLevel();
     if (Utils::CheckUpdateMode(OTA_MODE)) {
         LOG(INFO) << "this is OTA update, on need to determine the battery";
         return true;
