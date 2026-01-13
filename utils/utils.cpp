@@ -446,7 +446,7 @@ bool CopyFileBySendFile(const std::string &srcFile, const std::string &destFile)
 
     (void)memset_s(realPath, PATH_MAX + 1, 0, PATH_MAX + 1);
     std::string::size_type pos = destFile.find_last_of("/");
-    if (pos == std::string::npos || realpath(destFile.substr(0, pos + 1).c_str(), realPath) == nullptr) {
+    if (pos == std::string::npos || realpath(destFile.substr(0, pos).c_str(), realPath) == nullptr) {
         LOG(ERROR) << destFile << " dest file dir realpath fail";
         close(source);
         return false;
