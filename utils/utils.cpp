@@ -452,9 +452,10 @@ bool CopyFileBySendFile(const std::string &srcFile, const std::string &destFile)
         return false;
     }
 
-    int32_t dest = open(destFile.c_str(), O_WRONLY | O_CREAT, 0644); // 0644 : file permission
+    std::string destRealPath = std::string(realPath) + "/" + destFile.substr(pos + 1);
+    int32_t dest = open(destRealPath.c_str(), O_WRONLY | O_CREAT, 0644); // 0644 : file permission
     if (dest == -1) {
-        LOG(ERROR) << destFile << ", Open dest file fail, errno: " << errno;
+        LOG(ERROR) << destRealPath << ", Open dest file fail, errno: " << errno;
         close(source);
         return false;
     }
