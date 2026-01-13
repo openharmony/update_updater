@@ -443,6 +443,15 @@ bool CopyFileBySendFile(const std::string &srcFile, const std::string &destFile)
         LOG(ERROR) << srcFile << ", Open source file fail, errno: " << errno;
         return false;
     }
+
+    (void)memset_s(realPath, PATH_MAX + 1, 0, PATH_MAX + 1);
+    std::string::size_type pos = destFile.find_last_of("/");
+    if (pos == std::string::npos || realpath(destFile.substr(0, pos + 1).c_str(), realPath) == nullptr) {
+        LOG(ERROR) << destFile << " dest file dir realpath fail";
+        close(source);
+        return false;
+    }
+
     int32_t dest = open(destFile.c_str(), O_WRONLY | O_CREAT, 0644); // 0644 : file permission
     if (dest == -1) {
         LOG(ERROR) << destFile << ", Open dest file fail, errno: " << errno;
