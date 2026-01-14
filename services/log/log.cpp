@@ -85,20 +85,18 @@ UpdaterLogger::~UpdaterLogger()
         return;
     }
     pid_t tid = 0;
-    int cpu_id = 0;
 #ifndef DIFF_PATCH_SDK
-    cpu_id = sched_getcpu();
-    HiLogBasePrint(LOG_CORE, (LogLevel)level_, UPDATER_DOMAIN, g_logTag.c_str(), "[%{public}d] %{public}s",
-        cpu_id, str.c_str());
+    HiLogBasePrint(LOG_CORE, (LogLevel)level_, UPDATER_DOMAIN, g_logTag.c_str(), "%{public}s", str.c_str());
     tid = gettid();
 #endif
-    std::string cpu_id_tag = "[" + std::to_string(cpu_id) + "]";
     oss_.str("");
     oss_ << std::endl << std::flush;
     if (g_updaterLog.is_open()) {
         std::lock_guard<std::mutex> lock(g_updaterLogLock);
         replaceFunc_(str);
-        g_updaterLog << realTime_ <<  " " << g_logTag << " " << cpu_id_tag << " " <<  tid
+        int cpu_id = sched_getcpu();
+        std::string cpu_id_tag = "[" + std::to_string(cpu_id) + "]";
+        g_updaterLog << realTime_ <<  " " << g_logTag << cpu_id_tag <<  tid
             << " " << logLevelMap_[level_] << " " << str << std::endl << std::flush;
     }
 }
