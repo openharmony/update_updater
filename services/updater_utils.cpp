@@ -47,16 +47,6 @@ void DeleteInstallTimeFile()
         LOG(INFO) << "delete install time file";
     }
 }
-
-bool IsDouble(const std::string& str)
-{
-    std::regex pattern("^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$");
-    if (!std::regex_match(str, pattern)) {
-        LOG(ERROR) << "match double failed";
-        return false;
-    }
-    return true;
-}
  
 void WriteInstallTime(UpdaterParams &upParams)
 {
@@ -83,16 +73,12 @@ void ReadInstallTime(UpdaterParams &upParams)
         if (index >= upParams.pkgLocation) {
             break;
         }
-        if (IsDouble(buf)) {
-            double timeDistance = 0;
-            if (!Utils::ConvertToDouble(buf, timeDistance)) {
-                LOG(ERROR) << "ConvertToDouble failed";
-                return;
-            }
-            upParams.installTime[index++] = std::chrono::duration<double>(timeDistance);
-        } else {
-            LOG(ERROR) << "read install time is invalid";
+        double timeDistance = 0;
+        if (!Utils::ConvertToDouble(buf, timeDistance)) {
+            LOG(ERROR) << "ConvertToDouble failed";
+            return;
         }
+        upParams.installTime[index++] = std::chrono::duration<double>(timeDistance);
     }
 }
 
