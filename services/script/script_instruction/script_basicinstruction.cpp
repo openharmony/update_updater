@@ -192,7 +192,7 @@ int32_t UScriptInstructionDeleteDir::Execute(Uscript::UScriptEnv &env, Uscript::
             USCRIPT_LOGE("Failed to get param");
             return ret;
         }
-        char *realPath = realpath(path.c_str(), NULL);
+        char *realPath = realpath(path.c_str(), nullptr);
         if (realPath == nullptr) {
             USCRIPT_LOGE("realPath is nullptr");
             return -1;
