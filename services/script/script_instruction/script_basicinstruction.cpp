@@ -197,7 +197,8 @@ int32_t UScriptInstructionDeleteDir::Execute(Uscript::UScriptEnv &env, Uscript::
             USCRIPT_LOGE("realPath is nullptr");
             return -1;
         }
-        if (realPath.find("/data/update") != 0) {
+        std::string realPathStr(realPath);
+        if (realPathStr.find("/data/update") != 0) {
             free(realpath);
             continue;
         }
