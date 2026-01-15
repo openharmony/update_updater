@@ -199,6 +199,7 @@ int32_t UScriptInstructionDeleteDir::Execute(Uscript::UScriptEnv &env, Uscript::
         }
         std::string realPathStr(realPath);
         if (realPathStr.find("/data/updater") != 0) {
+            USCRIPT_LOGE("The realPath %s prefix is not /data/updater", realPath);
             free(realpath);
             continue;
         }
