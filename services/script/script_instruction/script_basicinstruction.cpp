@@ -192,8 +192,18 @@ int32_t UScriptInstructionDeleteDir::Execute(Uscript::UScriptEnv &env, Uscript::
             USCRIPT_LOGE("Failed to get param");
             return ret;
         }
-        USCRIPT_LOGI("delete dir %s", path.c_str());
-        ret = Updater::Utils::RemoveDir(path.c_str());
+        char *realPath = realpath(path.c_str(), nullptr);
+        if (realPath == nullptr) {
+            USCRIPT_LOGE("realPath is nullptr");
+            return -1;
+        }
+        if (realPath.find("/data/update") != 0) {
+            free(realpath);
+            continue;
+        }
+        USCRIPT_LOGI("delete dir %s", realPath);
+        ret = Updater::Utils::RemoveDir(realPath);
+        free(realPath);
         if (ret != USCRIPT_SUCCESS) {
             USCRIPT_LOGE("Failed to remove dir");
             return ret;
