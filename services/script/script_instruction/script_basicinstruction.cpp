@@ -198,7 +198,7 @@ int32_t UScriptInstructionDeleteDir::Execute(Uscript::UScriptEnv &env, Uscript::
             return -1;
         }
         std::string realPathStr(realPath);
-        if (realPathStr.find("/data/update") != 0) {
+        if (realPathStr.find("/data/updater") != 0) {
             free(realpath);
             continue;
         }
