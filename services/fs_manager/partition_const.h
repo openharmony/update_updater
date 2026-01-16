@@ -33,7 +33,7 @@ constexpr const char *SDB_DEV = "sdb";
 constexpr const char *MMC_PATH = "/dev/block/mmcblk0";
 constexpr const char *MMC_DEV = "mmcblk0";
 
-const std::string P_TYPE[] = {
+inline const std::string P_TYPE[] = {
     "GPT",
     "MBR",
 };
