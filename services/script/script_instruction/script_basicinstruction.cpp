@@ -195,7 +195,7 @@ int32_t UScriptInstructionDeleteDir::Execute(Uscript::UScriptEnv &env, Uscript::
         char *realPath = realpath(path.c_str(), nullptr);
         if (realPath == nullptr) {
             USCRIPT_LOGE("realPath is nullptr");
-            return -1;
+            return USCRIPT_ERROR_EXECUTE;
         }
         std::string realPathStr(realPath);
         if (realPathStr.find("/data/updater") != 0) {
@@ -206,9 +206,9 @@ int32_t UScriptInstructionDeleteDir::Execute(Uscript::UScriptEnv &env, Uscript::
         USCRIPT_LOGI("delete dir %s", realPath);
         ret = Updater::Utils::RemoveDir(realPath);
         free(realPath);
-        if (ret != USCRIPT_SUCCESS) {
+        if (ret == 0) {
             USCRIPT_LOGE("Failed to remove dir");
-            return ret;
+            return USCRIPT_ERROR_EXECUTE;
         }
     }
     return USCRIPT_SUCCESS;
