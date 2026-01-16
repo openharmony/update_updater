@@ -192,11 +192,23 @@ int32_t UScriptInstructionDeleteDir::Execute(Uscript::UScriptEnv &env, Uscript::
             USCRIPT_LOGE("Failed to get param");
             return ret;
         }
-        USCRIPT_LOGI("delete dir %s", path.c_str());
-        ret = Updater::Utils::RemoveDir(path.c_str());
-        if (ret != USCRIPT_SUCCESS) {
+        char *realPath = realpath(path.c_str(), nullptr);
+        if (realPath == nullptr) {
+            USCRIPT_LOGE("realPath is nullptr");
+            return USCRIPT_ERROR_EXECUTE;
+        }
+        std::string realPathStr(realPath);
+        if (realPathStr.find("/data/updater") != 0) {
+            USCRIPT_LOGE("The realPath %s prefix is not /data/updater", realPath);
+            free(realPath);
+            continue;
+        }
+        USCRIPT_LOGI("delete dir %s", realPath);
+        ret = Updater::Utils::RemoveDir(realPath);
+        free(realPath);
+        if (ret == 0) {
             USCRIPT_LOGE("Failed to remove dir");
-            return ret;
+            return USCRIPT_ERROR_EXECUTE;
         }
     }
     return USCRIPT_SUCCESS;
