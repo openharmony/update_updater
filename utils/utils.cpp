@@ -31,6 +31,7 @@
 #include <vector>
 #include "fs_manager/mount.h"
 #include "init_reboot.h"
+#include "log/dump.h"
 #include "log/log.h"
 #include "misc_info/misc_info.h"
 #ifdef WITH_SELINUX
@@ -319,16 +320,19 @@ bool WriteFully(int fd, const uint8_t *data, size_t size)
 
 bool ReadFully(int fd, void *data, size_t size)
 {
+    UPDATER_INIT_RECORD;
     auto p = reinterpret_cast<uint8_t *>(data);
     size_t remaining = size;
     while (remaining > 0) {
         ssize_t sread = read(fd, p, remaining);
         if (sread == -1) {
             LOG(ERROR) << "read failed: " << strerror(errno);
+            UPDATER_LAST_WORD("read failed: ", strerror(errno));
             return false;
         }
         if (sread == 0) {
-            LOG(ERROR) << "read reached unexpected EOF";
+            LOG(ERROR) << "read reached unexpected EOF " << strerror(errno);
+            UPDATER_LAST_WORD("read reached unexpected EOF: ", strerror(errno));
             return false;
         }
         p += sread;
