@@ -153,7 +153,7 @@ int SetParameter(const char *key, const char *value);
 extern "C" {
 #endif
 #endif
-void InitLogger(const std::string &tag, const bool &isComaress);
+void InitLogger(const std::string &tag, const bool &isCompress);
 #ifdef __cplusplus
 #if __cplusplus
 }
