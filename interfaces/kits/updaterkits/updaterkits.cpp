@@ -15,6 +15,7 @@
 #include "updaterkits/updaterkits.h"
 
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -170,6 +171,28 @@ static bool IsPackagePath(const std::string &path)
     return true;
 }
 
+static void WriteInodeToFile(const std::string &inode)
+{
+    std::string dirPath = UPDATER_INODE_PATH;
+    struct stat dirStat {};
+    Utils::RemoveDir(dirPath); // first to delete
+    if (stat(dirPath.c_str(), &dirStat) != 0) { // then remake dir
+        Utils::MkdirRecursive(dirPath.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    }
+    std::string filePath = dirPath + "/" + inode;
+    int fd = open(filePath.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    if (fd < 0) {
+        LOG(ERROR) << "updaterkits: open " << filePath << " failed";
+        return;
+    }
+    if (fsync(fd) != 0) {
+        LOG(ERROR) << "updaterkits: fsync " << filePath << " failed";
+        close(fd);
+        return;
+    }
+    close(fd);
+}
+
 static void UpdateOptExpand(std::string& updateOpt)
 {
     if (updateOpt.find("--shrink_info=") == std::string::npos &&
@@ -183,6 +206,7 @@ static void UpdateOptExpand(std::string& updateOpt)
     }
     std::string inode = std::to_string(fileStat.st_ino);
     updateOpt += "," + inode;
+    WriteInodeToFile(inode);
 }
 
 static int AddPkgPath(struct UpdateMessage &msg, size_t updateOffset, const std::vector<std::string> &packageName)
