@@ -210,7 +210,8 @@ void UfsPtable::UfsReadGptEntry(const uint8_t *gptImage, const uint32_t lun,
         data = gptImage + (partition0 + i) * blockSize;
         for (uint32_t j = 0; j < partEntryCnt; j++) {
             uint8_t typeGuid[GPT_PARTITION_TYPE_GUID_LEN] = {0};
-            if (memcpy_s(typeGuid, sizeof(typeGuid), &data[(j * PARTITION_ENTRY_SIZE)], sizeof(typeGuid)) != EOK) {
+            if (memcpy_s(typeGuid, sizeof(typeGuid), &data[(j * PARTITION_ENTRY_SIZE)],
+                GPT_PARTITION_TYPE_GUID_LEN) != EOK) {
                 LOG(ERROR) << "memcpy guid fail";
             }
             if (typeGuid[0] == 0x00 && typeGuid[1] == 0x00) { // 0x00 means no partition
@@ -230,7 +231,7 @@ void UfsPtable::UfsReadGptEntry(const uint8_t *gptImage, const uint32_t lun,
             ParsePartitionName(nameOffset, MAX_GPT_NAME_SIZE, newPtnInfo.dispName, MAX_GPT_NAME_SIZE / 2);
             SetPartitionType(newPtnInfo.dispName, newPtnInfo);
             (void)memcpy_s(newPtnInfo.partitionTypeGuid, sizeof(newPtnInfo.partitionTypeGuid),
-                typeGuid, sizeof(typeGuid));
+                typeGuid, GPT_PARTITION_TYPE_GUID_LEN);
             newPtnInfo.isTailPart = tailPartFlag;
             newPtnInfo.lun = lun;
             newPtnInfo.gptEntryBufOffset = static_cast<int>((partition0 + i) * blockSize + j * PARTITION_ENTRY_SIZE -
