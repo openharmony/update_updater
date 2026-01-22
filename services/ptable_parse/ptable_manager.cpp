@@ -130,16 +130,17 @@ bool PtableManager::IsPartitionChanged(const std::vector<Ptable::PtnInfo> &devic
     bool ret = false;
     if (devicePtnInfo[deviceIndex].startAddr != pkgPtnInfo[updateIndex].startAddr) {
         LOG(INFO) << partitionName << " start address is changed:";
-        LOG(INFO) << "[" << partitionName << "]: device ptable[" << deviceIndex << "] startAddr = 0x" <<
-            devicePtnInfo[deviceIndex].startAddr << ", in package ptable[" << updateIndex << "] startAddr is 0x" <<
-            pkgPtnInfo[updateIndex].startAddr;
+        LOG(INFO) << "[" << partitionName << "]: device ptable[" << deviceIndex <<
+            "] startAddr = 0x" << std::hex << devicePtnInfo[deviceIndex].startAddr <<
+            ", in package ptable[" << std::dec << updateIndex <<
+            "] startAddr is 0x" << std::hex << pkgPtnInfo[updateIndex].startAddr;
         ret = true;
     }
     if (devicePtnInfo[deviceIndex].partitionSize != pkgPtnInfo[updateIndex].partitionSize) {
         LOG(INFO) << partitionName << " partition size is changed:";
-        LOG(INFO) << "[" << partitionName << "]: device ptable[" << deviceIndex << "] partitionSize = 0x" <<
+        LOG(INFO) << "[" << partitionName << "]: device ptable[" << deviceIndex << "] partitionSize = " <<
             devicePtnInfo[deviceIndex].partitionSize << ", in package ptable[" << updateIndex <<
-            "] partitionSize is 0x" << pkgPtnInfo[updateIndex].partitionSize;
+            "] partitionSize is " << pkgPtnInfo[updateIndex].partitionSize;
         ret = true;
     }
     return ret;
@@ -165,17 +166,17 @@ bool PtableManager::IsPtableChanged(const std::vector<Ptable::PtnInfo> &devicePt
         }
         if (devicePtnInfo[i].startAddr != pkgPtnInfo[i].startAddr) {
             LOG(WARNING) << pkgPtnInfo[i].dispName << " start address is different:";
-            LOG(WARNING) << "Device ptable [" << devicePtnInfo[i].dispName << "] startAddr is 0x" <<
+            LOG(WARNING) << "Device ptable [" << devicePtnInfo[i].dispName << "] startAddr is 0x" << std::hex <<
                 devicePtnInfo[i].startAddr;
-            LOG(WARNING) << "Package ptable [" << pkgPtnInfo[i].dispName << "] startAddr is 0x" <<
+            LOG(WARNING) << "Package ptable [" << pkgPtnInfo[i].dispName << "] startAddr is 0x" << std::hex <<
                 pkgPtnInfo[i].startAddr;
             return true;
         }
         if (devicePtnInfo[i].partitionSize != pkgPtnInfo[i].partitionSize) {
             LOG(WARNING) << pkgPtnInfo[i].dispName << " partition size is different:";
-            LOG(WARNING) << "Device ptable [" << devicePtnInfo[i].dispName << "] partitionSize is 0x" <<
+            LOG(WARNING) << "Device ptable [" << devicePtnInfo[i].dispName << "] partitionSize is " <<
                 devicePtnInfo[i].partitionSize;
-            LOG(WARNING) << "Package ptable [" << pkgPtnInfo[i].dispName << "] partitionSize is 0x" <<
+            LOG(WARNING) << "Package ptable [" << pkgPtnInfo[i].dispName << "] partitionSize is " <<
                 pkgPtnInfo[i].partitionSize;
             return true;
         }
