@@ -175,7 +175,8 @@ int32_t UScriptInstructionBinFlowWrite::UnCompressDataProducer(const PkgBuffer &
     // 缓存4M再写入数据流
     while (size - writeSize > STASH_BUFFER_SIZE - stashDataSize_) {
         copyLen = STASH_BUFFER_SIZE - stashDataSize_;
-        if (memcpy_s(stashBuffer_.buffer + stashDataSize_, copyLen, buffer.buffer + writeSize, copyLen) != EOK) {
+        const size_t unusedSize = STASH_BUFFER_SIZE - stashDataSize_;
+        if (memcpy_s(stashBuffer_.buffer + stashDataSize_, unusedSize, buffer.buffer + writeSize, copyLen) != EOK) {
             return USCRIPT_ERROR_EXECUTE;
         }
 
@@ -188,7 +189,8 @@ int32_t UScriptInstructionBinFlowWrite::UnCompressDataProducer(const PkgBuffer &
     }
 
     copyLen = size - writeSize;
-    if (memcpy_s(stashBuffer_.buffer + stashDataSize_, copyLen, buffer.buffer + writeSize, copyLen) != EOK) {
+    const size_t unusedSize = STASH_BUFFER_SIZE - stashDataSize_;
+    if (memcpy_s(stashBuffer_.buffer + stashDataSize_, unusedSize, buffer.buffer + writeSize, copyLen) != EOK) {
         return USCRIPT_ERROR_EXECUTE;
     }
     stashDataSize_ += copyLen;
