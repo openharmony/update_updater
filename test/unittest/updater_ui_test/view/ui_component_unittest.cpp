@@ -21,6 +21,7 @@
 #include "component/component_register.h"
 #include "component/label_btn_adapter.h"
 #include "component/text_label_adapter.h"
+#include "components/root_view.h"
 #include "dock/focus_manager.h"
 #include "gtest/gtest.h"
 #include "ui_test_graphic_engine.h"
@@ -393,12 +394,14 @@ HWTEST_F(UpdaterUiComponentUnitTest, test_label_btn_adapter_on_press, TestSize.L
     LabelBtnAdapter *labelBtn1Ptr = CreateAdapterProxy<LabelBtnAdapter>(commonInfo1, specInfo1);
     ASSERT_NE(labelBtn1Ptr, nullptr);
     LabelBtnAdapter &labelBtn1 = *labelBtn1Ptr;
+    OHOS::RootView::GetInstance()->Add(labelBtn1.GetOhosView());
 
     UxViewCommonInfo commonInfo2{100, 100, 50, 50, "id", "UILabelButton", true};
     UxLabelBtnInfo specInfo2{100, "", "#000000ff", "#ffffffff", "#ffffffff", "#000000ff", true};
     LabelBtnAdapter *labelBtn2Ptr = CreateAdapterProxy<LabelBtnAdapter>(commonInfo2, specInfo2);
     ASSERT_NE(labelBtn2Ptr, nullptr);
     LabelBtnAdapter &labelBtn2 = *labelBtn2Ptr;
+    OHOS::RootView::GetInstance()->Add(labelBtn2.GetOhosView());
 
     OHOS::FocusManager::GetInstance()->RequestFocus(&labelBtn2);
     labelBtn1.OnPressEvent(OHOS::PressEvent {OHOS::Point {}});
@@ -408,6 +411,8 @@ HWTEST_F(UpdaterUiComponentUnitTest, test_label_btn_adapter_on_press, TestSize.L
     EXPECT_EQ(labelBtn1.GetStyle(OHOS::STYLE_BACKGROUND_COLOR), (OHOS::ColorType {{0, 0, 0, 0xff}}.full));
     EXPECT_EQ(labelBtn2.GetStyle(OHOS::STYLE_BACKGROUND_COLOR), (OHOS::ColorType {{0xff, 0xff, 0xff, 0xff}}.full));
     OHOS::FocusManager::GetInstance()->ClearFocus();
+    OHOS::RootView::GetInstance()->Remove(labelBtn2.GetOhosView());
+    OHOS::RootView::GetInstance()->Remove(labelBtn1.GetOhosView());
 }
 
 HWTEST_F(UpdaterUiComponentUnitTest, test_label_btn_adapter_is_valid, TestSize.Level0)
