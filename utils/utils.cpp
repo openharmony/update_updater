@@ -1165,7 +1165,6 @@ bool SetUpdateSlot(int setSlot)
             continue;
         }
         if (GetUpdateSlot() == setSlot) {
-            LOG(INFO) << "set update.part.slot is " << setSlot;
             return true;
         }
         if (tryNum != 0) {
