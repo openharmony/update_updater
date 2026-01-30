@@ -354,6 +354,7 @@ UpdaterStatus SetUpdateSlotParam(UpdaterParams &upParams, bool isUpdateCurrSlot)
         LOG(ERROR) << "set update.part.slot fail";
         return UPDATE_ERROR;
     }
+    LOG(INFO) << "set update.part.slot is " << updateSlot;
     return UPDATE_SUCCESS;
 }
 
