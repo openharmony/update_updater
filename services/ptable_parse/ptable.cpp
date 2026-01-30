@@ -427,9 +427,10 @@ bool Ptable::CheckGptHeader(uint8_t *buffer, const uint32_t bufferLen, const uin
 bool Ptable::PartitionCheckGptHeader(const uint8_t *gptImage, const uint32_t len, const uint64_t lbaNum,
     const uint32_t blockSize, GPTHeaderInfo& gptHeaderInfo)
 {
-    if (len < ptableData_.writeDeviceLunSize || lbaNum == 0) {
+    if (len < ptableData_.writeDeviceLunSize || lbaNum == 0 ||
+        len < 2 * blockSize) { // 2: ptable image has at least two blocks
         LOG(ERROR) << "len" << len << "ptableData_.writeDeviceLunSize" << ptableData_.writeDeviceLunSize
-          << "lbaNum" << lbaNum;
+            << "lbaNum" << lbaNum << " blockSize " << blockSize;
         return false;
     }
 

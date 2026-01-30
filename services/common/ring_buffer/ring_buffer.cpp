@@ -56,7 +56,9 @@ bool RingBuffer::Init(uint32_t singleSize, uint32_t num)
 
 void RingBuffer::Reset()
 {
+    Stop();
     isStop_ = false;
+    std::unique_lock<std::mutex> arrayLock(arrayMtx_);
     writeIndex_ = 0;
     readIndex_ = 0;
     for (uint32_t i = 0; i < num_; ++i) {
@@ -68,6 +70,7 @@ bool RingBuffer::IsFull()
 {
     // writeIndex readIndex real size: 0 ~ num_ -1, logic size: 0 ~ 2num_ - 1
     // when writeIndex_ - readIndex_ == n means full
+    std::unique_lock<std::mutex> arrayLock(arrayMtx_);
     return writeIndex_ == (readIndex_ ^ num_);
 }
 
@@ -75,6 +78,7 @@ bool RingBuffer::IsEmpty()
 {
     // writeIndex readIndex real size: 0 ~ num_ -1, logic size: 0 ~ 2num_ - 1
     // when same means empty
+    std::unique_lock<std::mutex> arrayLock(arrayMtx_);
     return writeIndex_ == readIndex_;
 }
 
@@ -148,27 +152,26 @@ bool RingBuffer::Pop(uint8_t *buf, uint32_t maxLen, uint32_t &len)
 
 void RingBuffer::Stop()
 {
-    isStop_ = true;
-    notFull_.notify_all();
-    notEmpty_.notify_all();
+    StopPush();
+    StopPop();
 }
 
 void RingBuffer::StopPush()
 {
     {
         std::unique_lock<std::mutex> pushLock(notifyMtx_);
+        notFull_.notify_all();
         isStop_ = true;
     }
-    notFull_.notify_all();
 }
 
 void RingBuffer::StopPop()
 {
     {
         std::unique_lock<std::mutex> popLock(notifyMtx_);
+        notEmpty_.notify_all();
         isStop_ = true;
     }
-    notEmpty_.notify_all();
 }
 
 void RingBuffer::Release()

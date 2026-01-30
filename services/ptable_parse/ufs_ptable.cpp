@@ -176,7 +176,8 @@ bool UfsPtable::ParseGptHeaderByUfsLun(const uint8_t *gptImage, const uint32_t l
 bool UfsPtable::UfsReadGpt(const uint8_t *gptImage, const uint32_t len,
     const uint32_t lun, const uint32_t blockSize)
 {
-    if (gptImage == nullptr || len < ptableData_.writeDeviceLunSize || lun >= MAX_LUN_NUMBERS || blockSize == 0) {
+    if (gptImage == nullptr || len < ptableData_.writeDeviceLunSize || lun >= MAX_LUN_NUMBERS || blockSize == 0 ||
+        len < 2 * blockSize) { // 2: ptable image has at least two blocks
         LOG(ERROR) << "invaild input";
         return false;
     }
