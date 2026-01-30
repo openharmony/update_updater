@@ -19,6 +19,7 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <thread>
 #include <unistd.h>
 #include "applypatch/block_set.h"
 #include "applypatch/store.h"
@@ -43,6 +44,8 @@ constexpr int32_t SHA_CHECK_PARAMS = 3;
 constexpr int32_t SHA_CHECK_TARGETPAIRS_INDEX = 3;
 constexpr int32_t SHA_CHECK_TARGETSHA_INDEX = 4;
 constexpr int32_t SHA_CHECK_TARGET_PARAMS = 5;
+constexpr int32_t SHA_DELAY_MILLIS_SECOND = 1;
+constexpr int32_t SHA_DELAY_CYCLE_COUNT = 250;
 
 __attribute__((weak)) void GetWriteDevPath(const std::string &path, [[maybe_unused]] const std::string &partitionName,
     std::string &devPath)
@@ -637,7 +640,8 @@ void UScriptInstructionShaCheck::PrintAbnormalBlockHash(const std::string &devPa
         LOG(ERROR) << "Failed to open file " << devPath;
         return;
     }
-
+    const bool isUpdaterMode = Utils::IsUpdaterMode();
+    int64_t cycleCount = 0;
     BlockSet blk;
     blk.ParserAndInsert(blockPairs);
     std::vector<uint8_t> block_buff(H_BLOCK_SIZE);
@@ -657,6 +661,10 @@ void UScriptInstructionShaCheck::PrintAbnormalBlockHash(const std::string &devPa
                 return;
             }
             SHA256_Update(&ctx, block_buff.data(), H_BLOCK_SIZE);
+            ++cycleCount;
+            if (isUpdaterMode && cycleCount % SHA_DELAY_CYCLE_COUNT == 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(SHA_DELAY_MILLIS_SECOND));
+            }
         }
         uint8_t digest[SHA256_DIGEST_LENGTH] = {0};
         SHA256_Final(digest, &ctx);
