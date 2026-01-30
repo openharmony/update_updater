@@ -223,7 +223,7 @@ void PostUpdater(bool clearMisc)
 
 void BootMode::InitMode(void) const
 {
-    InitLogger(modeName);
+    InitLogger(modeName, true);
 #ifdef UPDATER_BUILD_VARIANT_USER
     SetLogLevel(INFO);
 #else

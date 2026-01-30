@@ -1343,7 +1343,7 @@ void SetFileAttributes(const std::string& file, uid_t owner, gid_t group, mode_t
 }
 #endif
 } // Utils
-void __attribute__((weak)) InitLogger(const std::string &tag)
+void __attribute__((weak)) InitLogger(const std::string &tag, bool isCompress)
 {
     if (Utils::IsUpdaterMode()) {
         InitUpdaterLogger(tag, TMP_LOG, TMP_STAGE_LOG, TMP_ERROR_CODE_PATH);
