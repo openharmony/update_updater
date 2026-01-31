@@ -1379,8 +1379,16 @@ __attribute__((weak)) void DeleteOtaPkg([[maybe_unused]] const UpdaterParams &up
     LOG(INFO) << "Delete ota package";
 }
 
-void RebootAfterUpdateSuccess(const UpdaterParams &upParams, const std::vector<std::string> &args)
+void RebootAfterUpdateSuccess(const UpdaterParams &upParams, const std::vector<std::string> &args,
+    const UpdaterStatus &status, const PackageUpdateMode &mode)
 {
+#if !defined(UPDATER_UT) && !defined(UPDATER_UI_SUPPORT)
+    if (status == UPDATE_UNKNOWN && mode == UNKNOWN_UPDATE) {
+        while (true) {
+            Utils::UsSleep(DISPLAY_TIME);
+        }
+    }
+#endif
     std::string extData;
     if (IsNeedUpdateNode(args, extData)) {
         LOG(INFO) << "Need reboot to updater again.";
@@ -1449,7 +1457,7 @@ int UpdaterMain(int argc, char **argv)
     }
 #endif
     PostUpdater(true);
-    RebootAfterUpdateSuccess(upParams, args);
+    RebootAfterUpdateSuccess(upParams, args, status, mode);
     return 0;
 }
 } // Updater
