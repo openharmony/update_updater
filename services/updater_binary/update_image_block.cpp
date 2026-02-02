@@ -662,7 +662,7 @@ void UScriptInstructionShaCheck::PrintAbnormalBlockHash(const std::string &devPa
             }
             SHA256_Update(&ctx, block_buff.data(), H_BLOCK_SIZE);
             ++cycleCount;
-            if (isUpdaterMode && cycleCount % SHA_DELAY_CYCLE_COUNT == 0) {
+            if (!isUpdaterMode && cycleCount % SHA_DELAY_CYCLE_COUNT == 0) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(SHA_DELAY_MILLIS_SECOND));
             }
         }
@@ -712,7 +712,7 @@ std::string UScriptInstructionShaCheck::CalculateBlockSha(const std::string &dev
             }
             SHA256_Update(&ctx, block_buff.data(), H_BLOCK_SIZE);
             ++cycleCount;
-            if (isUpdaterMode && cycleCount % SHA_DELAY_CYCLE_COUNT == 0) {
+            if (!isUpdaterMode && cycleCount % SHA_DELAY_CYCLE_COUNT == 0) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(SHA_DELAY_MILLIS_SECOND));
             }
         }
