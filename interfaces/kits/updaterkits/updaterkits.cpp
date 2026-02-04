@@ -77,19 +77,20 @@ static bool WriteToMiscAndRebootToUpdater(const struct UpdateMessage &updateMsg)
 #endif
 }
 
-static void WriteUpdaterResultFile(const std::string &pkgPath, const std::string &result)
+static void WriteUpdaterResultFile(const std::string &pkgPath, const std::string &result,
+    const std::string &filePath, const std::string &fileName)
 {
-    if (access(UPDATER_PATH, 0) != 0) {
-        if (Utils::MkdirRecursive(UPDATER_PATH, 0755) != 0) { // 0755: -rwxr-xr-x
+    if (access(filePath.c_str(), 0) != 0) {
+        if (Utils::MkdirRecursive(filePath.c_str(), 0755) != 0) { // 0755: -rwxr-xr-x
             LOG(ERROR) << "Mkdir recursive error!";
             return;
         }
     }
-    LOG(INFO) << "WriteUpdaterResultFile: " << result;
-    const std::string resultPath = std::string(UPDATER_PATH) + "/" + std::string(UPDATER_RESULT_FILE);
-    FILE *fp = fopen(resultPath.c_str(), "w+");
+    const std::string resultFile = filePath + "/" + fileName;
+    LOG(INFO) << "WriteUpdaterResultFile, result: " << result << " , resultFile: " << resultFile;
+    FILE *fp = fopen(resultFile.c_str(), "w+");
     if (fp == nullptr) {
-        LOG(ERROR) << "open updater result file failed";
+        LOG(ERROR) << "fopen updater result file failed: " << resultFile;
         return;
     }
     std::string resultInfo = pkgPath + "|notstart|" + result + "||\n";
@@ -97,14 +98,14 @@ static void WriteUpdaterResultFile(const std::string &pkgPath, const std::string
         LOG(WARNING) << "write updater result file failed, err:" << errno;
     }
     if (fsync(fileno(fp)) != 0) {
-        LOG(WARNING) << "WriteUpdaterResultFile fsync failed" << strerror(errno);
+        LOG(WARNING) << "WriteUpdaterResultFile fsync result file failed" << strerror(errno);
     }
     if (fclose(fp) != 0) {
         LOG(WARNING) << "close updater result file failed";
     }
 
-    (void)chown(resultPath.c_str(), Utils::USER_ROOT_AUTHORITY, Utils::GROUP_UPDATE_AUTHORITY);
-    (void)chmod(resultPath.c_str(), 0660); // 0660: -rw-rw----
+    (void)chown(resultFile.c_str(), Utils::USER_ROOT_AUTHORITY, Utils::GROUP_UPDATE_AUTHORITY);
+    (void)chmod(resultFile.c_str(), 0660); // 0660: -rw-rw----
 }
 
 static std::string ParsePkgPath(const struct UpdateMessage &updateMsg)
@@ -138,13 +139,15 @@ static bool WriteToMiscAndResultFileRebootToUpdater(const struct UpdateMessage &
     std::string pkgPath = ParsePkgPath(updateMsg);
     // Flag before the misc in written
     std::string writeMiscBefore = "0x80000000";
-    WriteUpdaterResultFile(pkgPath, writeMiscBefore);
+    WriteUpdaterResultFile(pkgPath, writeMiscBefore, UPDATER_PATH, UPDATER_RESULT_FILE);
+    WriteUpdaterResultFile(pkgPath, writeMiscBefore, LOG_UPDATER_PATH, UPDATER_RESULT_FILE);
 #ifndef UPDATER_UT
     HandleMiscMsg(updateMsg, upgradeType);
     WriteUpdaterMiscMsg(updateMsg);
     // Flag after the misc in written
     std::string writeMiscAfter = "0x80000008";
-    WriteUpdaterResultFile(pkgPath, writeMiscAfter);
+    WriteUpdaterResultFile(pkgPath, writeMiscAfter, UPDATER_PATH, UPDATER_RESULT_FILE);
+    WriteUpdaterResultFile(pkgPath, writeMiscAfter, LOG_UPDATER_PATH, UPDATER_RESULT_FILE);
     if (rebootFunc != nullptr && rebootFunc() != 0) {
         LOG(ERROR) << "reboot func Failed";
         return false;
