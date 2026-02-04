@@ -706,16 +706,16 @@ bool CheckResultFail()
     return false;
 }
 
-void WriteDumpResult(const std::string &result, const std::string &fileName)
+void WriteDumpResult(const std::string &result, const std::string &filePath, const std::string &fileName)
 {
-    if (access(UPDATER_PATH, 0) != 0) {
-        if (MkdirRecursive(UPDATER_PATH, 0755) != 0) { // 0755: -rwxr-xr-x
+    if (access(filePath.c_str(), 0) != 0) {
+        if (MkdirRecursive(filePath.c_str(), 0755) != 0) { // 0755: -rwxr-xr-x
             LOG(ERROR) << "MkdirRecursive error!";
             return;
         }
     }
-    const std::string resultPath = std::string(UPDATER_PATH) + "/" + fileName;
-    FILE *fp = fopen(resultPath.c_str(), "w+");
+    const std::string file = filePath + "/" + fileName;
+    FILE *fp = fopen(file.c_str(), "w+");
     if (fp == nullptr) {
         LOG(ERROR) << "open result file failed";
         return;
@@ -731,8 +731,8 @@ void WriteDumpResult(const std::string &result, const std::string &fileName)
         LOG(WARNING) << "close result file failed";
     }
 
-    (void)chown(resultPath.c_str(), USER_ROOT_AUTHORITY, GROUP_UPDATE_AUTHORITY);
-    (void)chmod(resultPath.c_str(), 0660); // 0660: -rw-rw----
+    (void)chown(file.c_str(), USER_ROOT_AUTHORITY, GROUP_UPDATE_AUTHORITY);
+    (void)chmod(file.c_str(), 0660); // 0660: -rw-rw----
 }
 
 long long int GetDirSize(const std::string &folderPath)
