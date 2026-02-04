@@ -91,7 +91,7 @@ bool CopyUpdaterLogs(const std::string &sLog, const std::string &dLog);
 void CompressFiles(std::vector<std::string> &files, const std::string &zipFile);
 void CompressLogs(const std::string &name);
 bool CheckResultFail();
-void WriteDumpResult(const std::string &result, const std::string &fileName);
+void WriteDumpResult(const std::string &result, const std::string &filePath, const std::string &fileName);
 long long int GetDirSize(const std::string &folderPath);
 size_t GetFileSize(const std::string &filePath);
 long long int GetDirSizeForFile(const std::string &filePath);
