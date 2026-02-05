@@ -706,15 +706,15 @@ bool CheckResultFail()
     return false;
 }
 
-void WriteDumpResult(const std::string &result, const std::string &filePath, const std::string &fileName)
+void WriteDumpResult(const std::string &result, const std::string &dirPath, const std::string &fileName)
 {
-    if (access(filePath.c_str(), 0) != 0) {
-        if (MkdirRecursive(filePath.c_str(), 0755) != 0) { // 0755: -rwxr-xr-x
+    if (access(dirPath.c_str(), 0) != 0) {
+        if (MkdirRecursive(dirPath.c_str(), 0755) != 0) { // 0755: -rwxr-xr-x
             LOG(ERROR) << "MkdirRecursive error!";
             return;
         }
     }
-    const std::string file = filePath + "/" + fileName;
+    const std::string file = dirPath + "/" + fileName;
     FILE *fp = fopen(file.c_str(), "w+");
     if (fp == nullptr) {
         LOG(ERROR) << "open result file failed";
