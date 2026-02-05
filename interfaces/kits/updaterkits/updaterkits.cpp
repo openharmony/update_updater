@@ -82,7 +82,7 @@ static void WriteUpdaterResultFile(const std::string &pkgPath, const std::string
 {
     if (access(dirPath.c_str(), 0) != 0) {
         if (Utils::MkdirRecursive(dirPath.c_str(), 0755) != 0) { // 0755: -rwxr-xr-x
-            LOG(ERROR) << "Mkdir recursive error!";
+            LOG(ERROR) << "Mkdir recursive " << dirPath << " error:" << errno;
             return;
         }
     }
@@ -90,18 +90,18 @@ static void WriteUpdaterResultFile(const std::string &pkgPath, const std::string
     LOG(INFO) << "WriteUpdaterResultFile, result: " << result << " , resultFile: " << resultFile;
     FILE *fp = fopen(resultFile.c_str(), "w+");
     if (fp == nullptr) {
-        LOG(ERROR) << "fopen updater result file failed: " << resultFile;
+        LOG(ERROR) << "fopen updater result file failed: " << resultFile << ", err:" << errno;
         return;
     }
     std::string resultInfo = pkgPath + "|notstart|" + result + "||\n";
     if (fwrite(resultInfo.c_str(), resultInfo.size() + 1, 1, fp) <= 0) {
-        LOG(WARNING) << "write updater result file failed, err:" << errno;
+        LOG(WARNING) << "write updater result file failed: " << resultFile << ", err:" << errno;
     }
     if (fsync(fileno(fp)) != 0) {
-        LOG(WARNING) << "WriteUpdaterResultFile fsync result file failed" << strerror(errno);
+        LOG(WARNING) << "fsync updater result file failed: " << resultFile << ", err:" << strerror(errno);
     }
     if (fclose(fp) != 0) {
-        LOG(WARNING) << "close updater result file failed";
+        LOG(WARNING) << "close updater result file failed: " << resultFile << ", err:" << errno;
     }
 
     (void)chown(resultFile.c_str(), Utils::USER_ROOT_AUTHORITY, Utils::GROUP_UPDATE_AUTHORITY);
