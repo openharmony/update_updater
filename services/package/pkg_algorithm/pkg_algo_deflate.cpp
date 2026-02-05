@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "pkg_algo_deflate.h"
-#include <thread>
 #include <unistd.h>
 #include "pkg_stream.h"
 #include "pkg_utils.h"
@@ -26,7 +25,6 @@ constexpr uint32_t DEFLATE_OUT_BUFFER_SIZE = 1024 * 32;
 constexpr uint32_t INFLATE_IN_BUFFER_SIZE = 100 * 1024 * 1024;
 constexpr uint32_t INFLATE_OUT_BUFFER_SIZE = 1024 * 1024;
 constexpr uint32_t INFLATE_IN_BUFFER_SIZE_NORMAL_MODE = 512 * 1024;
-constexpr int MAX_RETRY_LIMIT = 3;
 
 int32_t PkgAlgoDeflate::DeflateData(const PkgStreamPtr outStream, z_stream &zstream, int32_t flush,
     PkgBuffer &outBuffer, size_t &destOffset) const
@@ -131,14 +129,14 @@ int32_t PkgAlgoDeflate::ReadUnpackData(const PkgStreamPtr inStream, PkgBuffer &i
     }
     if (inBuffer.buffer == nullptr) {
         inBuffer.data.resize(inBuffer.length);
-        inBuffer.buffer = inBuffer.data.data();
     }
+    inBuffer.buffer = inBuffer.data.data();
     const size_t expectedLen = std::min(inBuffer.length, context.packedSize);
     size_t totalRead = 0;
     size_t offset = context.srcOffset;
     size_t remaining = expectedLen;
     int retry = 0;
-    while (remaining > 0 && totalRead < expectedLen && retry < MAX_RETRY_LIMIT) {
+    while (remaining > 0 && totalRead < expectedLen) {
         ++retry;
         size_t currReadLen = 0;
         int32_t ret = ReadData(inStream, offset, inBuffer, remaining, currReadLen);
@@ -148,18 +146,9 @@ int32_t PkgAlgoDeflate::ReadUnpackData(const PkgStreamPtr inStream, PkgBuffer &i
                 retry, expectedLen, totalRead, context.srcOffset, offset);
             return ret;
         }
-        if (currReadLen > 0) {
-            totalRead += currReadLen;
-            offset += currReadLen;
-            inBuffer.buffer += currReadLen;
-            if (totalRead >= expectedLen) {
-                break;
-            }
-        }
-    }
-    if (retry >= MAX_RETRY_LIMIT) {
-        PKG_LOGW("Read data timeout! retries (%d), Expected=%zu, Actual=%zu, StartOffset=%zu, EndOffset=%zu",
-            retry, expectedLen, totalRead, context.srcOffset, offset);
+        totalRead += currReadLen;
+        offset += currReadLen;
+        inBuffer.buffer += currReadLen;
     }
     inBuffer.buffer = inBuffer.data.data();
     readLen = totalRead;
@@ -203,10 +192,8 @@ int32_t PkgAlgoDeflate::UnpackCalculate(PkgAlgorithmContext &context, const PkgS
     size_t readLen = 0;
     int32_t unpackRet = Z_OK;
     while ((unpackContext.packedSize > 0) || (unpackRet != Z_STREAM_END)) {
-        if (zstream.avail_in == 0 && unpackContext.packedSize > 0) {
-            if (ReadUnpackData(inStream, inBuffer, zstream, unpackContext, readLen) != PKG_SUCCESS) {
-                break;
-            }
+        if (ReadUnpackData(inStream, inBuffer, zstream, unpackContext, readLen) != PKG_SUCCESS) {
+            break;
         }
         unpackRet = inflate(&zstream, Z_SYNC_FLUSH);
         if (unpackRet < Z_OK) {
