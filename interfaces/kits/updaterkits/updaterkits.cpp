@@ -78,15 +78,15 @@ static bool WriteToMiscAndRebootToUpdater(const struct UpdateMessage &updateMsg)
 }
 
 static void WriteUpdaterResultFile(const std::string &pkgPath, const std::string &result,
-    const std::string &filePath, const std::string &fileName)
+    const std::string &dirPath, const std::string &fileName)
 {
-    if (access(filePath.c_str(), 0) != 0) {
-        if (Utils::MkdirRecursive(filePath.c_str(), 0755) != 0) { // 0755: -rwxr-xr-x
+    if (access(dirPath.c_str(), 0) != 0) {
+        if (Utils::MkdirRecursive(dirPath.c_str(), 0755) != 0) { // 0755: -rwxr-xr-x
             LOG(ERROR) << "Mkdir recursive error!";
             return;
         }
     }
-    const std::string resultFile = filePath + "/" + fileName;
+    const std::string resultFile = dirPath + "/" + fileName;
     LOG(INFO) << "WriteUpdaterResultFile, result: " << result << " , resultFile: " << resultFile;
     FILE *fp = fopen(resultFile.c_str(), "w+");
     if (fp == nullptr) {
