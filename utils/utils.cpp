@@ -710,14 +710,14 @@ void WriteDumpResult(const std::string &result, const std::string &dirPath, cons
 {
     if (access(dirPath.c_str(), 0) != 0) {
         if (MkdirRecursive(dirPath.c_str(), 0755) != 0) { // 0755: -rwxr-xr-x
-            LOG(ERROR) << "MkdirRecursive error!";
+            LOG(ERROR) << "MkdirRecursive " << dirPath << " error:" << errno;
             return;
         }
     }
     const std::string file = dirPath + "/" + fileName;
     FILE *fp = fopen(file.c_str(), "w+");
     if (fp == nullptr) {
-        LOG(ERROR) << "open result file failed";
+        LOG(ERROR) << "open result file(" << file << ") failed, err:" << errno;
         return;
     }
     char buf[MAX_RESULT_BUFF_SIZE] = "Pass\n";
@@ -725,10 +725,10 @@ void WriteDumpResult(const std::string &result, const std::string &dirPath, cons
         LOG(WARNING) << "sprintf status fialed";
     }
     if (fwrite(buf, 1, strlen(buf) + 1, fp) <= 0) {
-        LOG(WARNING) << "write result file failed, err:" << errno;
+        LOG(WARNING) << "write result file(" << file << ") failed, err:" << errno;
     }
     if (fclose(fp) != 0) {
-        LOG(WARNING) << "close result file failed";
+        LOG(WARNING) << "close result file(" << file << ") failed, err:" << errno;
     }
 
     (void)chown(file.c_str(), USER_ROOT_AUTHORITY, GROUP_UPDATE_AUTHORITY);
