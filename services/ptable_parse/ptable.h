@@ -283,6 +283,7 @@ private:
     void SetPartitionName(const std::string &name, uint8_t *data, const uint32_t size);
     bool ParsePtableDataNode(const JsonNode &ptableDataNode);
     bool ParsePtableData();
+    std::string GetPtableConfigPath();
 
     static void PrintPtableChanges(const std::vector<PtnInfo> &ptnInfo);
     static void PrintPartition(size_t index, const PtnInfo &info);
