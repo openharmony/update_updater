@@ -26,6 +26,11 @@ constexpr uint32_t INFLATE_IN_BUFFER_SIZE = 100 * 1024 * 1024;
 constexpr uint32_t INFLATE_OUT_BUFFER_SIZE = 1024 * 1024;
 constexpr uint32_t INFLATE_IN_BUFFER_SIZE_NORMAL_MODE = 512 * 1024;
 
+static bool IsUpdaterMode()
+{
+    return (access("/bin/updater", 0) == 0);
+}
+
 int32_t PkgAlgoDeflate::DeflateData(const PkgStreamPtr outStream, z_stream &zstream, int32_t flush,
     PkgBuffer &outBuffer, size_t &destOffset) const
 {
@@ -127,6 +132,24 @@ int32_t PkgAlgoDeflate::ReadUnpackData(const PkgStreamPtr inStream, PkgBuffer &i
     if (zstream.avail_in != 0) {
         return PKG_SUCCESS;
     }
+    if (!IsUpdaterMode()) {
+        return ReadFully(inStream, inBuffer, zstream, context, readLen);
+    }
+
+    int32_t ret = ReadData(inStream, context.srcOffset, inBuffer, context.packedSize, readLen);
+    if (ret != PKG_SUCCESS) {
+        PKG_LOGE("Read data fail!");
+        return ret;
+    }
+    zstream.next_in = reinterpret_cast<uint8_t *>(inBuffer.buffer);
+    zstream.avail_in = readLen;
+    context.srcOffset += readLen;
+    return PKG_SUCCESS;
+}
+
+int32_t PkgAlgoDeflate::ReadFully(const PkgStreamPtr inStream, PkgBuffer &inBuffer,
+    z_stream &zstream, PkgAlgorithmContext &context, size_t &readLen)
+{
     if (inBuffer.buffer == nullptr) {
         inBuffer.data.resize(inBuffer.length);
     }
