@@ -320,6 +320,11 @@ std::string ConvertShaHex(const std::vector<uint8_t> &shaDigest)
     }
     return haxSha256;
 }
+
+bool IsUpdaterMode()
+{
+    return (access("/bin/updater", 0) == 0);
+}
 } // namespace Hpackage
 
 #ifdef _WIN32

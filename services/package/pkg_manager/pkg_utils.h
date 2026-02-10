@@ -41,6 +41,7 @@ uint8_t *FileMap(const std::string &path);
 void ReleaseMemory(uint8_t *memMap, size_t size);
 void ExtraTimeAndDate(time_t when, uint16_t &date, uint16_t &time);
 std::string ConvertShaHex(const std::vector<uint8_t> &shaDigest);
+bool IsUpdaterMode();
 
 // 读取或写入buffer
 uint32_t ReadLE32(const uint8_t *buff);

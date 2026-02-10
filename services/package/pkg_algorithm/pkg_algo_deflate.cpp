@@ -26,11 +26,6 @@ constexpr uint32_t INFLATE_IN_BUFFER_SIZE = 100 * 1024 * 1024;
 constexpr uint32_t INFLATE_OUT_BUFFER_SIZE = 1024 * 1024;
 constexpr uint32_t INFLATE_IN_BUFFER_SIZE_NORMAL_MODE = 512 * 1024;
 
-static bool IsUpdaterMode()
-{
-    return (access("/bin/updater", 0) == 0);
-}
-
 int32_t PkgAlgoDeflate::DeflateData(const PkgStreamPtr outStream, z_stream &zstream, int32_t flush,
     PkgBuffer &outBuffer, size_t &destOffset) const
 {
@@ -282,8 +277,7 @@ int32_t PkgAlgoDeflate::InitStream(z_stream &zstream, bool zip, PkgBuffer &inBuf
             PKG_LOGE("fail deflateInit2");
             return PKG_NOT_EXIST_ALGORITHM;
         }
-        inBuffer.length = (access("/bin/updater", 0) == 0) ?
-            INFLATE_IN_BUFFER_SIZE : INFLATE_IN_BUFFER_SIZE_NORMAL_MODE;
+        inBuffer.length = IsUpdaterMode() ? INFLATE_IN_BUFFER_SIZE : INFLATE_IN_BUFFER_SIZE_NORMAL_MODE;
         outBuffer.length = INFLATE_OUT_BUFFER_SIZE;
     }
 
