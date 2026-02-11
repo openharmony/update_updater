@@ -22,6 +22,7 @@
 #include "init_reboot.h"
 #include "log.h"
 #include "misc_info/misc_info.h"
+#include 
 #include "securec.h"
 #include "updater/updater_const.h"
 #include "utils.h"
