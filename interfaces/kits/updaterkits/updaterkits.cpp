@@ -174,6 +174,9 @@ static bool IsPackagePath(const std::string &path)
 
 static void WriteInodeToFile(const std::string &inode)
 {
+    if (inode == "0") {
+        return;
+    }
     std::string dirPath = UPDATER_INODE_PATH;
     struct stat dirStat {};
     Utils::RemoveDir(dirPath); // first to delete
@@ -218,9 +221,7 @@ static void UpdateOptExpand(std::string& updateOpt)
     for (const auto &path : pathVec) {
         std::string inode = GetFileInode(path);
         updateOpt += "," + inode;
-        if (inode != "0") {
-            WriteInodeToFile(inode);
-        }
+        WriteInodeToFile(inode);
     }
 }
 
