@@ -702,10 +702,10 @@ static UpdaterStatus PreUpdatePackages(UpdaterParams &upParams)
         }
     }
     const std::string resultPath = std::string(UPDATER_PATH) + "/" + std::string(UPDATER_RESULT_FILE);
-    if (access(resultPath.c_str(), F_OK) != -1) {
-        (void)DeleteFile(resultPath);
-        LOG(INFO) << "delete last upgrade file";
-    }
+    const std::string resultPathBak = std::string(LOG_UPDATER_PATH) + "/" + std::string(UPDATER_RESULT_FILE);
+    (void)DeleteFile(resultPath);
+    LOG(INFO) << "delete last upgrade file";
+    (void)DeleteFile(resultPathBak);
     status = VerifyUpParams(upParams);
     if (status != UPDATE_SUCCESS) {
         LOG(ERROR) << "verify updater params fail";
@@ -942,7 +942,7 @@ static void PostUpdate(UpdaterParams &upParams, UpdaterStatus &status,
         const std::string resultPath = std::string(UPDATER_PATH) + "/" + std::string(UPDATER_RESULT_FILE);
         std::ifstream fin {resultPath};
         if (!fin.is_open() || !std::getline(fin, buf)) {
-            LOG(ERROR) << "read result file error " << resultPath;
+            LOG(ERROR) << "read result file error: " << resultPath;
             buf = "fail|";
         }
     } else {
@@ -966,7 +966,8 @@ static void PostUpdate(UpdaterParams &upParams, UpdaterStatus &status,
         writeBuffer.pop_back();
     }
     LOG(INFO) << "post over, writeBuffer = " << writeBuffer;
-    WriteDumpResult(writeBuffer, UPDATER_RESULT_FILE);
+    WriteDumpResult(writeBuffer, UPDATER_PATH, UPDATER_RESULT_FILE);
+    WriteDumpResult(writeBuffer, LOG_UPDATER_PATH, UPDATER_RESULT_FILE);
     DeleteInstallTimeFile();
 }
 

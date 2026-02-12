@@ -706,18 +706,18 @@ bool CheckResultFail()
     return false;
 }
 
-void WriteDumpResult(const std::string &result, const std::string &fileName)
+void WriteDumpResult(const std::string &result, const std::string &dirPath, const std::string &fileName)
 {
-    if (access(UPDATER_PATH, 0) != 0) {
-        if (MkdirRecursive(UPDATER_PATH, 0755) != 0) { // 0755: -rwxr-xr-x
-            LOG(ERROR) << "MkdirRecursive error!";
+    if (access(dirPath.c_str(), 0) != 0) {
+        if (MkdirRecursive(dirPath.c_str(), 0755) != 0) { // 0755: -rwxr-xr-x
+            LOG(ERROR) << "MkdirRecursive " << dirPath << " error:" << errno;
             return;
         }
     }
-    const std::string resultPath = std::string(UPDATER_PATH) + "/" + fileName;
-    FILE *fp = fopen(resultPath.c_str(), "w+");
+    const std::string file = dirPath + "/" + fileName;
+    FILE *fp = fopen(file.c_str(), "w+");
     if (fp == nullptr) {
-        LOG(ERROR) << "open result file failed";
+        LOG(ERROR) << "open result file(" << file << ") failed, err:" << errno;
         return;
     }
     char buf[MAX_RESULT_BUFF_SIZE] = "Pass\n";
@@ -725,14 +725,14 @@ void WriteDumpResult(const std::string &result, const std::string &fileName)
         LOG(WARNING) << "sprintf status fialed";
     }
     if (fwrite(buf, 1, strlen(buf) + 1, fp) <= 0) {
-        LOG(WARNING) << "write result file failed, err:" << errno;
+        LOG(WARNING) << "write result file(" << file << ") failed, err:" << errno;
     }
     if (fclose(fp) != 0) {
-        LOG(WARNING) << "close result file failed";
+        LOG(WARNING) << "close result file(" << file << ") failed, err:" << errno;
     }
 
-    (void)chown(resultPath.c_str(), USER_ROOT_AUTHORITY, GROUP_UPDATE_AUTHORITY);
-    (void)chmod(resultPath.c_str(), 0660); // 0660: -rw-rw----
+    (void)chown(file.c_str(), USER_ROOT_AUTHORITY, GROUP_UPDATE_AUTHORITY);
+    (void)chmod(file.c_str(), 0660); // 0660: -rw-rw----
 }
 
 long long int GetDirSize(const std::string &folderPath)
