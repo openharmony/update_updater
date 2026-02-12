@@ -213,7 +213,7 @@ static void UpdateOptExpand(std::string& updateOpt)
     std::vector<std::string> pathVec {"/data/service/el1/0/hyperhold"};
     char paramVal[Updater::Utils::PARAM_SIZE + 1] = {0};
     if (GetParameter("const.hdi_power.swap_file_path", "", paramVal, sizeof(paramVal) - 1) > 0) {
-        pathVec.emplace_back(std::string(paramVal));
+        pathVec.emplace_back(paramVal);
     }
     for (const auto &path : pathVec) {
         std::string inode = GetFileInode(path);
