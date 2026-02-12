@@ -124,16 +124,56 @@ int32_t PkgAlgoDeflate::Pack(const PkgStreamPtr inStream, const PkgStreamPtr out
 int32_t PkgAlgoDeflate::ReadUnpackData(const PkgStreamPtr inStream, PkgBuffer &inBuffer,
     z_stream &zstream, PkgAlgorithmContext &context, size_t &readLen)
 {
-    if (zstream.avail_in == 0) {
-        int32_t ret = ReadData(inStream, context.srcOffset, inBuffer, context.packedSize, readLen);
+    if (zstream.avail_in != 0) {
+        return PKG_SUCCESS;
+    }
+    if (!IsUpdaterMode()) {
+        return ReadFully(inStream, inBuffer, zstream, context, readLen);
+    }
+
+    int32_t ret = ReadData(inStream, context.srcOffset, inBuffer, context.packedSize, readLen);
+    if (ret != PKG_SUCCESS) {
+        PKG_LOGE("Read data fail!");
+        return ret;
+    }
+    zstream.next_in = reinterpret_cast<uint8_t *>(inBuffer.buffer);
+    zstream.avail_in = readLen;
+    context.srcOffset += readLen;
+    return PKG_SUCCESS;
+}
+
+int32_t PkgAlgoDeflate::ReadFully(const PkgStreamPtr inStream, PkgBuffer &inBuffer,
+    z_stream &zstream, PkgAlgorithmContext &context, size_t &readLen)
+{
+    if (inBuffer.buffer == nullptr) {
+        inBuffer.data.resize(inBuffer.length);
+    }
+    inBuffer.buffer = inBuffer.data.data();
+    const size_t expectedLen = std::min(inBuffer.length, context.packedSize);
+    size_t totalRead = 0;
+    size_t offset = context.srcOffset;
+    size_t remaining = expectedLen;
+    int retry = 0;
+    while (remaining > 0 && totalRead < expectedLen) {
+        ++retry;
+        size_t currReadLen = 0;
+        int32_t ret = ReadData(inStream, offset, inBuffer, remaining, currReadLen);
         if (ret != PKG_SUCCESS) {
-            PKG_LOGE("Read data fail!");
+            inBuffer.buffer = inBuffer.data.data();
+            PKG_LOGE("Read data fail! retries (%d), Expected=%zu, Actual=%zu, StartOffset=%zu, EndOffset=%zu",
+                retry, expectedLen, totalRead, context.srcOffset, offset);
             return ret;
         }
-        zstream.next_in = reinterpret_cast<uint8_t *>(inBuffer.buffer);
-        zstream.avail_in = readLen;
-        context.srcOffset += readLen;
+        totalRead += currReadLen;
+        offset += currReadLen;
+        inBuffer.buffer += currReadLen;
     }
+    inBuffer.buffer = inBuffer.data.data();
+    readLen = totalRead;
+    zstream.next_in = reinterpret_cast<uint8_t *>(inBuffer.buffer);
+    zstream.avail_in = totalRead;
+    context.srcOffset = offset;
+    context.packedSize -= totalRead;
     return PKG_SUCCESS;
 }
 
@@ -237,8 +277,7 @@ int32_t PkgAlgoDeflate::InitStream(z_stream &zstream, bool zip, PkgBuffer &inBuf
             PKG_LOGE("fail deflateInit2");
             return PKG_NOT_EXIST_ALGORITHM;
         }
-        inBuffer.length = (access("/bin/updater", 0) == 0) ?
-            INFLATE_IN_BUFFER_SIZE : INFLATE_IN_BUFFER_SIZE_NORMAL_MODE;
+        inBuffer.length = IsUpdaterMode() ? INFLATE_IN_BUFFER_SIZE : INFLATE_IN_BUFFER_SIZE_NORMAL_MODE;
         outBuffer.length = INFLATE_OUT_BUFFER_SIZE;
     }
 
