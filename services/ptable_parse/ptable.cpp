@@ -28,6 +28,7 @@
 
 namespace Updater {
 constexpr const char *PTABLE_CONFIG_PATH = "/etc/ptable_data.json";
+constexpr const char *VENDOR_PTABLE_CONFIG_PATH = "/vendor/etc/ptable_data.json";
 constexpr const char *PTABLE_DATA_LABEL = "ptableData";
 constexpr const char *EMMC_GPT_DATA_LEN_LABEL = "emmcGptDataLen";
 constexpr const char *LBA_LEN_LABEL = "lbaLen";
@@ -131,10 +132,20 @@ bool Ptable::ParsePtableDataNode(const JsonNode &ptableDataNode)
     return true;
 }
 
+std::string Ptable::GetPtableConfigPath()
+{
+    std::string ptableConfigPath = std::string(PTABLE_CONFIG_PATH);
+    if (access(VENDOR_PTABLE_CONFIG_PATH, F_OK) == 0) {
+        ptableConfigPath = std::string(VENDOR_PTABLE_CONFIG_PATH);
+    }
+    return ptableConfigPath;
+}
+
 bool Ptable::ParsePtableData()
 {
     (void)memset_s(&ptableData_, sizeof(ptableData_), 0, sizeof(ptableData_));
-    std::ifstream ifs(std::string {PTABLE_CONFIG_PATH});
+    std::string ptableConfigPath = GetPtableConfigPath();
+    std::ifstream ifs(ptableConfigPath);
     if (!ifs.is_open()) {
         LOG(ERROR) << PTABLE_CONFIG_PATH << " not exist";
         return false;
