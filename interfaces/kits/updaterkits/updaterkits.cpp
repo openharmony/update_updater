@@ -22,6 +22,7 @@
 #include "init_reboot.h"
 #include "log.h"
 #include "misc_info/misc_info.h"
+#include "parameter.h"
 #include "securec.h"
 #include "updater/updater_const.h"
 #include "utils.h"
@@ -176,6 +177,9 @@ static bool IsPackagePath(const std::string &path)
 
 static void WriteInodeToFile(const std::string &inode)
 {
+    if (inode == "0") {
+        return;
+    }
     std::string dirPath = UPDATER_INODE_PATH;
     struct stat dirStat {};
     Utils::RemoveDir(dirPath); // first to delete
@@ -196,20 +200,32 @@ static void WriteInodeToFile(const std::string &inode)
     close(fd);
 }
 
+static std::string GetFileInode(const std::string& path)
+{
+    struct stat fileStat{};
+    if (stat(path.c_str(), &fileStat) != 0) {
+        LOG(WARNING) << "stat fail " << path << ", errno " << errno;
+        return "0";
+    }
+    return std::to_string(fileStat.st_ino);
+}
+
 static void UpdateOptExpand(std::string& updateOpt)
 {
     if (updateOpt.find("--shrink_info=") == std::string::npos &&
         updateOpt.find("--virtual_shrink_info=") == std::string::npos) {
         return;
     }
-    struct stat fileStat;
-    int ret = stat("/data/service/el1/0/hyperhold", &fileStat);
-    if (ret != 0) {
-        return;
+    std::vector<std::string> pathVec {"/data/service/el1/0/hyperhold"};
+    char paramVal[Updater::Utils::PARAM_SIZE + 1] = {0};
+    if (GetParameter("const.hdi_power.swap_file_path", "", paramVal, sizeof(paramVal) - 1) > 0) {
+        pathVec.emplace_back(paramVal);
     }
-    std::string inode = std::to_string(fileStat.st_ino);
-    updateOpt += "," + inode;
-    WriteInodeToFile(inode);
+    for (const auto &path : pathVec) {
+        std::string inode = GetFileInode(path);
+        updateOpt += "," + inode;
+        WriteInodeToFile(inode);
+    }
 }
 
 static int AddPkgPath(struct UpdateMessage &msg, size_t updateOffset, const std::vector<std::string> &packageName)
