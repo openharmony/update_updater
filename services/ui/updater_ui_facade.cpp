@@ -104,7 +104,7 @@ void UpdaterUiFacade::ShowProgress(float value) const
         LOG(INFO) << "current progress " << value;
         lastValue = value;
     }
-    if (auto it = progressMap_.find(mode_); it->second != nullptr) {
+    if (auto it = progressMap_.find(mode_); it != progressMap_.end() && it->second != nullptr) {
         g_currentPercent = value;
         it->second->ShowProgress(value);
         return;
@@ -125,7 +125,7 @@ void UpdaterUiFacade::SetLogoVisible(bool isVisible) const
     if (!CheckMode().first) {
         return;
     }
-    if (auto it = logoMap_.find(mode_); it->second != nullptr) {
+    if (auto it = logoMap_.find(mode_); it != logoMap_.end() && it->second != nullptr) {
         isVisible ? it->second->Show() : it->second->Hide();
         return;
     }
@@ -137,7 +137,7 @@ void UpdaterUiFacade::SetProgressVisible(bool isVisible) const
     if (!CheckMode().first) {
         return;
     }
-    if (auto it = progressMap_.find(mode_); it->second != nullptr) {
+    if (auto it = progressMap_.find(mode_); it != progressMap_.end() && it->second != nullptr) {
         isVisible ? it->second->Show() : it->second->Hide();
         return;
     }
