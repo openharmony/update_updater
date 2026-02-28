@@ -230,7 +230,7 @@ void BootMode::InitMode(void) const
     SetLogLevel(DEBUG);
 #endif
     LoadFstab();
-    
+    SetUserdataBlockDeviceSymlink();
     STAGE(UPDATE_STAGE_OUT) << "Start " << modeName;
     SetParameter(modePara.c_str(), "1");
 }
