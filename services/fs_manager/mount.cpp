@@ -34,6 +34,7 @@ using Updater::Utils::SplitString;
 static std::string g_defaultUpdaterFstab = "";
 static Fstab *g_fstab = nullptr;
 static const std::string PARTITION_PATH = "/dev/block/by-name";
+
 static std::unordered_set<std::string> g_skipMountPointList = {"/", "/tmp", "/sdcard", INTERNAL_DATA_PATH};
 
 void AddSkipMountPoint(const std::string &mountPoint)
