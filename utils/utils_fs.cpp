@@ -155,6 +155,14 @@ bool IsDirExist(const std::string &path)
     return false;
 }
 
-
+bool IsMetadataEncrypt()
+{
+    std::string path = "/sys/kernel/metacrypt/status";
+    if (!IsFileExist(path)) {
+        return false;
+    }
+    LOG(INFO) << "It is the userdata metadata encrypt status";
+    return true;
+}
 } // Utils
 } // updater
