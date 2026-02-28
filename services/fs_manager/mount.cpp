@@ -34,8 +34,9 @@ using Updater::Utils::SplitString;
 static std::string g_defaultUpdaterFstab = "";
 static Fstab *g_fstab = nullptr;
 static const std::string PARTITION_PATH = "/dev/block/by-name";
-
+static const std::string USERDATA_BLOCK_DEVICE_PATH = "/dev/block/by-name/userdata";
 static std::unordered_set<std::string> g_skipMountPointList = {"/", "/tmp", "/sdcard", INTERNAL_DATA_PATH};
+static constexpr uint32_t LINK_BUFF_LEN = 256;
 
 void AddSkipMountPoint(const std::string &mountPoint)
 {
@@ -69,19 +70,20 @@ MountStatus GetMountStatusForPath(const std::string &path)
 }
 #endif
 
-void SetRealUserdataBlockDevice()
+void SetUserdataBlockDeviceSymlink()
 {
     if (g_fstab == nullptr) {
         LOG(ERROR) << "g_fstab is nullptr";
         return;
     }
     for (FstabItem *item = g_fstab->head; item != nullptr; item = item->next) {
-        if (item->deviceName != std::string("/dev/block/by-name/userdata")) {
+        if (item->deviceName != USERDATA_BLOCK_DEVICE_PATH) {
             continue;
         }
         if (UpdateUserDataMEDevice(item) != 0) {
-            LOG(ERROR) << "UpdateUserDataMEDevice failed, item is nullptr.";
+            LOG(ERROR) << "UpdateUserDataMEDevice failed";
         }
+        break;
     }
 }
 
@@ -103,7 +105,6 @@ void LoadFstab()
         LOG(WARNING) << "Read " << fstabFile << " failed";
         return;
     }
-    SetRealUserdataBlockDevice();
 
     LOG(DEBUG) << "Updater filesystem config info:";
     for (FstabItem *item = g_fstab->head; item != nullptr; item = item->next) {
@@ -368,6 +369,29 @@ bool MountMetadata()
     return mountSuccess;
 }
 
+bool CheckUserdataBlockDevice()
+{
+    char linkBuf[LINK_BUFF_LEN] = {0};
+    if (readlink(USERDATA_BLOCK_DEVICE_PATH.c_str(), linkBuf, LINK_BUFF_LEN - 1) <= 0) {
+        LOG(ERROR) << "readlink fail, errno:" << errno;
+        return false;
+    }
+    LOG(INFO) << "linkBuf is " << linkBuf;
+    std::string dmSuffix = "/dev/block/dm-";
+    return std::string(linkBuf).rfind(dmSuffix, 0) == 0;
+}
+
+void RecordMountFailMsg(const std::string &mountPoint)
+{
+    LOG(ERROR) << "Expected partition " << mountPoint << " is not mounted.";
+    if (Utils::IsMetadataEncrypt() && !CheckUserdataBlockDevice()) {
+        LOG(ERROR) << "Userdata not link dm device.";
+        UPDATER_LAST_WORD(-1, "Userdata not link dm device.");
+        return;
+    }
+    UPDATER_LAST_WORD(-1, "Expected partition " + mountPoint + " is not mounted.");
+}
+
 int SetupPartitions(bool isMountData, bool isMountMetadata)
 {
     UPDATER_INIT_RECORD;
@@ -397,8 +421,7 @@ int SetupPartitions(bool isMountData, bool isMountMetadata)
         if (mountPoint == "/data" && isMountData) {
             // factory wireless upgrade use /internaldata to mount userdata
             if (GetMountStatusForMountPoint(INTERNAL_DATA_PATH) != MOUNT_MOUNTED && MountForPath(mountPoint) != 0) {
-                LOG(ERROR) << "Expected partition " << mountPoint << " is not mounted.";
-                UPDATER_LAST_WORD(-1, "Expected partition " + mountPoint + " is not mounted.");
+                RecordMountFailMsg(mountPoint);
                 return -1;
             }
             Utils::SetParameter("updater.data.ready", "1");
