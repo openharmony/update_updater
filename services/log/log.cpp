@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "log/log.h"
+#include <atomic>
 #include <chrono>
 #include <cstdarg>
 #include <memory>
@@ -34,7 +35,7 @@ static std::ofstream g_errorCode;
 static std::ofstream g_nullStream;
 static std::string g_logTag;
 static ReplaceLogType g_replaceMap;
-static int g_logLevel = INFO;
+static std::atomic<int> g_logLevel{ static_cast<int>(INFO) };
 #ifndef DIFF_PATCH_SDK
 static constexpr unsigned int UPDATER_DOMAIN = 0XD002E01;
 #endif
@@ -52,6 +53,7 @@ void OpenLogStream(std::ofstream &ofs, const std::string &file)
 
 void SetReplaceMap(const ReplaceLogType &replaceMap)
 {
+    std::lock_guard<std::mutex> lock(g_updaterLogLock);
     g_replaceMap = replaceMap;
 }
 
@@ -71,6 +73,7 @@ void ReplaceLog(std::string &str)
 void InitUpdaterLogger(const std::string &tag, const std::string &logFile, const std::string &stageFile,
     const std::string &errorCodeFile)
 {
+    std::lock_guard<std::mutex> lock(g_updaterLogLock);
     g_logTag = tag;
     OpenLogStream(g_updaterLog, logFile);
     OpenLogStream(g_updaterStage, stageFile);
@@ -86,14 +89,17 @@ UpdaterLogger::~UpdaterLogger()
     pid_t tid = 0;
     int cpu_id = 0;
 #ifndef DIFF_PATCH_SDK
-    HiLogBasePrint(LOG_CORE, (LogLevel)level_, UPDATER_DOMAIN, g_logTag.c_str(), "%{public}s", str.c_str());
+    {
+        std::lock_guard<std::mutex> lock(g_updaterLogLock);
+        HiLogBasePrint(LOG_CORE, (LogLevel)level_, UPDATER_DOMAIN, g_logTag.c_str(), "%{public}s", str.c_str());
+    }
     tid = gettid();
     cpu_id = sched_getcpu();
 #endif
     oss_.str("");
     oss_ << std::endl << std::flush;
+    std::lock_guard<std::mutex> lock(g_updaterLogLock);
     if (g_updaterLog.is_open()) {
-        std::lock_guard<std::mutex> lock(g_updaterLogLock);
         replaceFunc_(str);
         std::string cpu_id_tag = "[" + std::to_string(cpu_id) + "]";
         g_updaterLog << realTime_ <<  " " << g_logTag << cpu_id_tag <<  tid
@@ -103,6 +109,7 @@ UpdaterLogger::~UpdaterLogger()
 
 StageLogger::~StageLogger()
 {
+    std::lock_guard<std::mutex> lock(g_updaterLogLock);
     if (g_updaterStage.is_open()) {
         g_updaterStage << std::endl << std::flush;
     } else {
@@ -158,6 +165,7 @@ std::ostream& StageLogger::OutputUpdaterStage()
     char realTime[MAX_TIME_SIZE] = {0};
     GetFormatTime(realTime, sizeof(realTime));
 
+    std::lock_guard<std::mutex> lock(g_updaterLogLock);
     if (g_updaterLog.is_open()) {
         if (stage_ == UPDATE_STAGE_OUT) {
             return g_updaterStage << realTime << "  " << g_logTag << " ";
@@ -187,6 +195,7 @@ std::ostream& ErrorCode::OutputErrorCode(const std::string &path, int line, Upda
 {
     char realTime[MAX_TIME_SIZE] = {0};
     GetFormatTime(realTime, sizeof(realTime));
+    std::lock_guard<std::mutex> lock(g_updaterLogLock);
     if (g_errorCode.is_open()) {
         return g_errorCode << realTime <<  "  " << path << " " << line << " , error code is : " << code << std::endl;
     }
