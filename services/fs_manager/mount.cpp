@@ -26,6 +26,7 @@
 #include <linux/fs.h>
 #include "log/dump.h"
 #include "log/log.h"
+#include "scope_guard.h"
 #include "updater/updater_const.h"
 #include "utils.h"
 
@@ -70,8 +71,23 @@ MountStatus GetMountStatusForPath(const std::string &path)
 }
 #endif
 
+bool IsDmDeviceLink()
+{
+    char linkBuf[LINK_BUFF_LEN] = {0};
+    if (readlink(USERDATA_BLOCK_DEVICE_PATH.c_str(), linkBuf, LINK_BUFF_LEN - 1) <= 0) {
+        LOG(ERROR) << "readlink fail, errno:" << errno;
+        return false;
+    }
+    LOG(INFO) << "linkBuf is " << linkBuf;
+    std::string dmSuffix = "/dev/block/dm-";
+    return std::string(linkBuf).rfind(dmSuffix, 0) == 0;
+}
+
 void SetUserdataBlockDeviceSymlink()
 {
+    if (IsDmDeviceLink()) {
+        return;
+    }
     if (g_fstab == nullptr) {
         LOG(ERROR) << "g_fstab is nullptr";
         return;
@@ -84,6 +100,14 @@ void SetUserdataBlockDeviceSymlink()
             LOG(ERROR) << "UpdateUserDataMEDevice failed";
         }
         break;
+    }
+}
+
+void LoadFstab(const bool initBlockDevice)
+{
+    LoadFstab();
+    if (initBlockDevice) {
+        SetUserdataBlockDeviceSymlink();
     }
 }
 
@@ -369,24 +393,50 @@ bool MountMetadata()
     return mountSuccess;
 }
 
-bool CheckUserdataBlockDevice()
+bool IsMetadataEncrypt()
 {
-    char linkBuf[LINK_BUFF_LEN] = {0};
-    if (readlink(USERDATA_BLOCK_DEVICE_PATH.c_str(), linkBuf, LINK_BUFF_LEN - 1) <= 0) {
-        LOG(ERROR) << "readlink fail, errno:" << errno;
+    std::string path = "/sys/kernel/metacrypt/status";
+    if (!Utils::IsFileExist(path)) {
         return false;
     }
-    LOG(INFO) << "linkBuf is " << linkBuf;
-    std::string dmSuffix = "/dev/block/dm-";
-    return std::string(linkBuf).rfind(dmSuffix, 0) == 0;
+    LOG(INFO) << "It is the userdata metadata encrypt status";
+    return true;
 }
-
+ 
+std::string GetMetaEncryptLog()
+{
+    std::string result;
+    std::vector<std::string> logList {
+        "/sys/kernel/metacrypt/status",
+        "/sys/kernel/metacrypt/stage"
+    };
+    for (const auto &file : logList) {
+        int fd = open(file.c_str(), O_RDONLY);
+        if (fd < 0) {
+            LOG(ERROR) << "open " << file << " failed: " << strerror(errno);
+            continue;
+        }
+        ON_SCOPE_EXIT(closeFd) {
+            (void)close(fd);
+        };
+        std::string errStr;
+        if (!Utils::ReadFileToString(fd, errStr)) {
+            LOG(ERROR) << "read " << file << " failed: " << strerror(errno);
+            continue;
+        }
+        result += (file + ":" + errStr);
+    }
+    return result;
+}
+ 
 void RecordMountFailMsg(const std::string &mountPoint)
 {
+    UPDATER_INIT_RECORD;
     LOG(ERROR) << "Expected partition " << mountPoint << " is not mounted.";
-    if (Utils::IsMetadataEncrypt() && !CheckUserdataBlockDevice()) {
-        LOG(ERROR) << "Userdata not link dm device.";
-        UPDATER_LAST_WORD(-1, "Userdata not link dm device.");
+    if (IsMetadataEncrypt() && !IsDmDeviceLink()) {
+        std::string errMsg = "Userdata not link dm device, " + GetMetaEncryptLog();
+        LOG(ERROR) << errMsg;
+        UPDATER_LAST_WORD(-1, errMsg);
         return;
     }
     UPDATER_LAST_WORD(-1, "Expected partition " + mountPoint + " is not mounted.");
