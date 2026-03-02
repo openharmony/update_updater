@@ -229,7 +229,7 @@ void BootMode::InitMode(void) const
 #else
     SetLogLevel(DEBUG);
 #endif
-    LoadFstab();
+    LoadFstab(true);
     STAGE(UPDATE_STAGE_OUT) << "Start " << modeName;
     SetParameter(modePara.c_str(), "1");
 }

@@ -154,5 +154,25 @@ bool IsDirExist(const std::string &path)
     }
     return false;
 }
+
+bool ReadFileToString(int fd, std::string &content)
+{
+    struct stat sb {};
+    if (fstat(fd, &sb) != -1 && sb.st_size > 0) {
+        content.resize(static_cast<size_t>(sb.st_size));
+    }
+    ssize_t n;
+    auto remaining = static_cast<size_t>(sb.st_size);
+    auto p = reinterpret_cast<char *>(content.data());
+    while (remaining > 0) {
+        n = read(fd, p, remaining);
+        if (n <= 0) {
+            return false;
+        }
+        p += n;
+        remaining -= static_cast<size_t>(n);
+    }
+    return true;
+}
 } // Utils
 } // updater

@@ -22,6 +22,8 @@
 
 namespace Updater {
 void LoadFstab(); /* Load fstab */
+void LoadFstab(const bool initBlockDevice);
+bool IsMetadataEncrypt();
 void LoadSpecificFstab(const std::string &fstabName);
 void ErasePartition(const std::string &devPath);
 int FormatPartition(const std::string &path, bool isZeroErase = false);
