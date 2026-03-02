@@ -1140,6 +1140,17 @@ bool ConvertToFloat(const std::string &str, float &value)
     return true;
 }
 
+bool IsAbDevice()
+{
+    char partType[PARAM_SIZE + 1] = {0};
+    if (GetParameter("ohos.boot.update.partition_type", "", partType, sizeof(partType) - 1) <= 0) {
+        LOG(ERROR) << "get part partition failed";
+        return false;
+    }
+    LOG(INFO) << "device type is " << partType;
+    return std::string(partType) == "ab"; 
+}
+
 bool IsVabDevice()
 {
     char partType[PARAM_SIZE + 1] = {0};
@@ -1195,7 +1206,7 @@ bool SetUpdateSuffix(std::string stringsuffix)
 
 int GetUpdateSlot()
 {
-    if (!IsVabDevice()) {
+    if (!IsVabDevice() && Utils::IsAbDevice()) {
         return NOT_AB;
     }
     char paramValue[PARAM_SIZE + 1] = {0};

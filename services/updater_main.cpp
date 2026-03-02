@@ -306,6 +306,16 @@ __attribute__((weak)) void NotifyPreCheck(UpdaterStatus &status, UpdaterParams &
     return;
 }
 
+__attribute__((weak)) bool PreSdSpecialProcess(UpdaterParams &upParams)
+{
+    LOG(INFO) << "start PreSdSpecialProcess";
+    if (SetUpdateSlotParam(upParams, true) != UPDATE_SUCCESS) {
+        LOG(ERROR) << "SetUpdateSlotParam failed";
+        return false;
+    }
+    return true;
+}
+
 static UpdaterStatus VerifyBinfiles(UpdaterParams &upParams)
 {
     UPDATER_INIT_RECORD;
@@ -996,8 +1006,8 @@ static UpdaterStatus PreSdcardUpdatePackages(UpdaterParams &upParams)
         LOG(ERROR) << "Battery is not sufficient for install package.";
         return UPDATE_SKIP;
     }
-    if (SetUpdateParam(upParams, true) != UPDATE_SUCCESS) {
-        LOG(ERROR) << "SetUpdateParam failed";
+    if (!PreSdSpecialProcess(upParams)) {
+        LOG(ERROR) << "pre sd special process failed";
         return UPDATE_ERROR;
     }
     status = VerifyPackages(upParams);
@@ -1028,6 +1038,7 @@ static void PostSdcardUpdatePackages(UpdaterParams &upParams, UpdaterStatus &sta
             status = UPDATE_CORRUPT;
             return;
         }
+        UpdaterInit::GetInstance().InvokeEvent(SD_UPDATE_POST_EVENT);
         UPDATER_UI_INSTANCE.ShowSuccessPage();
     }
 }

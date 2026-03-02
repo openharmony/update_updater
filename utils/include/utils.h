@@ -123,6 +123,7 @@ bool ConvertToUnsignedLong(const std::string &str, uint32_t &value, int base = 0
 bool ConvertToDouble(const std::string &str, double &value);
 bool ConvertToFloat(const std::string &str, float &value);
 bool IsVabDevice();
+bool IsAbDevice();
 bool SetUpdateSlot(int updateSlot);
 bool SetUpdateSuffix(std::string stringsuffix);
 int GetUpdateSlot();
