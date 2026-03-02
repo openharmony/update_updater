@@ -29,7 +29,7 @@ int64_t GetFilesFromDirectory(const std::string &path, std::vector<std::string> 
 bool RemoveDir(const std::string &path);
 bool IsFileExist(const std::string &path);
 bool IsDirExist(const std::string &path);
-bool IsMetadataEncrypt();
+bool ReadFileToString(int fd, std::string &content);
 } // Utils
 } // Updater
 #endif // UTILS_FS_H
