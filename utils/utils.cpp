@@ -1148,7 +1148,7 @@ bool IsAbDevice()
         return false;
     }
     LOG(INFO) << "device type is " << partType;
-    return std::string(partType) == "ab"; 
+    return std::string(partType) == "ab";
 }
 
 bool IsVabDevice()
