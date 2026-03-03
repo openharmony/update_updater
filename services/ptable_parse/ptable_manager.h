@@ -82,6 +82,7 @@ private:
     bool IsCompositePtable();
     uint32_t GetBootdevType();
     void InitCompositePtable();
+    void SetPtableFromMap();
 
     static inline std::unordered_map<uint32_t, PtableConstructor> ptableMap_;
 };

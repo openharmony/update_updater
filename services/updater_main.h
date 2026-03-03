@@ -96,6 +96,7 @@ UpdaterStatus UpdateSubPkg(UpdaterParams &upParams);
 void NotifyPreCheck(UpdaterStatus &status, UpdaterParams &upParams);
 bool EnableCodeSignForBinary([[maybe_unused]] const std::string &fullPath);
 void ReportPID([[maybe_unused]] const pid_t &pid, [[maybe_unused]] const int &reportMode);
+bool PreSdSpecialProcess(UpdaterParams &upParams);
 #ifdef __cplusplus
 #if __cplusplus
 }

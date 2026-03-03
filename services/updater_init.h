@@ -42,6 +42,8 @@ enum UpdaterInitEvent {
     // factory reset
     FACTORY_RESET_INIT_EVENT,
 
+    SD_UPDATE_POST_EVENT,
+
     UPDATER_INIT_EVENT_BUTT
 };
 

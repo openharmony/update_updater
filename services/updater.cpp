@@ -333,7 +333,7 @@ bool IsUpdateBasePkg(UpdaterParams &upParams)
  
 UpdaterStatus SetUpdateSlotParam(UpdaterParams &upParams, bool isUpdateCurrSlot)
 {
-    if (!Utils::IsVabDevice()) {
+    if (!Utils::IsVabDevice() && !Utils::IsAbDevice()) {
         return UPDATE_SUCCESS;
     }
     if (!isUpdateCurrSlot && upParams.updatePackage.size() == 1) {
@@ -371,7 +371,7 @@ UpdaterStatus SetUpdateSuffixParam()
 
 UpdaterStatus ClearUpdateSlotParam()
 {
-    if (!Utils::IsVabDevice()) {
+    if (!Utils::IsVabDevice() && !Utils::IsAbDevice()) {
         return UPDATE_SUCCESS;
     }
     int updateSlot = -10; // -10 : default value

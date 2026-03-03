@@ -60,6 +60,14 @@ bool PtableManager::ReloadDevicePartition(Hpackage::PkgManager *pkgManager)
     return LoadPartitionInfo(pkgManager);
 }
 
+void PtableManager::SetPtableFromMap()
+{
+    uint32_t type = GetBootdevType();
+    if (auto it = ptableMap_.find(type); it != ptableMap_.end()) {
+        pPtable_ = it->second();
+    }
+}
+
 void PtableManager::InitPtablePtr()
 {
     if (IsCompositePtable()) {
@@ -68,6 +76,7 @@ void PtableManager::InitPtablePtr()
     }
 
     SetDeviceStorageType();
+    SetPtableFromMap();
     if (pPtable_ == nullptr) {
         if (GetDeviceStorageType() == StorageType::STORAGE_UFS) {
             pPtable_ = std::make_unique<UfsPtable>();
