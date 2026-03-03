@@ -371,7 +371,7 @@ UpdaterStatus SetUpdateSuffixParam()
 
 UpdaterStatus ClearUpdateSlotParam()
 {
-    if (!Utils::IsVabDevice() && Utils::IsAbDevice()) {
+    if (!Utils::IsVabDevice() && !Utils::IsAbDevice()) {
         return UPDATE_SUCCESS;
     }
     int updateSlot = -10; // -10 : default value
