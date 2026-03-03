@@ -1206,7 +1206,7 @@ bool SetUpdateSuffix(std::string stringsuffix)
 
 int GetUpdateSlot()
 {
-    if (!IsVabDevice() && Utils::IsAbDevice()) {
+    if (!IsVabDevice() && !Utils::IsAbDevice()) {
         return NOT_AB;
     }
     char paramValue[PARAM_SIZE + 1] = {0};
