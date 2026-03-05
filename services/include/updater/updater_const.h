@@ -84,6 +84,16 @@ constexpr const char *MMC_BLOCK_DEV_NAME = "/data/block/mmcblk0";
 constexpr const char *MMC_SIZE_FILE = "/data/class/block/mmcblk0/size";
 #endif
 
+// cpu affinity
+constexpr const char *AFFECTED_CPUS = "affected_cpus";
+constexpr const char *CPU_CORE_POLICY_NODE_DIR = "/sys/devices/system/cpu/cpufreq/policy";
+constexpr int CPU_CATEGORIES = 3;
+constexpr int LITTLE_CORE_INDEX = 0;
+constexpr int MIDDLE_CORE_INDEX = 1;
+constexpr int BIG_CORE_INDEX = 2;
+constexpr int DEFAULT_LITTLE_CORES = 4;
+constexpr int DEFAULT_BIG_CORES = 2;
+
 // update retry
 constexpr const char *UPDATER_RETRY_TAG = "retry_update";
 constexpr const char *VERIFY_FAILED_REBOOT = "reboot_verify_failed";

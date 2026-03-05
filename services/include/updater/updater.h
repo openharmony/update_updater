@@ -77,6 +77,9 @@ struct UpdaterParams {
     std::vector<std::chrono::duration<double>> installTime {};
     std::function<void(float)> callbackProgress {};
     std::vector<std::string> binaryTids {};
+    std::optional<unsigned int> affinityCpuCores;
+    /* little middle big core nums */
+    std::vector<unsigned int> cpuTypeCores;
 };
 
 using CondFunc = std::function<bool(const UpdateMessage &)>;
@@ -157,6 +160,10 @@ std::optional<BootMode> SelectMode(const UpdateMessage &boot);
 bool SetCpuAffinityByPid(const UpdaterParams &upParams, unsigned int reservedCores);
 
 void UpdateBinaryTids(const std::vector<std::string> &output, UpdaterParams &upParams);
+
+int GetCpuCores(UpdaterParams &upParams, int cpuType);
+
+void GetCpuCoresType(UpdaterParams &upParams);
 
 bool IsUpdateBasePkg(UpdaterParams &upParams);
 
