@@ -161,7 +161,7 @@ bool SetCpuAffinityByPid(const UpdaterParams &upParams, unsigned int reservedCor
 
 void UpdateBinaryTids(const std::vector<std::string> &output, UpdaterParams &upParams);
 
-int GetCpuCores(UpdaterParams &upParams, int cpuType);
+unsigned int GetCpuCores(UpdaterParams &upParams, int cpuType);
 
 void GetCpuCoresType(UpdaterParams &upParams);
 
