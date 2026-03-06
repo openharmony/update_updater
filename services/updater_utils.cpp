@@ -327,8 +327,42 @@ void UpdateBinaryTids(const std::vector<std::string> &output, UpdaterParams &upP
     upParams.binaryTids = SplitString(outputInfo, ",");
     if (upParams.isLoadReduction) {
         unsigned int coreCount = std::thread::hardware_concurrency();
-        unsigned int reservedCores = coreCount - LITTLE_CPU_CORES;
+		GetCpuCoresType(upParams);
+		// get little core nums or affinityCpuCores
+		unsigned int maskedCores = upParams.affinityCpuCores.has_value() ? *upParams.affinityCpuCores :
+    								GetCpuCores(upParams, LITTLE_CORE_INDEX);
+		unsigned int reservedCores = coreCount > maskedCores ? coreCount - maskedCores : 0;
         SetCpuAffinityByPid(upParams, reservedCores);
     }
+}
+
+int GetCpuCores(UpdaterParams &upParams, int cpuType)
+{
+    if (cpuType < 0 || cpuType >= static_cast<int>(upParams.cpuTypeCores.size())) {
+        return cpuType == BIG_CORE_INDEX ? DEFAULT_BIG_CORES : DEFAULT_LITTLE_CORES;
+    }
+    return upParams.cpuTypeCores[cpuType];
+}
+
+void GetCpuCoresType(UpdaterParams &upParams)
+{
+    if (!upParams.cpuTypeCores.empty()) {
+        return;
+    }
+    upParams.cpuTypeCores.resize(CPU_CATEGORIES);
+    for (uint32_t i = 0; i < CPU_CATEGORIES; ++i) {
+        std::string cpuCoreNode = CPU_CORE_POLICY_NODE_DIR + std::to_string(i) + "/" + AFFECTED_CPUS;
+        std::string cpuCoreStr {};
+        std::ifstream fin(cpuCoreNode, std::ios::in);
+        if (!fin.is_open()) {
+            LOG(ERROR) << "open " << cpuCoreNode << " failed, error: " << errno;
+            upParams.cpuTypeCores[i] = 0;
+            continue;
+        }
+        fin >> cpuCoreStr;
+        LOG(INFO) << "node " << cpuCoreNode << " content is: " << cpuCoreStr;
+        upParams.cpuTypeCores[i] = Utils::SplitString(cpuCoreStr, " ").size();
+    }
+    return;
 }
 } // namespace Updater
