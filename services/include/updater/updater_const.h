@@ -91,8 +91,8 @@ constexpr int CPU_CATEGORIES = 3;
 constexpr int LITTLE_CORE_INDEX = 0;
 constexpr int MIDDLE_CORE_INDEX = 1;
 constexpr int BIG_CORE_INDEX = 2;
-constexpr int DEFAULT_LITTLE_CORES = 4;
-constexpr int DEFAULT_BIG_CORES = 2;
+constexpr unsigned int DEFAULT_LITTLE_CORES = 4;
+constexpr unsigned int DEFAULT_BIG_CORES = 2;
 
 // update retry
 constexpr const char *UPDATER_RETRY_TAG = "retry_update";

@@ -336,7 +336,7 @@ void UpdateBinaryTids(const std::vector<std::string> &output, UpdaterParams &upP
     }
 }
 
-int GetCpuCores(UpdaterParams &upParams, int cpuType)
+unsigned int GetCpuCores(UpdaterParams &upParams, int cpuType)
 {
     if (cpuType < 0 || cpuType >= static_cast<int>(upParams.cpuTypeCores.size())) {
         return cpuType == BIG_CORE_INDEX ? DEFAULT_BIG_CORES : DEFAULT_LITTLE_CORES;
