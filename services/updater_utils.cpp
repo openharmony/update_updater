@@ -352,14 +352,13 @@ void GetCpuCoresType(UpdaterParams &upParams)
     upParams.cpuTypeCores.resize(CPU_CATEGORIES);
     for (uint32_t i = 0; i < CPU_CATEGORIES; ++i) {
         std::string cpuCoreNode = CPU_CORE_POLICY_NODE_DIR + std::to_string(i) + "/" + AFFECTED_CPUS;
-        std::string cpuCoreStr {};
         std::ifstream fin(cpuCoreNode, std::ios::in);
         if (!fin.is_open()) {
             LOG(ERROR) << "open " << cpuCoreNode << " failed, error: " << errno;
             upParams.cpuTypeCores[i] = 0;
             continue;
         }
-        fin >> cpuCoreStr;
+        std::string cpuCoreStr {std::istreambuf_iterator<char> {fin}, {}};
         LOG(INFO) << "node " << cpuCoreNode << " content is: " << cpuCoreStr;
         upParams.cpuTypeCores[i] = Utils::SplitString(cpuCoreStr, " ").size();
     }
