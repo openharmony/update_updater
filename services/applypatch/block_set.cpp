@@ -441,4 +441,52 @@ int32_t BlockSet::WriteDiffToBlock(const Command &cmd, std::vector<uint8_t> &sou
     }
     return 0;
 }
+
+bool BlockSet::CompareDataWithFile(int fd, const std::vector<uint8_t> &buffer) const
+{
+    // 4KB aligned
+    const size_t bufferBlockCnt = buffer.size() / static_cast<size_t>(H_BLOCK_SIZE);
+    if (bufferBlockCnt != TotalBlockSize()) {
+        LOG(ERROR) << "Buffer 4KB aligned mismatch";
+        return false;
+    }
+    const size_t totalBytes = TotalBlockSize() * static_cast<size_t>(H_BLOCK_SIZE);
+    if (totalBytes != buffer.size()) {
+        LOG(ERROR) << "Buffer size mismatch";
+        return false;
+    }
+    // Determine buffer size: max 128KB but 4KB aligned totalBytes
+    constexpr size_t maxBufferSize = 128 * 1024; // 128KB
+    const size_t bufferSize = std::min(totalBytes, maxBufferSize);
+    std::vector<uint8_t> tempBuffer(bufferSize);
+    size_t bufferPos = 0;
+
+    for (size_t i = 0; i < blocks_.size(); ++i) {
+        const BlockPair &block = blocks_[i];
+        const size_t blockBytes = (block.second - block.first) * static_cast<size_t>(H_BLOCK_SIZE);
+        if (lseek64(fd, static_cast<off64_t>(block.first * static_cast<size_t>(H_BLOCK_SIZE)), SEEK_SET) == -1) {
+            LOG(ERROR) << "Seek error. index: " << i << ", block(" << block.first << "," << block.second << ")";
+            return false;
+        }
+        size_t remaining = blockBytes;
+        while (remaining > 0) {
+            const size_t readSize = std::min(remaining, bufferSize);
+            if (!Utils::ReadFully(fd, tempBuffer.data(), readSize)) {
+                LOG(ERROR) << "Read error. index: " << i <<
+                    ", block(" << block.first << ", " << block.second << "), remaining: " << remaining;
+                return false;
+            }
+
+            if (memcmp(tempBuffer.data(), buffer.data() + bufferPos, readSize) != 0) {
+                LOG(ERROR) << "Data mismatch. index: " << i <<
+                    ", block(" << block.first << ", " << block.second << "), remaining: " << remaining;
+                return false;
+            }
+            bufferPos += readSize;
+            remaining -= readSize;
+        }
+    }
+    return true;
+}
+
 } // namespace Updater
