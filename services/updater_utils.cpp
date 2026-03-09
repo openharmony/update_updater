@@ -359,6 +359,7 @@ void GetCpuCoresType(UpdaterParams &upParams)
             continue;
         }
         std::string cpuCoreStr {std::istreambuf_iterator<char> {fin}, {}};
+        cpuCoreStr = Trim(cpuCoreStr);
         LOG(INFO) << "node " << cpuCoreNode << " content is: " << cpuCoreStr;
         upParams.cpuTypeCores[i] = Utils::SplitString(cpuCoreStr, " ").size();
     }
