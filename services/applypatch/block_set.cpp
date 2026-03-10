@@ -442,7 +442,7 @@ int32_t BlockSet::WriteDiffToBlock(const Command &cmd, std::vector<uint8_t> &sou
     return 0;
 }
 
-bool BlockSet::CompareDataWithFile(int fd, const std::vector<uint8_t> &buffer) const
+bool BlockSet::CompareDataFromBlock(int fd, const std::vector<uint8_t> &buffer) const
 {
     // 4KB aligned
     const size_t bufferBlockCnt = buffer.size() / static_cast<size_t>(H_BLOCK_SIZE);

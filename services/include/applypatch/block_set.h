@@ -100,7 +100,7 @@ public:
     // write data to block
     size_t WriteDataToBlock(int fd, std::vector<uint8_t> &buffer);
 
-    bool CompareDataWithFile(int fd, const std::vector<uint8_t> &buffer) const;
+    bool CompareDataFromBlock(int fd, const std::vector<uint8_t> &buffer) const;
 
 protected:
     size_t blockSize_;
