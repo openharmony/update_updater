@@ -37,10 +37,6 @@ namespace Updater {
 // 4KB aligned compare
 static bool CompareBlocks(const uint8_t *lhs, const uint8_t *rhs, size_t size)
 {
-    if (lhs == nullptr || rhs == nullptr) {
-        LOG(ERROR) << "invalid input";
-        return false;
-    }
     constexpr size_t blockSize = static_cast<size_t>(H_BLOCK_SIZE);
     for (size_t offset = 0; offset < size; offset += blockSize) {
         const size_t currSize = std::min(size - offset, blockSize);
