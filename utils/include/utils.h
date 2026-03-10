@@ -132,6 +132,9 @@ std::vector<pid_t> GetAllTids(pid_t pid);
 std::string VectorToString(const std::vector<pid_t> &pids);
 bool GetBatteryCapacity(int &capacity);
 void RecordBatteryLevel();
+// print data hex code, 16bytes per line
+void PrintHex(const uint8_t *buffer, size_t length);
+
 #ifndef __WIN32
 void SetFileAttributes(const std::string& file, uid_t owner, gid_t group, mode_t mode);
 #endif

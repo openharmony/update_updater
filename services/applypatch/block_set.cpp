@@ -33,6 +33,7 @@ using namespace Updater;
 using namespace Updater::Utils;
 
 namespace Updater {
+
 BlockSet::BlockSet(std::vector<BlockPair> &&pairs)
 {
     blockSize_ = 0;
@@ -441,4 +442,65 @@ int32_t BlockSet::WriteDiffToBlock(const Command &cmd, std::vector<uint8_t> &sou
     }
     return 0;
 }
+
+bool BlockSet::CompareDataFromBlock(int fd, const std::vector<uint8_t> &buffer) const
+{
+    // 4KB aligned
+    constexpr size_t blockSize = static_cast<size_t>(H_BLOCK_SIZE);
+    const size_t totalBytes = TotalBlockSize() * blockSize;
+    if (totalBytes != buffer.size()) {
+        LOG(ERROR) << "Buffer size mismatch. block bytes: " << totalBytes << " != buffer size: " << buffer.size();
+        return false;
+    }
+    // Determine buffer size: max 128KB but 4KB aligned totalBytes
+    constexpr size_t maxBufferSize = 128 * 1024; // 128KB
+    const size_t bufferSize = std::min(totalBytes, maxBufferSize);
+    std::vector<uint8_t> tempBuffer(bufferSize);
+    size_t bufferPos = 0;
+
+    for (size_t i = 0; i < blocks_.size(); ++i) {
+        const BlockPair &block = blocks_[i];
+        const size_t blockBytes = (block.second - block.first) * blockSize;
+        if (lseek64(fd, static_cast<off64_t>(block.first * blockSize), SEEK_SET) == -1) {
+            LOG(ERROR) << "Seek error. index: " << i << ", block(" << block.first << "," << block.second << ")";
+            return false;
+        }
+        size_t remaining = blockBytes;
+        while (remaining > 0) {
+            const size_t readSize = std::min(remaining, bufferSize);
+            if (!Utils::ReadFully(fd, tempBuffer.data(), readSize)) {
+                LOG(ERROR) << "Read error. index: " << i <<
+                    ", block(" << block.first << ", " << block.second << "), remaining: " << remaining;
+                return false;
+            }
+
+            if (!CompareBlocks(tempBuffer.data(), buffer.data() + bufferPos, readSize)) {
+                LOG(ERROR) << "Data mismatch. index: " << i <<
+                    ", block(" << block.first << ", " << block.second <<
+                    "), remaining: " << remaining << ", bufferPos: " << bufferPos;
+                return false;
+            }
+            bufferPos += readSize;
+            remaining -= readSize;
+        }
+    }
+    return true;
+}
+
+// 4KB aligned compare
+bool BlockSet::CompareBlocks(const uint8_t *lhs, const uint8_t *rhs, size_t size) const
+{
+    constexpr size_t blockSize = static_cast<size_t>(H_BLOCK_SIZE);
+    for (size_t offset = 0; offset < size; offset += blockSize) {
+        const size_t currSize = std::min(size - offset, blockSize);
+        if (memcmp(lhs + offset, rhs + offset, currSize) != 0) {
+            LOG(ERROR) << "memcmp failed. block offset: " << offset << ", currSize: " << currSize;
+            Utils::PrintHex(lhs + offset, currSize);
+            Utils::PrintHex(rhs + offset, currSize);
+            return false;
+        }
+    }
+    return true;
+}
+
 } // namespace Updater
