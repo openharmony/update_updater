@@ -33,6 +33,27 @@ using namespace Updater;
 using namespace Updater::Utils;
 
 namespace Updater {
+
+// 4KB aligned compare
+static bool CompareBlocks(const uint8_t *lhs, const uint8_t *rhs, size_t size)
+{
+    if (lhs == nullptr || rhs == nullptr) {
+        LOG(ERROR) << "invalid input";
+        return false;
+    }
+    constexpr size_t blockSize = static_cast<size_t>(H_BLOCK_SIZE);
+    for (size_t offset = 0; offset < size; offset += blockSize) {
+        const size_t currSize = std::min(size - offset, blockSize);
+        if (memcmp(lhs + offset, rhs + offset, currSize) != 0) {
+            LOG(ERROR) << "memcmp failed. block offset: " << offset << ", currSize: " << currSize;
+            Utils::PrintHex(lhs + offset, currSize);
+            Utils::PrintHex(rhs + offset, currSize);
+            return false;
+        }
+    }
+    return true;
+}
+
 BlockSet::BlockSet(std::vector<BlockPair> &&pairs)
 {
     blockSize_ = 0;
@@ -445,14 +466,14 @@ int32_t BlockSet::WriteDiffToBlock(const Command &cmd, std::vector<uint8_t> &sou
 bool BlockSet::CompareDataFromBlock(int fd, const std::vector<uint8_t> &buffer) const
 {
     // 4KB aligned
-    const size_t bufferBlockCnt = buffer.size() / static_cast<size_t>(H_BLOCK_SIZE);
-    if (bufferBlockCnt != TotalBlockSize()) {
-        LOG(ERROR) << "Buffer 4KB aligned mismatch";
+    constexpr size_t blockSize = static_cast<size_t>(H_BLOCK_SIZE);
+    if (TotalBlockSize() > std::numeric_limits<size_t>::max() / blockSize) {
+        LOG(ERROR) << "Total blocks is too large. blocks: " << TotalBlockSize();
         return false;
     }
-    const size_t totalBytes = TotalBlockSize() * static_cast<size_t>(H_BLOCK_SIZE);
+    const size_t totalBytes = TotalBlockSize() * blockSize;
     if (totalBytes != buffer.size()) {
-        LOG(ERROR) << "Buffer size mismatch";
+        LOG(ERROR) << "Buffer size mismatch. block bytes: " << totalBytes << " != buffer size: " << buffer.size();
         return false;
     }
     // Determine buffer size: max 128KB but 4KB aligned totalBytes
@@ -463,8 +484,8 @@ bool BlockSet::CompareDataFromBlock(int fd, const std::vector<uint8_t> &buffer) 
 
     for (size_t i = 0; i < blocks_.size(); ++i) {
         const BlockPair &block = blocks_[i];
-        const size_t blockBytes = (block.second - block.first) * static_cast<size_t>(H_BLOCK_SIZE);
-        if (lseek64(fd, static_cast<off64_t>(block.first * static_cast<size_t>(H_BLOCK_SIZE)), SEEK_SET) == -1) {
+        const size_t blockBytes = (block.second - block.first) * blockSize;
+        if (lseek64(fd, static_cast<off64_t>(block.first * blockSize), SEEK_SET) == -1) {
             LOG(ERROR) << "Seek error. index: " << i << ", block(" << block.first << "," << block.second << ")";
             return false;
         }
@@ -477,9 +498,10 @@ bool BlockSet::CompareDataFromBlock(int fd, const std::vector<uint8_t> &buffer) 
                 return false;
             }
 
-            if (memcmp(tempBuffer.data(), buffer.data() + bufferPos, readSize) != 0) {
+            if (!CompareBlocks(tempBuffer.data(), buffer.data() + bufferPos, readSize)) {
                 LOG(ERROR) << "Data mismatch. index: " << i <<
-                    ", block(" << block.first << ", " << block.second << "), remaining: " << remaining;
+                    ", block(" << block.first << ", " << block.second <<
+                    "), remaining: " << remaining << ", bufferPos: " << bufferPos;
                 return false;
             }
             bufferPos += readSize;

@@ -1315,6 +1315,26 @@ void RecordBatteryLevel()
     LOG(ERROR) << "battery level is " << capacity;
 }
 
+void PrintHex(const uint8_t *buffer, size_t length)
+{
+    if (buffer == nullptr || length == 0) {
+        LOG(WARNING) << "invalid buffer or length";
+        return;
+    }
+    LOG(INFO) << "PrintHex length: " << length;
+    constexpr size_t numPerLine = 16;
+    constexpr size_t hexWidth = 2;
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0');
+    for (size_t i = 0; i < length; i++) {
+        if ((i % numPerLine) == 0) {
+            ss << std::endl;
+        }
+        ss << std::setw(hexWidth) << static_cast<int>(buffer[i]) << " ";
+    }
+    LOG(INFO) << ss.str();
+}
+
 #ifndef __WIN32
 void SetFileAttributes(const std::string& file, uid_t owner, gid_t group, mode_t mode)
 {
