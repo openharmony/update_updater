@@ -112,6 +112,7 @@ private:
     bool CheckReliablePair(BlockPair pair);
     int32_t LoadSourceBuffer(const Command &cmd, size_t &pos, std::vector<uint8_t> &sourceBuffer,
         bool &isOverlap, size_t &srcBlockSize);
+    bool CompareBlocks(const uint8_t *lhs, const uint8_t *rhs, size_t size) const;
 };
 
 #ifdef __cplusplus

@@ -34,22 +34,6 @@ using namespace Updater::Utils;
 
 namespace Updater {
 
-// 4KB aligned compare
-static bool CompareBlocks(const uint8_t *lhs, const uint8_t *rhs, size_t size)
-{
-    constexpr size_t blockSize = static_cast<size_t>(H_BLOCK_SIZE);
-    for (size_t offset = 0; offset < size; offset += blockSize) {
-        const size_t currSize = std::min(size - offset, blockSize);
-        if (memcmp(lhs + offset, rhs + offset, currSize) != 0) {
-            LOG(ERROR) << "memcmp failed. block offset: " << offset << ", currSize: " << currSize;
-            Utils::PrintHex(lhs + offset, currSize);
-            Utils::PrintHex(rhs + offset, currSize);
-            return false;
-        }
-    }
-    return true;
-}
-
 BlockSet::BlockSet(std::vector<BlockPair> &&pairs)
 {
     blockSize_ = 0;
@@ -463,10 +447,6 @@ bool BlockSet::CompareDataFromBlock(int fd, const std::vector<uint8_t> &buffer) 
 {
     // 4KB aligned
     constexpr size_t blockSize = static_cast<size_t>(H_BLOCK_SIZE);
-    if (TotalBlockSize() > std::numeric_limits<size_t>::max() / blockSize) {
-        LOG(ERROR) << "Total blocks is too large. blocks: " << TotalBlockSize();
-        return false;
-    }
     const size_t totalBytes = TotalBlockSize() * blockSize;
     if (totalBytes != buffer.size()) {
         LOG(ERROR) << "Buffer size mismatch. block bytes: " << totalBytes << " != buffer size: " << buffer.size();
@@ -502,6 +482,22 @@ bool BlockSet::CompareDataFromBlock(int fd, const std::vector<uint8_t> &buffer) 
             }
             bufferPos += readSize;
             remaining -= readSize;
+        }
+    }
+    return true;
+}
+
+// 4KB aligned compare
+bool BlockSet::CompareBlocks(const uint8_t *lhs, const uint8_t *rhs, size_t size) const
+{
+    constexpr size_t blockSize = static_cast<size_t>(H_BLOCK_SIZE);
+    for (size_t offset = 0; offset < size; offset += blockSize) {
+        const size_t currSize = std::min(size - offset, blockSize);
+        if (memcmp(lhs + offset, rhs + offset, currSize) != 0) {
+            LOG(ERROR) << "memcmp failed. block offset: " << offset << ", currSize: " << currSize;
+            Utils::PrintHex(lhs + offset, currSize);
+            Utils::PrintHex(rhs + offset, currSize);
+            return false;
         }
     }
     return true;
