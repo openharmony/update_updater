@@ -36,14 +36,14 @@ public:
     virtual ~ScriptManagerImpl();
     int32_t Init();
     int32_t ExecuteScript(int32_t priority) override;
-private:
+    int32_t RegisterInstruction(ScriptInstructionHelper &helper);
     int32_t ExtractAndExecuteScript(Hpackage::PkgManager::PkgManagerPtr manager,
         const std::string &scriptName);
+private:
     int32_t AddScript(const std::string &scriptName, int32_t priority);
     int32_t AddInstruction(const std::string &instrName, const UScriptInstructionPtr instruction);
     UScriptInstruction* FindInstruction(const std::string &instrName);
     UScriptEnv* GetScriptEnv(const std::string &instrName) const;
-    int32_t RegisterInstruction(ScriptInstructionHelper &helper);
 private:
     static const int32_t MAX_THREAD_POOL = 4;
     std::map<std::string, UScriptInstructionPtr> scriptInstructions_;
