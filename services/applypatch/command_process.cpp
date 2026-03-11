@@ -48,7 +48,7 @@ CommandResult NewCommandFn::Execute(const Command &params)
     BlockSet bs;
     size_t pos = H_NEW_CMD_ARGS_START;
     bs.ParserAndInsert(params.GetArgumentByPos(pos));
-    LOG(INFO) << " writing " << bs.TotalBlockSize() << " blocks of new data";
+    LOG(DEBUG) << " writing " << bs.TotalBlockSize() << " blocks of new data";
     auto writerThreadInfo = params.GetTransferParams()->writerThreadInfo.get();
     pthread_mutex_lock(&writerThreadInfo->mutex);
     writerThreadInfo->writer = std::make_unique<BlockWriter>(params.GetTargetFileDescriptor(), bs);
@@ -284,7 +284,7 @@ CommandResult StashCommandFn::Execute(const Command &params)
     size_t pos = 1;
     const std::string shaStr = params.GetArgumentByPos(pos++);
     BlockSet srcBlk;
-    LOG(INFO) << "Get source block info to block set";
+    LOG(DEBUG) << "Get source block info to block set";
     srcBlk.ParserAndInsert(params.GetArgumentByPos(pos++));
     size_t srcBlockSize = srcBlk.TotalBlockSize();
     std::vector<uint8_t> buffer;
@@ -308,7 +308,7 @@ CommandResult StashCommandFn::Execute(const Command &params)
         LOG(WARNING) << "failed to load source blocks for stash";
         return SUCCESS;
     }
-    LOG(INFO) << "store " << srcBlockSize << " blocks to " << storeBase << "/" << shaStr;
+    LOG(DEBUG) << "store " << srcBlockSize << " blocks to " << storeBase << "/" << shaStr;
     int ret = Store::WriteDataToStore(storeBase, shaStr, buffer, srcBlockSize * H_BLOCK_SIZE);
     return CommandResult(ret);
 }
