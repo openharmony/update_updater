@@ -80,7 +80,6 @@ void DoShutdown(const std::string &shutdownReason);
 std::string GetCertName();
 bool WriteFully(int fd, const uint8_t *data, size_t size);
 bool ReadFully(int fd, void* data, size_t size);
-bool ReadStringFromProcFile(const std::string &filePath, std::string &content);
 bool CopyFile(const std::string &src, const std::string &dest, bool isAppend = false);
 bool CopyFileBySendFile(const std::string &srcFile, const std::string &destFile);
 bool CopyDir(const std::string &srcPath, const std::string &dstPath);
