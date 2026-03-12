@@ -411,20 +411,12 @@ std::string GetMetaEncryptLog()
         "/sys/kernel/metacrypt/stage"
     };
     for (const auto &file : logList) {
-        int fd = open(file.c_str(), O_RDONLY);
-        if (fd < 0) {
-            LOG(ERROR) << "open " << file << " failed: " << strerror(errno);
-            continue;
-        }
-        ON_SCOPE_EXIT(closeFd) {
-            (void)close(fd);
-        };
         std::string errStr;
-        if (!Utils::ReadFileToString(fd, errStr)) {
+        if (!Utils::ReadStringFromProcFile(file, errStr)) {
             LOG(ERROR) << "read " << file << " failed: " << strerror(errno);
             continue;
         }
-        result += (file + ":" + errStr);
+        result += (file + ":" + errStr + ",");
     }
     return result;
 }
