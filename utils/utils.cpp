@@ -52,7 +52,6 @@ constexpr uint8_t SHIFT_RIGHT_FOUR_BITS = 4;
 constexpr int MAX_TIME_SIZE = 20;
 constexpr const char *PREFIX_PARTITION_NODE = "/dev/block/by-name/";
 constexpr mode_t DEFAULT_DIR_MODE = 0775;
-constexpr long MAX_FILE_LENGTH = 4096;
 
 namespace {
 void UpdateInfoInMisc(const std::string headInfo, const std::optional<int> message, bool isRemove)
@@ -338,27 +337,6 @@ bool ReadFully(int fd, void *data, size_t size)
         p += sread;
         remaining -= static_cast<size_t>(sread);
     }
-    return true;
-}
-
-bool ReadStringFromProcFile(const std::string &filePath, std::string &content)
-{
-    std::ifstream file(filePath.c_str());
-    if (!file.is_open()) {
-        LOG(ERROR) << "failed to open " << filePath <<  ", err: " << strerror(errno);
-        return false;
-    }
- 
-    file.seekg(0, std::ios::end);
-    const long fileLength = file.tellg();
-    if (fileLength > MAX_FILE_LENGTH) {
-        LOG(ERROR) << "file oversize " << fileLength << ", max is " << MAX_FILE_LENGTH;
-        return false;
-    }
- 
-    content.clear();
-    file.seekg(0, std::ios::beg);
-    std::copy(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), std::back_inserter(content));
     return true;
 }
 
