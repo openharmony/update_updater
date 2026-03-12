@@ -30,6 +30,7 @@ bool RemoveDir(const std::string &path);
 bool IsFileExist(const std::string &path);
 bool IsDirExist(const std::string &path);
 bool ReadFileToString(int fd, std::string &content);
+bool ReadStringFromProcFile(const std::string &filePath, std::string &content);
 } // Utils
 } // Updater
 #endif // UTILS_FS_H

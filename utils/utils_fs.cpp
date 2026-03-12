@@ -33,6 +33,7 @@
 
 namespace Updater {
 namespace Utils {
+constexpr long MAX_FILE_LENGTH = 4096;
 
 int MkdirRecursive(const std::string &pathName, mode_t mode)
 {
@@ -172,6 +173,27 @@ bool ReadFileToString(int fd, std::string &content)
         p += n;
         remaining -= static_cast<size_t>(n);
     }
+    return true;
+}
+
+bool ReadStringFromProcFile(const std::string &filePath, std::string &content)
+{
+    std::ifstream file(filePath.c_str());
+    if (!file.is_open()) {
+        LOG(ERROR) << "failed to open " << filePath <<  ", err: " << strerror(errno);
+        return false;
+    }
+ 
+    file.seekg(0, std::ios::end);
+    const long fileLength = file.tellg();
+    if (fileLength > MAX_FILE_LENGTH) {
+        LOG(ERROR) << "file oversize " << fileLength << ", max is " << MAX_FILE_LENGTH;
+        return false;
+    }
+ 
+    content.clear();
+    file.seekg(0, std::ios::beg);
+    std::copy(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), std::back_inserter(content));
     return true;
 }
 } // Utils
