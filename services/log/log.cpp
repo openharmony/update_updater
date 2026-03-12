@@ -41,6 +41,7 @@ static std::ofstream g_nullStream;
 static std::string g_logTag;
 static ReplaceLogType g_replaceMap;
 static std::atomic<int> g_logLevel{ static_cast<int>(INFO) };
+static std::atomic<int> g_dynamicLogLevel{ static_cast<int>(INFO) };
 #ifndef DIFF_PATCH_SDK
 static constexpr unsigned int UPDATER_DOMAIN = 0XD002E01;
 #endif
@@ -209,5 +210,33 @@ std::ostream& ErrorCode::OutputErrorCode(const std::string &path, int line, Upda
         return g_errorCode << realTime <<  "  " << path << " " << line << " , error code is : " << code << std::endl;
     }
     return std::cout;
+}
+
+void SetDynamicLogLevel(int level)
+{
+    if (level < Updater::DEBUG || level > Updater::FATAL) {
+        LOG(INFO) << "invalid dynamic log level: " << level;
+        return;
+    }
+    g_dynamicLogLevel = level;
+}
+
+int GetDynamicLogLevel()
+{
+    return g_dynamicLogLevel.load();
+}
+
+DynamicLoggerGuard::DynamicLoggerGuard(int exceptLevel)
+    : exceptLevel_(exceptLevel)
+{
+    oldLevel_ = GetDynamicLogLevel();
+    SetDynamicLogLevel(exceptLevel_);
+    LOG(INFO) << "dynamic log level changed from " << oldLevel_ << " to " << GetDynamicLogLevel();
+}
+
+DynamicLoggerGuard::~DynamicLoggerGuard()
+{
+    SetDynamicLogLevel(oldLevel_);
+    LOG(INFO) << "dynamic log level restored from " << exceptLevel_ << " to " << GetDynamicLogLevel();
 }
 } // Updater
