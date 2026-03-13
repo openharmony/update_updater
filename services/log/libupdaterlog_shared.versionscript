@@ -29,6 +29,10 @@
         *DumpHelperLog*;
         *Dump*;
         *DumpStageHelper*;
+
+        *SetDynamicLogLevel*;
+        *GetDynamicLogLevel*;
+        *DynamicLoggerGuard*;
     local:
         *;
 };
