@@ -23,7 +23,6 @@
 #include <string>
 #include <unordered_map>
 #include "error_code.h"
-#include "macros_updater.h"
 
 namespace Updater {
 #ifdef __WIN32
@@ -43,8 +42,6 @@ constexpr int MAX_TIME_SIZE = 20;
 #define LOG_LITE(level) UpdaterLoggerLite(level).OutputUpdaterLog()
 #define STAGE(stage) StageLogger(stage).OutputUpdaterStage()
 #define ERROR_CODE(code) ErrorCode(code).OutputErrorCode((UPDATER_LOG_FILE_NAME), (__LINE__), (code))
-#define LOGDYN(format, ...) Updater::Logger(Updater::GetDynamicLogLevel(), (UPDATER_LOG_FILE_NAME), (__LINE__), \
-    (format), ##__VA_ARGS__)
 
 enum {
     DEBUG = 3,
@@ -124,19 +121,5 @@ public:
 
     std::ostream& OutputErrorCode(const std::string &path, int line, UpdaterErrorCode code);
 };
-
-extern "C" void SetDynamicLogLevel(int level);
-extern "C" int GetDynamicLogLevel();
-
-class DynamicLoggerGuard final {
-DISALLOW_COPY_MOVE(DynamicLoggerGuard);
-public:
-    explicit DynamicLoggerGuard(int exceptLevel);
-    ~DynamicLoggerGuard();
-private:
-    int oldLevel_{INFO};
-    int exceptLevel_{INFO};
-};
-
 } // Updater
 #endif /* UPDATE_LOG_H__ */

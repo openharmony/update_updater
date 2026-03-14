@@ -16,6 +16,7 @@
 #include <ctime>
 #include <limits>
 #include "dump.h"
+#include "log/dynamic_log.h"
 #include "pkg_algorithm.h"
 #include "pkg_manager.h"
 #include "pkg_stream.h"
