@@ -32,6 +32,7 @@ ohos_shared_library("libupdaterlog_shared") {
   sources = [
     "dump.cpp",
     "log.cpp",
+    "dynamic_log.cpp",
   ]
 
   include_dirs = [
@@ -68,6 +69,7 @@ ohos_static_library("libupdaterlog") {
   sources = [
     "dump.cpp",
     "log.cpp",
+    "dynamic_log.cpp",
   ]
 
   include_dirs = [

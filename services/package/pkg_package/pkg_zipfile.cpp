@@ -16,6 +16,7 @@
 #include <ctime>
 #include <limits>
 #include "dump.h"
+#include "log/dynamic_log.h"
 #include "pkg_algorithm.h"
 #include "pkg_manager.h"
 #include "pkg_stream.h"
@@ -727,7 +728,7 @@ int32_t ZipFileEntry::DecodeHeader(PkgBuffer &buffer, size_t headerOffset, size_
     fileInfo_.fileInfo.packMethod = PKG_COMPRESS_METHOD_ZIP;
     fileInfo_.fileInfo.digestMethod = PKG_DIGEST_TYPE_CRC;
     fileInfo_.fileInfo.dataOffset = fileInfo_.fileInfo.headerOffset + headerLen;
-    PKG_LOGI("zip packed: %zu unpacked: %zu  offset: %zu data: %zu %s",
+    LOGDYN("zip packed: %zu unpacked: %zu  offset: %zu data: %zu %s",
         fileInfo_.fileInfo.packedSize, fileInfo_.fileInfo.unpackedSize,
         fileInfo_.fileInfo.headerOffset, fileInfo_.fileInfo.dataOffset, fileInfo_.fileInfo.identity.c_str());
     return PKG_SUCCESS;

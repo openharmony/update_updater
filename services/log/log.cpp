@@ -54,6 +54,13 @@ void OpenLogStream(std::ofstream &ofs, const std::string &file)
     }
     ofs.open(file.c_str(), std::ios::app | std::ios::out);
 }
+
+std::string ExtractFileName(const std::string &fullPath)
+{
+    const std::string fileSeparator = "/\\";
+    const auto pos = fullPath.find_last_of(fileSeparator);
+    return (pos == std::string::npos) ? fullPath : fullPath.substr(pos + 1);
+}
 }
 
 void SetReplaceMap(const ReplaceLogType &replaceMap)
@@ -85,8 +92,8 @@ void InitUpdaterLogger(const std::string &tag, const std::string &logFile, const
         OpenLogStream(g_updaterStage, stageFile);
         OpenLogStream(g_errorCode, errorCodeFile);
     }
-    LOG(INFO) << "updater logger init success. tag: " << tag << ", logFile: " << logFile <<
-        ", stageFile: " << stageFile << ", errorCodeFile: " << errorCodeFile;
+    LOG(INFO) << "updater logger init success. tag: " << tag << ", logFile: " << ExtractFileName(logFile) <<
+        ", stageFile: " << ExtractFileName(stageFile) << ", errorCodeFile: " << ExtractFileName(errorCodeFile);
 }
 
 UpdaterLogger::~UpdaterLogger()
