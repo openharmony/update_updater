@@ -30,6 +30,7 @@ static constexpr int H_DIFF_CMD_ARGS_START = 3;
 static constexpr int H_MOVE_CMD_ARGS_START = 1;
 static constexpr int H_COPY_CMD_ARGS_START = 1;
 static constexpr int H_ZERO_NUMBER = 0;
+static constexpr int H_ONE_NUMBER = 1;
 
 
 namespace Updater {
@@ -37,12 +38,9 @@ class Command;
 
 class BlockSet {
 public:
-    BlockSet()
-    {
-        blockSize_ = 0;
-    }
-
+    BlockSet();
     explicit BlockSet(std::vector<BlockPair> &&pairs);
+    BlockSet(const std::string &blockStr, size_t offset);
 
     ~BlockSet() {}
 
@@ -94,6 +92,12 @@ public:
     int32_t WriteDiffToBlock(const Command &cmd, std::vector<uint8_t> &sourceBuffer, uint8_t *patchBuffer,
                              size_t patchLength, bool isImgDiff = true);
 
+    int32_t LoadStashBuffer(const Command &cmd, size_t &pos, const std::string &storeBase,
+        std::vector<uint8_t> &sourceBuffer);
+
+    int32_t LoadStreamStashBuffer(const Command &cmd, const std::string &storeBase, std::vector<uint8_t> &stash,
+        const std::vector<std::string> &stashTokens, const std::vector<std::string> &tokens);
+
     // Read data from block
     size_t ReadDataFromBlock(int fd, std::vector<uint8_t> &buffer);
 
@@ -105,7 +109,7 @@ public:
 protected:
     size_t blockSize_;
     std::vector<BlockPair> blocks_;
-
+    size_t offset_ {0};
 private:
     void PushBack(BlockPair block_pair);
     void ClearBlocks();
