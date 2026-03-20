@@ -316,7 +316,7 @@ __attribute__((weak)) bool PreSdSpecialProcess(UpdaterParams &upParams)
     return true;
 }
 
-__attribute__((weak)) void PostSdSpecialProcess(UpdaterStatus &status)
+__attribute__((weak)) void PostSdSpecialProcess([[maybe_unused]]UpdaterStatus &status)
 {
     return;
 }
