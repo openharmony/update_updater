@@ -316,6 +316,11 @@ __attribute__((weak)) bool PreSdSpecialProcess(UpdaterParams &upParams)
     return true;
 }
 
+__attribute__((weak)) void PostSdSpecialProcess([[maybe_unused]] UpdaterStatus &status)
+{
+    return;
+}
+
 static UpdaterStatus VerifyBinfiles(UpdaterParams &upParams)
 {
     UPDATER_INIT_RECORD;
@@ -1030,6 +1035,7 @@ static void PostSdcardUpdatePackages(UpdaterParams &upParams, UpdaterStatus &sta
     (void)PostUpdateSyncProcess(false, upParams, status);
     ClearUpdateSlotParam();
     ClearUpdateSuffixParam();
+    PostSdSpecialProcess(status);
     if (Utils::CheckUpdateMode(Updater::SDCARD_INTRAL_MODE)) {
         PostUpdatePackages(upParams, status);
     } else if (status == UPDATE_SUCCESS) {
@@ -1038,7 +1044,6 @@ static void PostSdcardUpdatePackages(UpdaterParams &upParams, UpdaterStatus &sta
             status = UPDATE_CORRUPT;
             return;
         }
-        UpdaterInit::GetInstance().InvokeEvent(SD_UPDATE_POST_EVENT);
         UPDATER_UI_INSTANCE.ShowSuccessPage();
     }
 }
