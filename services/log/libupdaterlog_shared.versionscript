@@ -33,6 +33,7 @@
         *SetDynamicLogLevel*;
         *GetDynamicLogLevel*;
         *DynamicLoggerGuard*;
+        *LoggerSensitiveDynamic*;
     local:
         *;
 };

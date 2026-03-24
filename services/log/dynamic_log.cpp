@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "log/dynamic_log.h"
+#include "securec.h"
 
 namespace Updater {
 // 每个线程独立的动态日志级别，避免线程间干扰
@@ -60,5 +61,20 @@ DynamicLoggerGuard::~DynamicLoggerGuard()
     if (!silent_) {
         LOG(INFO) << "dynamic log level restored from " << targetLevel_ << " to " << oldLevel_;
     }
+}
+
+void LoggerSensitiveDynamic(const char* fileName, int32_t line, const char* format, ...)
+{
+    // 1024 : max length of buff
+    char buff[1024] = {0};
+    va_list list;
+    va_start(list, format);
+    int size = vsnprintf_s(buff, sizeof(buff), sizeof(buff) - 1, format, list);
+    va_end(list);
+    if (size < EOK) {
+        UpdaterLogger(GetDynamicLogLevel()).OutputUpdaterLog(fileName, line) << "vsnprintf_s failed";
+        return;
+    }
+    UpdaterLogger(GetDynamicLogLevel(), ReplaceLog).OutputUpdaterLog(fileName, line) << buff;
 }
 } // Updater

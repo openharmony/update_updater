@@ -666,10 +666,12 @@ int32_t ZipFileEntry::Unpack(PkgStreamPtr outStream)
             break;
     }
     if (ret != PKG_SUCCESS) {
-        PKG_LOGE("Failed to decompress for %s", fileInfo_.fileInfo.identity.c_str());
+        PKG_LOGE("Failed to decompress for %s, packedSize: %zu unpackedSize: %zu offset header: %zu data: %zu",
+            fileInfo_.fileInfo.identity.c_str(), fileInfo_.fileInfo.packedSize, fileInfo_.fileInfo.unpackedSize,
+            fileInfo_.fileInfo.headerOffset, fileInfo_.fileInfo.dataOffset);
         return ret;
     }
-    PKG_LOGI("Unpack packedSize: %zu unpackedSize: %zu offset header: %zu data: %zu", fileInfo_.fileInfo.packedSize,
+    LOGDYN("Unpack packedSize: %zu unpackedSize: %zu offset header: %zu data: %zu", fileInfo_.fileInfo.packedSize,
         fileInfo_.fileInfo.unpackedSize, fileInfo_.fileInfo.headerOffset, fileInfo_.fileInfo.dataOffset);
     ret = outStream->Flush(fileInfo_.fileInfo.unpackedSize);
     if (ret != PKG_SUCCESS) {
@@ -722,7 +724,7 @@ int32_t ZipFileEntry::DecodeHeader(PkgBuffer &buffer, size_t headerOffset, size_
     size_t headerLen = 0;
     ret = DecodeLocalFileHeader(inStream, buffer, fileInfo_.fileInfo.headerOffset, headerLen);
     if (ret != PKG_SUCCESS) {
-        PKG_LOGE("decode LocalFileHeader failed");
+        PKG_LOGE("decode LocalFileHeader failed for %s", fileInfo_.fileInfo.identity.c_str());
         return ret;
     }
     fileInfo_.fileInfo.packMethod = PKG_COMPRESS_METHOD_ZIP;
