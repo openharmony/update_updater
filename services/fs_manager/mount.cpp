@@ -399,6 +399,17 @@ bool IsMetadataEncrypt()
     if (!Utils::IsFileExist(path)) {
         return false;
     }
+
+    std::string state;
+    std::string disableState = "27242";
+    if (!Utils::ReadStringFromProcFile(path, state)) {
+        LOG(ERROR) << "read " << path << " failed: " << strerror(errno);
+        return false;
+    }
+
+    if (state == disableState) {
+        return false;
+    }
     LOG(INFO) << "It is the userdata metadata encrypt status";
     return true;
 }
