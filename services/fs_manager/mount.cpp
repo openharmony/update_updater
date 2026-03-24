@@ -401,12 +401,12 @@ bool IsMetadataEncrypt()
     }
 
     std::string state;
-    std::string disableState = "27242";
     if (!Utils::ReadStringFromProcFile(path, state)) {
         LOG(ERROR) << "read " << path << " failed: " << strerror(errno);
         return false;
     }
 
+    std::string disableState = "27242";
     if (state == disableState) {
         return false;
     }
