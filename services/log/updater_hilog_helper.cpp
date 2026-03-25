@@ -12,18 +12,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef UPDATE_UPDATER_HILOG_H
-#define UPDATE_UPDATER_HILOG_H
 
-#include "hilog/log.h"
 #include "updater_hilog_helper.h"
 
 namespace Updater {
 
-#define UPDATER_HILOG(level, logDomain, logTag, fileName, line, logFormat, ...) \
-    HILOG_IMPL(LOG_CORE, Updater::EnsureLogLevelVisible(level), logDomain, logTag, \
-    "%{public}s %{public}d : " logFormat, fileName, line, ##__VA_ARGS__)
+/* Log level */
+enum class UpdaterHiLogLevel {
+    /* min log level */
+    LOG_LEVEL_MIN = 0,
+    /* Designates lower priority log. */
+    LOG_DEBUG = 3,
+    /* Designates useful information. */
+    LOG_INFO = 4,
+    /* Designates hazardous situations. */
+    LOG_WARN = 5,
+    /* Designates very serious errors. */
+    LOG_ERROR = 6,
+    /* Designates major fatal anomaly. */
+    LOG_FATAL = 7,
+    /* max log level */
+    LOG_LEVEL_MAX,
+};
 
+int EnsureLogLevelVisible(int level)
+{
+    if (level == static_cast<int>(UpdaterHiLogLevel::LOG_INFO)) {
+        return static_cast<int>(UpdaterHiLogLevel::LOG_WARN);
+    }
+    return level;
+}
 } // Updater
-
-#endif /* UPDATE_UPDATER_HILOG_H */

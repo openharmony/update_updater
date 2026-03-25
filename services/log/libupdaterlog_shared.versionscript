@@ -14,7 +14,7 @@
 1.0 {
     global:
         Logger;
-        UpdaterHiLogger;
+        *EnsureLogLevelVisible*;
 
         *ReplaceLog*;
         *SetReplaceMap*;
