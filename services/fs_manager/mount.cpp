@@ -406,7 +406,7 @@ bool IsMetadataEncrypt()
         return false;
     }
 
-    std::string disableState = "27242";
+    std::string disableState = "27242"; // 27242: means ME driver disable
     if (state == disableState) {
         return false;
     }
