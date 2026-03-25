@@ -81,8 +81,9 @@ HWTEST_F(DynamicLogUnitTest, LOGDYN_SEN_Test, TestSize.Level1)
 HWTEST_F(DynamicLogUnitTest, LOGDYN_SEN_TooLargeText, TestSize.Level1)
 {
     SetDynamicLogLevel(ERROR);
-    std::string longString(2048, 'E');
-    LOGDYN_SEN("too large text: %s", longString.c_str());
+    std::string largeText(2048, 'E');
+    LOGDYN_SEN("too large text: %s", largeText.c_str());
+    EXPECT_EQ(GetDynamicLogLevel(), ERROR);
     SUCCEED();
 }
 
