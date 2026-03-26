@@ -16,7 +16,6 @@
 #define UPDATE_UPDATER_HILOG_H
 
 #include "hilog/log.h"
-#include "updater_hilog_helper.h"
 
 namespace Updater {
 
@@ -24,6 +23,18 @@ namespace Updater {
     HILOG_IMPL(LOG_CORE, Updater::EnsureLogLevelVisible(level), logDomain, logTag, \
     "%{public}s %{public}d : " logFormat, fileName, line, ##__VA_ARGS__)
 
+/**
+ * Returns the converted log level. LOG_INFO will be converted to LOG_WARN to ensure
+ * it can be printed in both log and nolog versions. Other levels remain unchanged.
+ */
+template <typename T>
+constexpr T EnsureLogLevelVisible(const T level)
+{
+    if (level == T::LOG_INFO) {
+        return T::LOG_WARN;
+    }
+    return level;
+}
 } // Updater
 
 #endif /* UPDATE_UPDATER_HILOG_H */
