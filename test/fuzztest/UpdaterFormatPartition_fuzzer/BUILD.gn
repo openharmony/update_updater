@@ -47,7 +47,10 @@ ohos_fuzztest("UpdaterFormatPartitionFuzzTest") {
     "${updater_path}/utils:libutils",
   ]
 
-  external_deps = [ "init:libbegetutil_static" ]
+  external_deps = [
+    "init:libbegetutil_static",
+    "bounds_checking_function:libsec_shared"
+  ]
 
   cflags = [
     "-g",

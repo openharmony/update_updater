@@ -27,6 +27,7 @@
 #include "log/dump.h"
 #include "log/log.h"
 #include "scope_guard.h"
+#include "securec.h"
 #include "updater/updater_const.h"
 #include "utils.h"
 
@@ -288,17 +289,44 @@ int MountForPath(const std::string &path)
     return ret;
 }
 
-void ErasePartition(const std::string &devPath)
+static int WriteZeroData(int fileFd, uint64_t partitionSize)
+{
+    size_t sectorSize = 0;
+    ssize_t bytesWritten = 0;
+
+    unsigned long long sectorSizeTemp = 0;
+    if (ioctl(fileFd, BLKSSZGET, &sectorSizeTemp) == -1) {
+        LOG(ERROR) << "failed to get sector size.";
+        return -1;
+    }
+
+    sectorSize = static_cast<size_t>(sectorSizeTemp);
+    std::unique_ptr<char[]> buffer = std::make_unique<char[]>(sectorSize);
+    (void)memset_s(buffer.get(), sectorSize, 0, sectorSize);
+
+    for (size_t offset = 0; offset < partitionSize; offset += sectorSize) {
+        bytesWritten = pwrite(fileFd, buffer.get(), sectorSize, static_cast<off_t>(offset));
+        if (bytesWritten <= 0 || static_cast<size_t>(bytesWritten) != sectorSize) {
+            LOG(ERROR) << "failed to write to device.";
+            return -1;
+        }
+    }
+
+    LOG(INFO) << "Write zero data success.";
+    return 0;
+}
+
+bool ErasePartition(const std::string &devPath, bool isWriteZero)
 {
     std::string realPath {};
     if (!Utils::PathToRealPath(devPath, realPath)) {
         LOG(ERROR) << "realpath failed:" << devPath;
-        return;
+        return false;
     }
     int fd = open(realPath.c_str(), O_RDWR | O_LARGEFILE);
     if (fd == -1) {
         LOG(ERROR) << "open failed:" << realPath;
-        return;
+        return false;
     }
 
     uint64_t size = 0;
@@ -306,19 +334,26 @@ void ErasePartition(const std::string &devPath)
     if (ret < 0) {
         LOG(ERROR) << "get partition size failed:" << size;
         close(fd);
-        return;
+        return false;
     }
 
     LOG(INFO) << "erase partition size:" << size;
 
-    uint64_t range[] { 0, size };
-    ret = ioctl(fd, BLKDISCARD, &range);
+    if (isWriteZero) {
+        ret = WriteZeroData(fd, size);
+    } else {
+        uint64_t range[] { 0, size };
+        ret = ioctl(fd, BLKDISCARD, &range);
+    }
+
     if (ret < 0) {
         LOG(ERROR) << "erase partition failed";
+        close(fd);
+        return false;
     }
-    close(fd);
 
-    return;
+    close(fd);
+    return true;
 }
 
 int UmountRetry(const std::string &path)
@@ -365,7 +400,7 @@ int FormatPartition(const std::string &path, bool isZeroErase)
     }
 
     if (isZeroErase) {
-        ErasePartition(item->deviceName);
+        ErasePartition(item->deviceName, false);
     }
 
     int ret = DoFormat(item->deviceName, item->fsType);
