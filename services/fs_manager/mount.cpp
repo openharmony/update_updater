@@ -306,7 +306,7 @@ static int WriteZeroData(int fileFd, uint64_t partitionSize)
 
     for (size_t offset = 0; offset < partitionSize; offset += sectorSize) {
         bytesWritten = pwrite(fileFd, buffer.get(), sectorSize, static_cast<off_t>(offset));
-        if (bytesWritten <= 0 || static_cast<size_t>(bytesWritten)!= sectorSize) {
+        if (bytesWritten <= 0 || static_cast<size_t>(bytesWritten) != sectorSize) {
             LOG(ERROR) << "failed to write to device.";
             return -1;
         }
