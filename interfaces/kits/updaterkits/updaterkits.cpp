@@ -349,3 +349,58 @@ bool RebootAndCleanUserData(const std::string &miscFile, const std::string &cmd)
     // Never get here.
     return true;
 }
+
+bool RebootAndSecureErase(const std::string &eraseType)
+{
+    struct UpdateMessage msg {};
+    int ret = snprintf_s(msg.update, sizeof(msg.update), sizeof(msg.update) - 1, "--secure_erase\n");
+    if (ret < 0) {
+        LOG(ERROR) << "updaterkits: copy secure erase cmd message failed";
+        return false;
+    }
+    WriteToMiscAndRebootToUpdater(msg);
+
+    // Never get here.
+    return true;
+}
+
+static uint32_t GetBootdevType()
+{
+    uint32_t ret = 0;
+    std::ifstream fin(BOOTDEV_TYPE, std::ios::in);
+    if (!fin.is_open()) {
+        LOG(ERROR) << "open bootdev failed";
+        return ret;
+    }
+    fin >> ret;
+    fin.close();
+    LOG(INFO) << "bootdev type is " << ret;
+    return ret;
+}
+
+uint32_t EstimatedEraseTime(const std::string &eraseType)
+{
+    uint64_t partSize = 0;
+    int fd = open("/dev/block/bootdevice/by-name/userdata", O_RDONLY | O_CLOEXEC);
+    if (fd < 0) {
+        LOG(ERROR) << "open userdata failed";
+        return 0;
+    }
+    if (ioctl(fd, BLKGETSIZE64, &partSize) != 0) {
+        LOG(ERROR) << "ioctl failed";
+        close(fd);
+        return 0;
+    }
+    close(fd);
+    uint32_t bootdevType = GetBootdevType();
+    uint32_t eraseTime = Updater::EMMC_ERASE_1T_TIME;
+    if (ret == 1) {
+        eraseTime = Updater::UFS_ERASE_1T_TIME;
+    } else if (ret == 2) {
+        eraseTime = Updater::SSD_ERASE_1T_TIME;
+    }
+    double sizeRatio = static_cast<double>(partSize) / Updater::DEFAULT_1T_SIZE;
+    uint32_t estimatedTime = static_cast<uint32_t>(sizeRatio * eraseTime);
+    LOG(INFO) << "bootdevType: " << bootdevType << ", estimatedTime: " << estimatedTime;
+    return estimatedTime;
+}

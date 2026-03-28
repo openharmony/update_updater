@@ -50,6 +50,7 @@ ohos_unittest("updater_service_unittest") {
     "${updater_path}/services/ui/include",
     "${updater_path}/services/include",
     "${updater_path}/services/ui/view",
+    "${updater_path}/services/ptable_parse",
   ]
 
   deps = [
@@ -62,6 +63,7 @@ ohos_unittest("updater_service_unittest") {
     "${updater_path}/services/log:libupdaterlog",
     "${updater_path}/services/package:libupdaterpackage",
     "${updater_path}/services/write_state:libwritestate",
+    "${updater_path}/test/unittest/fake:libsecure_erase_fake",
     "${updater_path}/utils:libutils",
   ]
 

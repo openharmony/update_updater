@@ -54,7 +54,13 @@ template("updater_gen") {
         static_link = true
       }
       forward_variables_from(invoker, "*")
-
+      if (target_name == "updater") {
+        if (defined(deps) && deps != []) {
+          deps += [ "//base/update/updater/services/factory_reset:libsecure_erase" ]
+        } else {
+          deps = [ "//base/update/updater/services/factory_reset:libsecure_erase" ]
+        }
+      }
       install_images = [ "updater" ]
       install_enable = true
     }
