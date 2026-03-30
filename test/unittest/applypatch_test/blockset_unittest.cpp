@@ -357,6 +357,7 @@ HWTEST_F(BlockSetUnitTest, blockset_test_021, TestSize.Level1)
     std::string storePath = "/data/updater/ut_blockset_test";
     std::vector<uint8_t> buffer(H_BLOCK_SIZE, 0x5A);
     std::string testHash = "testhash021";
+    Utils::MkdirRecursive("/data/updater/ut_blockset_test", 0755);
     int32_t ret = Store::WriteDataToStore(storePath, testHash, buffer, buffer.size());
     EXPECT_EQ(ret, 0);
     std::vector<uint8_t> loadBuffer;
