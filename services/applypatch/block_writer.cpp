@@ -54,7 +54,7 @@ bool BlockWriter::Write(const uint8_t *addr, size_t len, [[maybe_unused]] const 
             // Get next block pair to write.
             const BlockPair &bp = bs_[blockIndex_];
             // where do we start to write.
-            off_t offset = static_cast<off_t>(bp.first) * H_BLOCK_SIZE;
+            off_t offset = static_cast<off_t>(bp.first) * H_BLOCK_SIZE + static_cast<off_t>(offset_);
             currentBlockLeft_ = (bp.second - bp.first) * H_BLOCK_SIZE;
             blockIndex_++;
             // Move to right place to write.
