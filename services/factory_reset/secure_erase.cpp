@@ -199,6 +199,7 @@ float SecureErase::CalcOverWriteProgress()
         return 0;
     }
     float percent = static_cast<double>(overwriteOffset_) / static_cast<double>(totalSize);
+    percent = (percent > 1.0) ? 1.0 : percent; // 1.0 : 100%
     float value = (UPDATER_UI_INSTANCE.GetCurrentPercent() > (percent * FULL_PERCENT_PROGRESS)) ?
         UPDATER_UI_INSTANCE.GetCurrentPercent() : (percent * FULL_PERCENT_PROGRESS);
     return value;

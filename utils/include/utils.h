@@ -81,7 +81,7 @@ struct Time {
     {
         hour = totalSeconds / ONE_HOUR;
         minute = (totalSeconds % ONE_HOUR) / ONE_MINUTE;
-        second = totalSeconds % ONE_MINUTE;
+        second = (totalSeconds % ONE_HOUR) % ONE_MINUTE;
     }
     uint64_t GetHour() const
     {
