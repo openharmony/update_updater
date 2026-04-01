@@ -93,7 +93,7 @@ void SecureErase::ShowRemainingTime(uint64_t remainSeconds)
 
 bool SecureErase::OverWritePartition()
 {
-    AddOverWritePartition("/dev/block/bootdevice/by-name/userdata");
+    AddOverWritePartition("/dev/block/by-name/userdata");
     Updater_UI_INSTANCE.ShowProgressPage();
     if (overwritePartInfos_.empty()) {
         LOG(ERROR) << "no partition to overwrite";

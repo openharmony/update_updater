@@ -381,7 +381,7 @@ static uint32_t GetBootdevType()
 uint32_t EstimatedEraseTime(const std::string &eraseType)
 {
     uint64_t partSize = 0;
-    int fd = open("/dev/block/bootdevice/by-name/userdata", O_RDONLY | O_CLOEXEC);
+    int fd = open("/dev/block/by-name/userdata", O_RDONLY | O_CLOEXEC);
     if (fd < 0) {
         LOG(ERROR) << "open userdata failed";
         return 0;
