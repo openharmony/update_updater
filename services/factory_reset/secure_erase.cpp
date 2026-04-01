@@ -102,7 +102,7 @@ bool SecureErase::OverWritePartition()
     for (const auto &partInfo : overwritePartInfos_) {
         time_t start = time(nullptr);
         std::vector<uint8_t> buffer(OVERWRITE_SZIE, OVERWRITE_NUM);
-        int fd = open(partInfo.devPath.c_str(), O_RDWR | O_LARGEFIE);
+        int fd = open(partInfo.devPath.c_str(), O_RDWR | O_LARGEFILE);
         if (fd < 0) {
             LOG(ERROR) << "open failed " << partInfo.devPath;
             return false;

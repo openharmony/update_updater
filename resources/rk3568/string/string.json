@@ -179,7 +179,7 @@
         "en":"Secure erasing now ",
         "spa":""
     },
-    "LABEL_REMAINING_TIME" : {
+    "LABEL_REMAIN_TIME" : {
         "type": "UIString",
         "zh":"剩余时间: ",
         "en":"Remaining time: ",

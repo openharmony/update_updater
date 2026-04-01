@@ -27,17 +27,16 @@ public:
         std::string devPath;
     };
     virtual ~SecureErase() = default;
-    static SecureErase &GetInstance();
     bool OverWritePartition();
-    void AddOverWritePartInfo(const std::string &devPath);
+    void AddOverWritePartition(const std::string &devPath);
     void LoadOffsetInRetry(uint64_t offset);
     float CalcOverWriteProgress();
 private:
-    int OverWritePartition(int fd, const unit32_t writeSize, std::vector<uint8_t> &buffer);
+    int OverWritePartition(int fd, const uint32_t writeSize, std::vector<uint8_t> &buffer);
     void AddOverWritePartInfo(const PartInfo &partInfo);
     void SyncOffsetInMisc(uint64_t offset);
     void ShowRemainingTime(uint64_t remainSeconds);
-    void ShowCurrentSpeed(float value);
+    void ShowCurrentPercent(float value);
     uint64_t remainingOverWriteTime_ = 0;
     uint64_t overwriteOffset_ = 0;
     std::vector<PartInfo> overwritePartInfos_ {};
