@@ -19,7 +19,7 @@
 
 namespace Updater {
 class SecureErase {
-    DISALLOW_COPY_AND_MOVE(SecureErase);
+    DISALLOW_COPY_MOVE(SecureErase);
 public:
     static SecureErase &GetInstance();
     struct PartInfo {
