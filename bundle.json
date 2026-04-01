@@ -366,7 +366,7 @@
                     }
                 },
                 {
-                    "name": "//base/update/updater/services/factory_reset:libsecure+erase",
+                    "name": "//base/update/updater/services/factory_reset:libsecure_erase",
                     "header": {
                         "header_files": [],
                         "header_base": "//base/update/updater/services/factory_reset"
