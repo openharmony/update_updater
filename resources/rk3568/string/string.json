@@ -155,6 +155,54 @@
         "en":"Back to main screen",
         "spa":""
     },
+    "HOUR_STRING" : {
+        "type": "UIString",
+        "zh":"小时",
+        "en":"hour",
+        "spa":""
+    },
+    "MINUTE_STRING" : {
+        "type": "UIString",
+        "zh":"分钟",
+        "en":"minute",
+        "spa":""
+    },
+    "SECOND_STRING" : {
+        "type": "UIString",
+        "zh":"秒",
+        "en":"second",
+        "spa":""
+    },
+    "LABEL_SECURE_ERASING" : {
+        "type": "UIString",
+        "zh":"深度擦除中 ",
+        "en":"Secure erasing now ",
+        "spa":""
+    },
+    "LABEL_REMAINING_TIME" : {
+        "type": "UIString",
+        "zh":"剩余时间: ",
+        "en":"Remaining time: ",
+        "spa":""
+    },
+    "LABEL_SECURE_ERASE_FAIL" : {
+        "type": "UIString",
+        "zh":"深度擦除失败",
+        "en":"Secure erase failed",
+        "spa":""
+    },
+    "LABEL_SECURE_ERASE_SUCCESS" : {
+        "type": "UIString",
+        "zh":"深度擦除成功",
+        "en":"Secure erase successful",
+        "spa":""
+    },
+    "LABEL_SECURE_ERASE_FAIL_TIP" : {
+        "type": "UIString",
+        "zh":"请重启后在“设置”中重新擦除",
+        "en":"Please reboot the device and try secure erase again in Settings",
+        "spa":""
+    },
     "DEFAULT_STRING" : {
         "type": "UIString",
         "zh":"*",
