@@ -17,6 +17,7 @@
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <string>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include "init_reboot.h"

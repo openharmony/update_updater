@@ -16,6 +16,7 @@
 #ifndef SECURE_ERASE_H
 #define SECURE_ERASE_H
 #include <string>
+#include "macros_updater.h"
 
 namespace Updater {
 class SecureErase {
