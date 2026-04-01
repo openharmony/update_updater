@@ -21,7 +21,7 @@ ohos_static_library("libsecure_erase") {
   sources = [ "secure_erase.cpp" ]
   deps = [
     "${updater_path}/services/applypatch:libapplypatch",
-    "${updater_path}/services/fs_manager:libfsmagager",
+    "${updater_path}/services/fs_manager:libfsmanager",
     "${updater_path}/services/log:libupdaterlog",
     "${updater_path}/interfaces/kits/misc_info:libmiscinfo",
   ]
