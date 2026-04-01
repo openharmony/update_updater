@@ -16,6 +16,7 @@
 
 #include <dlfcn.h>
 #include <fcntl.h>
+#include <linux/fs.h>
 #include <string>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
