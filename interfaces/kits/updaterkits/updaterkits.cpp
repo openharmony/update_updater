@@ -394,9 +394,9 @@ uint32_t EstimatedEraseTime(const std::string &eraseType)
     close(fd);
     uint32_t bootdevType = GetBootdevType();
     uint32_t eraseTime = Updater::EMMC_ERASE_1T_TIME;
-    if (ret == 1) {
+    if (bootdevType == 1) {
         eraseTime = Updater::UFS_ERASE_1T_TIME;
-    } else if (ret == 2) { // 2 ： boot device is ssd
+    } else if (bootdevType == 2) { // 2 ： boot device is ssd
         eraseTime = Updater::SSD_ERASE_1T_TIME;
     }
     double sizeRatio = static_cast<double>(partSize) / Updater::DEFAULT_1T_SIZE;
