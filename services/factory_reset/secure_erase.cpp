@@ -27,6 +27,7 @@
 #include "updater_ui_stub.h"
 #include "utils.h"
 #include "language/language_ui.h"
+#include "secure_erase.h"
 
 using namespace Updater;
 using namespace std;
