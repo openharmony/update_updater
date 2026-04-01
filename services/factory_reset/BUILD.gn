@@ -52,7 +52,7 @@ ohos_static_library("libsecure_erase") {
         "ui_lite:libupdater_layout",
         "graphic_utils_lite:utils_lite",
     ]
-    deps += [ "${updater_path}/services/ui/libui" ];
+    deps += [ "${updater_path}/services/ui/libui" ]
   }
   part_name = "updater"
   subsystem_name = "updater"
