@@ -82,12 +82,12 @@ void SecureErase::ShowRemainingTime(uint64_t remainSeconds)
     std::string remainTimeText = TR(LABEL_REMAIN_TIME);
     if (remainTime.GetHour() > 0) {
         remainTimeText += " " + to_string(remainTime.GetHour()) + " " + TR(HOUR_STRING) + " " +
-                           to_string(remainTime.GetMin()) + " " + TR(MINUTE_STRING);
+                           to_string(remainTime.GetMinute()) + " " + TR(MINUTE_STRING);
     } else if (remainTime.GetMin() > 0) {
-        remainTimeText += " " + to_string(remainTime.GetMin()) + " " + TR(MINUTE_STRING) + " " +
-                           to_string(remainTime.GetSec()) + " " + TR(SECOND_STRING);
+        remainTimeText += " " + to_string(remainTime.GetMinute()) + " " + TR(MINUTE_STRING) + " " +
+                           to_string(remainTime.GetSecond()) + " " + TR(SECOND_STRING);
     } else {
-        remainTimeText += " " + to_string(remainTime.GetSec()) + " " + TR(SECOND_STRING);
+        remainTimeText += " " + to_string(remainTime.GetSecond()) + " " + TR(SECOND_STRING);
     }
     UPDATER_UI_INSTANCE.ShowLogRes(remainTimeText);
 }
