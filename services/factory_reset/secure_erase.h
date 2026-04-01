@@ -21,6 +21,7 @@ namespace Updater {
 class SecureErase {
     DISALLOW_COPY_MOVE(SecureErase);
 public:
+    SecureErase();
     static SecureErase &GetInstance();
     struct PartInfo {
         uint64_t partSize;
