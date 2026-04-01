@@ -1327,7 +1327,8 @@ std::unordered_map<std::string, std::function<void ()>> InitOptionsFuncTab(char*
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_OTA);
             upParams.updateMode = SUBPKG_UPDATE;
             mode = HOTA_UPDATE;
-        }},{"secure_erase", [&]() -> void
+        }},
+        {"secure_erase", [&]() -> void
         {
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_REBOOTFACTORYRST);
             if (optarg != nullptr) {
