@@ -57,7 +57,7 @@ template("updater_gen") {
       forward_variables_from(invoker, "*", ["updater_deps"])
 
       if (!defined(deps)) {
-        deps += []
+        deps = []
       }
       if (defined(invoker.updater_deps)) {
         deps += invoker.updater_deps
