@@ -45,18 +45,19 @@ ohos_unittest("ui_unittest") {
     "view/ui_page_manager_unittest.cpp",
     "view/ui_view_api_unittest.cpp",
     "view/ui_view_proxy_unittest.cpp",
+    "updater_ui_facade_unittest.cpp",
+    "updater_ui_env_unittest.cpp",
   ]
   sources += [
     "${updater_path}/services/ui/control/event_listener.cpp",
-    "${updater_path}/services/ui/driver/drm_driver.cpp",
-    "${updater_path}/services/ui/driver/fbdev_driver.cpp",
-    "${updater_path}/services/ui/driver/graphic_engine.cpp",
     "${updater_path}/services/ui/driver/keys_input_device.cpp",
     "${updater_path}/services/ui/driver/pointers_input_device.cpp",
-    "${updater_path}/services/ui/driver/surface_dev.cpp",
     "${updater_path}/services/ui/driver/ui_rotation.cpp",
     "${updater_path}/services/ui/language/language_ui.cpp",
     "${updater_path}/services/ui/strategy/ui_strategy.cpp",
+    "${updater_path}/services/ui/strategy/logo_strategy.cpp",
+ 	  "${updater_path}/services/ui/strategy/progress_strategy.cpp",
+ 	  "${updater_path}/services/ui/updater_ui_config.cpp",
     "${updater_path}/services/ui/view/component/box_progress_adapter.cpp",
     "${updater_path}/services/ui/view/component/img_view_adapter.cpp",
     "${updater_path}/services/ui/view/component/label_btn_adapter.cpp",
@@ -69,6 +70,8 @@ ohos_unittest("ui_unittest") {
     "${updater_path}/services/ui/view/page/page_manager.cpp",
     "${updater_path}/services/ui/view/page/sub_page.cpp",
     "${updater_path}/services/ui/view/view_api.cpp",
+    "${updater_path}/services/ui/updater_ui_env.cpp",
+ 	  "${updater_path}/services/ui/updater_ui_facade.cpp",
   ]
 
   include_dirs = [

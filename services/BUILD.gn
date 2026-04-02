@@ -45,8 +45,7 @@ updater_common_deps = [
 updater_gen("updater") {
   deps = [ "${updater_path}/services:libupdater_static" ]
   external_deps = [ "hilog:libhilog" ]
-  # used for updater only deps
-  updater_deps = [ "${updater_path}/services/factory_reset:libsecure_erase" ]
+
   # force link flashd library
   if (!ohos_indep_compiler_enable) {
     ldflags = [
@@ -56,6 +55,11 @@ updater_gen("updater") {
     ]
   }
 
+  # used for updater only deps
+  updater_deps = [ "${updater_path}/services/factory_reset:libsecure_erase" ]
+  if (updater_ui_support) {
+ 	  updater_deps += [ "${updater_path}/services/ui:libui_driver" ]
+ 	}
   part_name = "updater"
   subsystem_name = "updater"
 }
