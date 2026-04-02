@@ -19,7 +19,7 @@
 #include <linux/fs.h>
 #include <string>
 #include <sys/ioctl.h>
-#include <sys/stat.h>
+#include <sys/statfs.h>
 #include <unistd.h>
 #include "init_reboot.h"
 #include "log.h"
@@ -383,17 +383,19 @@ static uint32_t GetBootdevType()
 uint32_t EstimatedEraseTime(const std::string &eraseType)
 {
     uint64_t partSize = 0;
-    int fd = open("/dev/block/by-name/userdata", O_RDONLY | O_CLOEXEC);
-    if (fd < 0) {
-        LOG(ERROR) << "open userdata failed";
+    std::string writePath = "/data";
+    char realPath[PATH_MAX] = {0};
+    if (realpath(writePath.c_str(), realPath) == nullptr) {
+        LOG(ERROR) << "realpath failed " << writePath << ", errno " << errno;
         return 0;
     }
-    if (ioctl(fd, BLKGETSIZE64, &partSize) != 0) {
-        LOG(ERROR) << "ioctl failed";
-        close(fd);
+    struct statfs st;
+    if (statfs(realPath, &st) >= 0) {
+        partSize = static_cast<uint64_t>(st.f_blocks) * static_cast<uint64_t>(st.f_bsize);
+    } else {
+        LOG(ERROR) << "statfs failed " << realPath << ", errno " << errno;
         return 0;
     }
-    close(fd);
     uint32_t bootdevType = GetBootdevType();
     uint32_t eraseTime = Updater::EMMC_ERASE_1T_TIME;
     if (bootdevType == 1) {

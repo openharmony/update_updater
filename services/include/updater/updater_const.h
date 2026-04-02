@@ -142,8 +142,8 @@ constexpr unsigned int INTERVAL_TIME = 300;
 constexpr float EPSINON = 0.00001;
 constexpr float FULL_EPSINON = 1;
 constexpr uint64_t DEFAULT_1T_SIZE = 1024ULL * 1024 * 1024 * 1024;
-constexpr uint32_t SSD_ERASE_1T_TIME = 133 *60 *60;
-constexpr uint32_t UFS_ERASE_1T_TIME = 73 *60 *60;
-constexpr uint32_t EMMC_ERASE_1T_TIME = 266 *60 *60;
+constexpr uint32_t SSD_ERASE_1T_TIME = 133 * 60;
+constexpr uint32_t UFS_ERASE_1T_TIME = 73 * 60;
+constexpr uint32_t EMMC_ERASE_1T_TIME = 266 * 60;
 } // namespace Updater
 #endif
