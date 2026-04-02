@@ -56,8 +56,8 @@ ohos_unittest("ui_unittest") {
     "${updater_path}/services/ui/language/language_ui.cpp",
     "${updater_path}/services/ui/strategy/ui_strategy.cpp",
     "${updater_path}/services/ui/strategy/logo_strategy.cpp",
- 	  "${updater_path}/services/ui/strategy/progress_strategy.cpp",
- 	  "${updater_path}/services/ui/updater_ui_config.cpp",
+    "${updater_path}/services/ui/strategy/progress_strategy.cpp",
+    "${updater_path}/services/ui/updater_ui_config.cpp",
     "${updater_path}/services/ui/view/component/box_progress_adapter.cpp",
     "${updater_path}/services/ui/view/component/img_view_adapter.cpp",
     "${updater_path}/services/ui/view/component/label_btn_adapter.cpp",
@@ -71,7 +71,7 @@ ohos_unittest("ui_unittest") {
     "${updater_path}/services/ui/view/page/sub_page.cpp",
     "${updater_path}/services/ui/view/view_api.cpp",
     "${updater_path}/services/ui/updater_ui_env.cpp",
- 	  "${updater_path}/services/ui/updater_ui_facade.cpp",
+    "${updater_path}/services/ui/updater_ui_facade.cpp",
   ]
 
   include_dirs = [
