@@ -83,7 +83,7 @@ void SecureErase::ShowRemainingTime(uint64_t remainSeconds)
     if (remainTime.GetHour() > 0) {
         remainTimeText += " " + to_string(remainTime.GetHour()) + " " + TR(HOUR_STRING) + " " +
                            to_string(remainTime.GetMinute()) + " " + TR(MINUTE_STRING);
-    } else if (remainTime.GetMin() > 0) {
+    } else if (remainTime.GetMinute() > 0) {
         remainTimeText += " " + to_string(remainTime.GetMinute()) + " " + TR(MINUTE_STRING) + " " +
                            to_string(remainTime.GetSecond()) + " " + TR(SECOND_STRING);
     } else {
@@ -95,7 +95,7 @@ void SecureErase::ShowRemainingTime(uint64_t remainSeconds)
 bool SecureErase::OverWritePartition()
 {
     AddOverWritePartition("/dev/block/by-name/userdata");
-    Updater_UI_INSTANCE.ShowProgressPage();
+    UPDATER_UI_INSTANCE.ShowProgressPage();
     if (overwritePartInfos_.empty()) {
         LOG(ERROR) << "no partition to overwrite";
         return false;
