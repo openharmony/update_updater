@@ -53,5 +53,5 @@ extern bool RebootAndSecureErase(const std::string &eraseType);
 // Estimate time of secure erase.
 // @param eraseType secure erase type.
 // @return returns estimated time of secure erase.
-extern uint32_t EstimateTime(const std::string &eraseType);
+extern uint32_t EstimatedEraseTime(const std::string &eraseType);
 #endif /* UPDATER_KITS_H */
