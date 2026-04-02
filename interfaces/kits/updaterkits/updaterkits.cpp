@@ -19,6 +19,7 @@
 #include <linux/fs.h>
 #include <string>
 #include <sys/ioctl.h>
+#include <sys/stat.h>
 #include <sys/statfs.h>
 #include <unistd.h>
 #include "init_reboot.h"
