@@ -55,7 +55,6 @@ template("updater_gen") {
         static_link = true
       }
       forward_variables_from(invoker, "*", ["updater_deps"])
-
       if (!defined(deps)) {
         deps = []
       }
