@@ -59,7 +59,7 @@ updater_gen("updater") {
   updater_deps = [ "${updater_path}/services/factory_reset:libsecure_erase" ]
   if (updater_ui_support) {
     updater_deps += [ "${updater_path}/services/ui:libui_driver" ]
- 	}
+  }
   part_name = "updater"
   subsystem_name = "updater"
 }
