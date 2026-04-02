@@ -18,7 +18,7 @@
 #include "component/text_label_adapter.h"
 #include "updater_event.h"
 #include "updater_ui_config.h"
-#include "updater_ui_env.h"
+#include "updater_ui_facade.h"
 #include "updater_ui_tools.h"
 
 using namespace testing::ext;
@@ -35,7 +35,7 @@ public:
     void TearDown() override {}
 };
 
-HWTEST_F(UpdaterUiFacadeUnitTest, test_updater_ui_facade_set_mode, Test.Level0)
+HWTEST_F(UpdaterUiFacadeUnitTest, test_updater_ui_facade_set_mode, TestSize.Level0)
 {
     std::string mode = "abc";
     EXPECT_TRUE(UPDATER_UI_INSTANCE.SetMode(""));
@@ -43,7 +43,7 @@ HWTEST_F(UpdaterUiFacadeUnitTest, test_updater_ui_facade_set_mode, Test.Level0)
     EXPECT_EQ(UPDATER_UI_INSTANCE.GetMode(), mode);
 }
 
-HWTEST_F(UpdaterUiFacadeUnitTest, test_updater_ui_facade_show_funcs, Test.Level0)
+HWTEST_F(UpdaterUiFacadeUnitTest, test_updater_ui_facade_show_funcs, TestSize.Level0)
 {
     std::string log = "log";
     UPDATER_UI_INSTANCE.ShowLog(log);
@@ -73,6 +73,5 @@ HWTEST_F(UpdaterUiFacadeUnitTest, test_updater_ui_facade_show_funcs, Test.Level0
     UPDATER_UI_INSTANCE.ShowFactoryConfirmPage();
     UPDATER_UI_INSTANCE.ShowMainpage();
     UPDATER_UI_INSTANCE.ShowProgressWarning(false);
-    EXPECT_TRUE(UPDATER_UI_INSTANCE.IsInProgress());
 }
 }

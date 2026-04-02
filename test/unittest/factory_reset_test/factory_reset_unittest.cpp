@@ -91,4 +91,5 @@ HWTEST_F(FactoryResetUnitTest, FactoryResetFunc07, TestSize.Level0)
     int ret = factoryResetProcess->GetInstance().DoFactoryReset(FactoryResetMode::MENU_WIPE_DATA, "/data");
     EXPECT_EQ(ret, 1);
 }
+
 }

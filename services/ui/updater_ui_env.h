@@ -39,7 +39,11 @@ namespace Updater {
 class UpdaterUiEnv {
 public:
     static void Init();
+#ifdef UPDATER_UT
+public:
+#else
 private:
+#endif
     static void InitDisplayDriver(); // input driver init
     static void InitEngine(); // Graphic UI engine init
     static void InitConfig(); // ui configs Init

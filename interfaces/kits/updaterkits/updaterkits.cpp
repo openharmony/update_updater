@@ -16,8 +16,11 @@
 
 #include <dlfcn.h>
 #include <fcntl.h>
+#include <linux/fs.h>
 #include <string>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <sys/statfs.h>
 #include <unistd.h>
 #include "init_reboot.h"
 #include "log.h"
@@ -348,4 +351,61 @@ bool RebootAndCleanUserData(const std::string &miscFile, const std::string &cmd)
 
     // Never get here.
     return true;
+}
+
+bool RebootAndSecureErase(const std::string &eraseType)
+{
+    struct UpdateMessage msg {};
+    int ret = snprintf_s(msg.update, sizeof(msg.update), sizeof(msg.update) - 1, "--secure_erase\n");
+    if (ret < 0) {
+        LOG(ERROR) << "updaterkits: copy secure erase cmd message failed";
+        return false;
+    }
+    WriteToMiscAndRebootToUpdater(msg);
+
+    // Never get here.
+    return true;
+}
+
+static uint32_t GetBootdevType()
+{
+    uint32_t ret = 0;
+    std::ifstream fin(BOOTDEV_TYPE, std::ios::in);
+    if (!fin.is_open()) {
+        LOG(ERROR) << "open bootdev failed";
+        return ret;
+    }
+    fin >> ret;
+    fin.close();
+    LOG(INFO) << "bootdev type is " << ret;
+    return ret;
+}
+
+uint32_t EstimatedEraseTime(const std::string &eraseType)
+{
+    uint64_t partSize = 0;
+    std::string writePath = "/data";
+    char realPath[PATH_MAX] = {0};
+    if (realpath(writePath.c_str(), realPath) == nullptr) {
+        LOG(ERROR) << "realpath failed " << writePath << ", errno " << errno;
+        return 0;
+    }
+    struct statfs st;
+    if (statfs(realPath, &st) >= 0) {
+        partSize = static_cast<uint64_t>(st.f_blocks) * static_cast<uint64_t>(st.f_bsize);
+    } else {
+        LOG(ERROR) << "statfs failed " << realPath << ", errno " << errno;
+        return 0;
+    }
+    uint32_t bootdevType = GetBootdevType();
+    uint32_t eraseTime = Updater::EMMC_ERASE_1T_TIME;
+    if (bootdevType == 1) {
+        eraseTime = Updater::UFS_ERASE_1T_TIME;
+    } else if (bootdevType == 2) { // 2 ： boot device is ssd
+        eraseTime = Updater::SSD_ERASE_1T_TIME;
+    }
+    double sizeRatio = static_cast<double>(partSize) / Updater::DEFAULT_1T_SIZE;
+    uint32_t estimatedTime = static_cast<uint32_t>(sizeRatio * eraseTime);
+    LOG(INFO) << "bootdevType: " << bootdevType << ", estimatedTime: " << estimatedTime;
+    return estimatedTime;
 }
