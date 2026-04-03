@@ -17,6 +17,7 @@
 #include "scope_guard.h"
 #include <cstdio>
 #include <iostream>
+#include <limits>
 #include <vector>
 #include "update_diff.h"
 
