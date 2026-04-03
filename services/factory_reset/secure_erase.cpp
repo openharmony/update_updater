@@ -18,6 +18,8 @@
 #include <fcntl.h>
 #include <iostream>
 #include <string>
+#include <linux/fs.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include "log/dump.h"
