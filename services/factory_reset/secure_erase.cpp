@@ -162,13 +162,20 @@ void SecureErase::AddOverWritePartition(const std::string &devPath)
         LOG(ERROR) << "realpath failed " << devPath;
         return;
     }
-    struct stat st {};
     struct PartInfo partInfo {};
-    if (stat(realPath, &st) != 0) {
-        LOG(ERROR) << "stat failed " << realPath;
+    int fd = open(realPath, O_RDONLY | O_LARGEFILE);
+    if (fd < 0) {
+        LOG(ERROR) << "open failed " << realPath;
         return;
     }
-    partInfo.partSize = static_cast<uint64_t>(st.st_size);
+    uint64_t partSize = 0;
+    int ret = ioctl(fd, BLKGETSIZE64, &partSize);
+    if (ret < 0) {
+        LOG(ERROR) << "ioctl BLKGETSIZE64 failed " << realPath;
+        close(fd);
+        return;
+    }
+    partInfo.partSize = partSize;
     partInfo.devPath = realPath;
     AddOverWritePartInfo(partInfo);
 }
