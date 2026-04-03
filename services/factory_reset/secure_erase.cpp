@@ -145,7 +145,7 @@ int SecureErase::OverWritePartition(int fd, const uint32_t writeSize, std::vecto
 {
     off64_t offset = static_cast<off64_t>(overwriteOffset_);
     int ret = lseek64(fd, offset, SEEK_SET);
-    if (ret < 0) {
+    if (ret == -1) {
         LOG(ERROR) << "lseek64 failed, offset: " << offset << ", error: " << strerror(errno);
         return -1;
     }
