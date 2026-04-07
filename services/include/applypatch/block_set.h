@@ -39,8 +39,8 @@ class Command;
 class BlockSet {
 public:
     BlockSet();
-    explicit BlockSet(std::vector<BlockPair> &&pairs);
     BlockSet(const std::string &blockStr, size_t offset);
+    explicit BlockSet(std::vector<BlockPair> &&pairs);
 
     ~BlockSet() {}
 
