@@ -53,7 +53,7 @@ int MkdirRecursive(const std::string &pathName, mode_t mode)
             return -1;
         }
         auto subDir = pathName.substr(0, slashPos);
-        LOG(INFO) << "subDir : " << subDir;
+        LOG(DEBUG) << "subDir : " << subDir;
         if (stat(subDir.c_str(), &info) != 0) {
             int ret = mkdir(subDir.c_str(), mode);
             if (ret && errno != EEXIST) {
