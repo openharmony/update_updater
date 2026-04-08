@@ -34,9 +34,16 @@ using namespace Updater::Utils;
 
 namespace Updater {
 
+BlockSet::BlockSet()
+{
+    blockSize_ = 0;
+    offset_ = 0;
+}
+
 BlockSet::BlockSet(std::vector<BlockPair> &&pairs)
 {
     blockSize_ = 0;
+    offset_ = 0;
     if (pairs.empty()) {
         LOG(ERROR) << "Invalid block.";
         return;
@@ -48,6 +55,12 @@ BlockSet::BlockSet(std::vector<BlockPair> &&pairs)
         }
         PushBack(pair);
     }
+}
+
+BlockSet::BlockSet(const std::string &blockStr, size_t offset)
+{
+    ParserAndInsert(blockStr);
+    offset_ = offset;
 }
 
 bool BlockSet::CheckReliablePair(BlockPair pair)
@@ -155,17 +168,20 @@ size_t BlockSet::ReadDataFromBlock(int fd, std::vector<uint8_t> &buffer)
     std::vector<BlockPair>::iterator it = blocks_.begin();
     int ret;
     for (; it != blocks_.end(); ++it) {
-        ret = lseek64(fd, static_cast<off64_t>(it->first * H_BLOCK_SIZE), SEEK_SET);
+        ret = lseek64(fd, static_cast<off64_t>(it->first * H_BLOCK_SIZE + offset_), SEEK_SET);
         if (ret == -1) {
             LOG(ERROR) << "Fail to seek";
             return 0;
         }
-        size_t size = (it->second - it->first) * H_BLOCK_SIZE;
+        size_t size = std::min(buffer.size() - pos, (it->second - it->first) * H_BLOCK_SIZE);
         if (!Utils::ReadFully(fd, buffer.data() + pos, size)) {
-            LOG(ERROR) << "Fail to read";
+            LOG(ERROR) << "Fail to read " << size << " " << offset_;
             return 0;
         }
         pos += size;
+    }
+    if (pos == 0) {
+        LOG(ERROR) << "Read data from block failed " << blocks_.size();
     }
     return pos;
 }
@@ -176,7 +192,7 @@ size_t BlockSet::WriteDataToBlock(int fd, std::vector<uint8_t> &buffer)
     std::vector<BlockPair>::iterator it = blocks_.begin();
     int ret = 0;
     for (; it != blocks_.end(); ++it) {
-        off64_t offset = static_cast<off64_t>(it->first * H_BLOCK_SIZE);
+        off64_t offset = static_cast<off64_t>(it->first * H_BLOCK_SIZE + offset_);
         size_t writeSize = (it->second - it->first) * H_BLOCK_SIZE;
 
         ret = lseek64(fd, offset, SEEK_SET);
@@ -258,6 +274,69 @@ void BlockSet::MoveBlock(std::vector<uint8_t> &target, const BlockSet& locations
     }
 }
 
+int32_t BlockSet::LoadStreamStashBuffer(const Command &cmd, const std::string &storeBase, std::vector<uint8_t> &stash,
+    const std::vector<std::string> &stashTokens, const std::vector<std::string> &tokens)
+{
+    BlockSet srcBlk;
+    if (IsUpdaterMode()) {
+        auto ret = Store::LoadDataFromStore(storeBase, tokens[H_ZERO_NUMBER], stash);
+        if (ret == -1) {
+            LOG(ERROR) << "Failed to load tokens";
+            return -1;
+        }
+        return 0;
+    }
+    if (stashTokens.size() <= H_ONE_NUMBER) {
+        LOG(ERROR) << "Invalid stash tokens, size: " << stashTokens.size();
+        return -1;
+    }
+    srcBlk.ParserAndInsert(stashTokens[H_ONE_NUMBER]);
+    stash.resize(srcBlk.TotalBlockSize() * H_BLOCK_SIZE);
+    if (srcBlk.ReadDataFromBlock(cmd.GetSrcFileDescriptor(), stash) == 0) {
+        LOG(ERROR) << "ReadDataFromBlock failed";
+        return -1;
+    }
+    return 0;
+}
+
+int32_t BlockSet::LoadStashBuffer(const Command &cmd, size_t &pos, const std::string &storeBase,
+    std::vector<uint8_t> &sourceBuffer)
+{
+    std::string lastArg = cmd.GetArgumentByPos(pos++);
+    while (lastArg != "") {
+        std::vector<std::string> tokens = SplitString(lastArg, ":");
+        if (tokens.size() != H_CMD_ARGS_LIMIT) {
+            LOG(ERROR) << "invalid parameter";
+            return -1;
+        }
+        if (!cmd.IsStreamCmd() || tokens[1].find("-") == std::string::npos) {
+            std::vector<uint8_t> stash;
+            auto ret = Store::LoadDataFromStore(storeBase, tokens[H_ZERO_NUMBER], stash);
+            if (ret == -1) {
+                LOG(ERROR) << "Failed to load tokens";
+                return -1;
+            }
+            BlockSet locations;
+            locations.ParserAndInsert(tokens[1]);
+            MoveBlock(sourceBuffer, locations, stash);
+
+            lastArg = cmd.GetArgumentByPos(pos++);
+        } else {
+            std::vector<std::string> stashTokens = SplitString(tokens[1], "-");
+            // read source data
+            std::vector<uint8_t> stash;
+            if (LoadStreamStashBuffer(cmd, storeBase, stash, stashTokens, tokens) == -1) {
+                return -1;
+            }
+            BlockSet locations;
+            locations.ParserAndInsert(stashTokens[H_ZERO_NUMBER]);
+            MoveBlock(sourceBuffer, locations, stash);
+            lastArg = cmd.GetArgumentByPos(pos++);
+        }
+    }
+    return 1;
+}
+
 int32_t BlockSet::LoadSourceBuffer(const Command &cmd, size_t &pos, std::vector<uint8_t> &sourceBuffer,
     bool &isOverlap, size_t &srcBlockSize)
 {
@@ -282,27 +361,7 @@ int32_t BlockSet::LoadSourceBuffer(const Command &cmd, size_t &pos, std::vector<
         locations.ParserAndInsert(nextArgv);
         MoveBlock(sourceBuffer, locations, sourceBuffer);
     }
-
-    std::string lastArg = cmd.GetArgumentByPos(pos++);
-    while (lastArg != "") {
-        std::vector<std::string> tokens = SplitString(lastArg, ":");
-        if (tokens.size() != H_CMD_ARGS_LIMIT) {
-            LOG(ERROR) << "invalid parameter";
-            return -1;
-        }
-        std::vector<uint8_t> stash;
-        auto ret = Store::LoadDataFromStore(storeBase, tokens[H_ZERO_NUMBER], stash);
-        if (ret == -1) {
-            LOG(ERROR) << "Failed to load tokens";
-            return -1;
-        }
-        BlockSet locations;
-        locations.ParserAndInsert(tokens[1]);
-        MoveBlock(sourceBuffer, locations, stash);
-
-        lastArg = cmd.GetArgumentByPos(pos++);
-    }
-    return 1;
+    return LoadStashBuffer(cmd, pos, storeBase, sourceBuffer);
 }
 
 __attribute__((weak)) int32_t BlockVerify(const Command &cmd, std::vector<uint8_t> &buffer,
@@ -400,7 +459,7 @@ int32_t BlockSet::WriteZeroToBlock(int fd, bool isErase)
 int32_t BlockSet::WriteDiffToBlock(const Command &cmd, std::vector<uint8_t> &sourceBuffer, uint8_t *patchBuffer,
                                    size_t patchLength, bool isImgDiff)
 {
-    size_t srcBuffSize =  sourceBuffer.size();
+    size_t srcBuffSize = sourceBuffer.size();
     if (isImgDiff) {
         std::vector<uint8_t> empty;
         UpdatePatch::PatchParam patchParam = {sourceBuffer.data(), srcBuffSize, patchBuffer, patchLength};

@@ -26,7 +26,9 @@ class BlockWriter : public DataWriter {
 public:
     bool Write(const uint8_t *addr, size_t len, const void *context) override;
     virtual ~BlockWriter() {}
-    BlockWriter(int fd, BlockSet& bs) : fd_(fd), bs_(bs), totalWritten_(0), blockIndex_(0),
+    BlockWriter(int fd, size_t offset, BlockSet& bs) : fd_(fd), bs_(bs), offset_(offset),
+        totalWritten_(0), blockIndex_(0), currentBlockLeft_(0) {}
+    BlockWriter(int fd, BlockSet& bs) : fd_(fd), bs_(bs), offset_(0), totalWritten_(0), blockIndex_(0),
         currentBlockLeft_(0) {}
     size_t GetTotalWritten() const;
     size_t GetBlocksSize() const;
@@ -36,6 +38,7 @@ private:
     const BlockWriter& operator=(const BlockWriter&) = delete;
     int fd_;
     BlockSet bs_;
+    size_t offset_;
     size_t totalWritten_;
     // index of BlockPair in BlockSet
     size_t blockIndex_;

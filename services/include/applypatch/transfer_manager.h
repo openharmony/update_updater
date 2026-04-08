@@ -55,6 +55,7 @@ struct TransferParams {
     std::string patchDatFile;
     uint8_t *dataBuffer;
     size_t dataBufferSize;
+    size_t offset {0};
     bool canWrite;
     bool isUpdaterMode;
 };

@@ -46,8 +46,7 @@ CommandResult NewCommandFn::Execute(const Command &params)
         return (StreamExecute(params) != 0) ? FAILED : SUCCESS;
     }
     BlockSet bs;
-    size_t pos = H_NEW_CMD_ARGS_START;
-    bs.ParserAndInsert(params.GetArgumentByPos(pos));
+    bs.ParserAndInsert(params.GetArgumentByPos(1));
     LOG(DEBUG) << " writing " << bs.TotalBlockSize() << " blocks of new data";
     auto writerThreadInfo = params.GetTransferParams()->writerThreadInfo.get();
     pthread_mutex_lock(&writerThreadInfo->mutex);
@@ -67,6 +66,7 @@ CommandResult NewCommandFn::Execute(const Command &params)
         pthread_cond_wait(&writerThreadInfo->cond, &writerThreadInfo->mutex);
     }
     pthread_mutex_unlock(&writerThreadInfo->mutex);
+    LOG(DEBUG) << " writing " << bs.TotalBlockSize() << " blocks of new data end";
 
     writerThreadInfo->writer.reset();
     params.GetTransferParams()->written += bs.TotalBlockSize();
@@ -78,15 +78,14 @@ int32_t NewCommandFn::StreamExecute(const Command &params)
     size_t pos = H_NEW_CMD_ARGS_START;
     uint8_t *addr = params.GetTransferParams()->dataBuffer;
     size_t size = params.GetTransferParams()->dataBufferSize;
+    size_t offset = params.GetTransferParams()->offset;
     std::string tgtHash = "";
     tgtHash = params.GetArgumentByPos(pos++);
-    LOG(INFO) << "StreamExecute size:" << size << " cmd:" << params.GetCommandLine();
-    BlockSet bs;
-    bs.ParserAndInsert(params.GetArgumentByPos(pos++));
-    std::unique_ptr<BlockWriter> writer = std::make_unique<BlockWriter>(params.GetTargetFileDescriptor(), bs);
+    BlockSet bs(params.GetArgumentByPos(pos++), offset);
+    std::unique_ptr<BlockWriter> writer = std::make_unique<BlockWriter>(params.GetTargetFileDescriptor(),
+        offset, bs);
     while (size > 0) {
         size_t toWrite = std::min(size, writer->GetBlocksSize() - writer->GetTotalWritten());
-        LOG(INFO) << "StreamExecute toWrite:" << toWrite;
         // No more data to write.
         if (toWrite == 0) {
             break;
@@ -99,10 +98,10 @@ int32_t NewCommandFn::StreamExecute(const Command &params)
         addr += toWrite;
     }
     size_t tgtBlockSize = bs.TotalBlockSize() * H_BLOCK_SIZE;
-    std::vector<uint8_t> tgtBuffer(tgtBlockSize);
+    std::vector<uint8_t> tgtBuffer(std::min(tgtBlockSize, params.GetTransferParams()->dataBufferSize));
 
     if (bs.ReadDataFromBlock(params.GetTargetFileDescriptor(), tgtBuffer) == 0) {
-        LOG(ERROR) << "Read data from block error, TotalBlockSize: " << bs.TotalBlockSize();
+        LOG(ERROR) << "Read data from block error, tgtBuffer size: " << tgtBuffer.size();
         return -1;
     }
     if (bs.VerifySha256(tgtBuffer, bs.TotalBlockSize(), tgtHash) == 0) {
@@ -151,12 +150,12 @@ bool LoadTarget(const Command &params, size_t &pos, std::vector<uint8_t> &buffer
     std::string srcHash = "";
     std::string tgtHash = "";
     // Read sha256 of source and target
-    if (type == CommandType::BSDIFF || type == CommandType::IMGDIFF) {
-        srcHash = params.GetArgumentByPos(pos++);
-        tgtHash = params.GetArgumentByPos(pos++);
-    } else if (type == CommandType::MOVE) {
+    if (type == CommandType::MOVE) {
         srcHash = params.GetArgumentByPos(pos++);
         tgtHash = srcHash;
+    } else if (type != CommandType::COPY) {
+        srcHash = params.GetArgumentByPos(pos++);
+        tgtHash = params.GetArgumentByPos(pos++);
     }
 
     // Read the target's buffer to determine whether it needs to be written
@@ -236,15 +235,11 @@ CommandResult DiffAndMoveCommandFn::Execute(const Command &params)
     int32_t ret = -1;
     if (type != CommandType::MOVE && type != CommandType::COPY) {
         pos = H_MOVE_CMD_ARGS_START;
-        size_t offset;
-        if (params.IsStreamCmd()) {
-            offset = 0;
-            pos++;
-        } else {
-            offset = Utils::String2Int<size_t>(params.GetArgumentByPos(pos++), Utils::N_DEC);
-        }
+        size_t offset = params.IsStreamCmd() ? 0 :
+            Utils::String2Int<size_t>(params.GetArgumentByPos(pos), Utils::N_DEC);
+        pos++;
         size_t patchLength = Utils::String2Int<size_t>(params.GetArgumentByPos(pos++), Utils::N_DEC);
-        if (Utils::IsUpdaterMode() || params.IsStreamCmd()) {
+        if (params.GetTransferParams()->isUpdaterMode || params.IsStreamCmd()) {
             uint8_t *patchBuffer = params.GetTransferParams()->dataBuffer + offset;
             ret = WriteDiffToBlock(params, buffer, patchBuffer, patchLength, targetBlock);
         } else {
@@ -271,6 +266,9 @@ CommandResult DiffAndMoveCommandFn::Execute(const Command &params)
 
 CommandResult FreeCommandFn::Execute(const Command &params)
 {
+    if (!IsUpdaterMode() && params.IsStreamCmd()) {
+        return SUCCESS;
+    }
     std::string shaStr = params.GetArgumentByPos(1);
     std::string storeBase = params.GetTransferParams()->storeBase;
     if (params.GetTransferParams()->storeCreated == 0) {
@@ -281,6 +279,9 @@ CommandResult FreeCommandFn::Execute(const Command &params)
 
 CommandResult StashCommandFn::Execute(const Command &params)
 {
+    if (!IsUpdaterMode() && params.IsStreamCmd()) {
+        return SUCCESS;
+    }
     size_t pos = 1;
     const std::string shaStr = params.GetArgumentByPos(pos++);
     BlockSet srcBlk;
