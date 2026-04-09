@@ -499,7 +499,7 @@ int32_t PkgManagerImpl::LoadStreamPackageWithStream(const std::string &packagePa
 #ifndef DIFF_PATCH_SDK
     UPDATER_INIT_RECORD;
     int32_t ret = PKG_SUCCESS;
-	PkgFile *streamPkgFile = new (std::nothrow) StreamPkgFile(this, headStream, entryStream, nullptr);
+    PkgFile *streamPkgFile = new (std::nothrow) StreamPkgFile(this, headStream, entryStream, nullptr);
     if (streamPkgFile == nullptr) {
         PKG_LOGE("Create package fail %s", packagePath.c_str());
         ClosePkgStream(headStream);
