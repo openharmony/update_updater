@@ -339,7 +339,6 @@ int32_t ShmDataStream::Read(PkgBuffer &data, size_t start, size_t needRead, size
         if (rb_->currLen >= needReadLen) {
             if (memcpy_s(data.buffer, needReadLen, rb_->reserved + rb_->currOffset, needReadLen) != 0) {
                 PKG_LOGE("memcpy_s fail");
-                UPDATER_LAST_WORD(PKG_INVALID_STREAM, "memcpy_s fail");
                 return PKG_INVALID_STREAM;
             }
             rb_->currOffset += needReadLen;
@@ -350,7 +349,6 @@ int32_t ShmDataStream::Read(PkgBuffer &data, size_t start, size_t needRead, size
         }
         if (memcpy_s(data.buffer, rb_->currLen, rb_->reserved + rb_->currOffset, rb_->currLen) != 0) {
             PKG_LOGE("memcpy_s fail");
-            UPDATER_LAST_WORD(PKG_INVALID_STREAM, "memcpy_s fail");
             return PKG_INVALID_STREAM;
         }
         needReadLen -= rb_->currLen;
