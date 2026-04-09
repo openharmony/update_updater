@@ -259,6 +259,7 @@ size_t ShmRbBlock::GetRealLen()
 {
     return realLen_;
 }
+#endif
 
 #ifndef DIFF_PATCH_SDK
 int32_t ShmDataStream::CreateShmRingBuffer()
