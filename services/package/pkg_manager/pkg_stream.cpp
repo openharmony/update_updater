@@ -233,8 +233,8 @@ int32_t ShmDataStream::CreateShmRingBuffer()
     }
 
     // 共享内存控制变量初始化
-    sem_init(&rb_->sem_empty, 1, BLOCK_NUM);
-    sem_init(&rb_->sem_full, 1, 0);
+    sem_init(&rb_->semEmpty, 1, BLOCK_NUM);
+    sem_init(&rb_->semFull, 1, 0);
     rb_->head = 0;
     rb_->tail = 0;
     rb_->currLen = 0;
@@ -266,7 +266,7 @@ int32_t ShmDataStream::ReadFully(size_t &needReadLen, size_t &readLen, PkgBuffer
         return PKG_INVALID_PARAM;
     }
     while (needReadLen > 0) {
-        sem_wait(&rb_->sem_full);
+        sem_wait(&rb_->semFull);
 
         size_t len = rb_->efficientLen[rb_->head];  // 块实际长度
         if (len == 0) {
@@ -284,7 +284,7 @@ int32_t ShmDataStream::ReadFully(size_t &needReadLen, size_t &readLen, PkgBuffer
             readLen += len;
             rb_->head = (rb_->head + 1) % BLOCK_NUM;
  
-            sem_post(&rb_->sem_empty);
+            sem_post(&rb_->semEmpty);
             continue;
         }
 
@@ -306,7 +306,7 @@ int32_t ShmDataStream::ReadFully(size_t &needReadLen, size_t &readLen, PkgBuffer
         rb_->efficientLen[rb_->head] = 0;
         rb_->head = (rb_->head + 1) % BLOCK_NUM;
  
-        sem_post(&rb_->sem_empty);
+        sem_post(&rb_->semEmpty);
     }
     return PKG_SUCCESS;
 }
@@ -385,7 +385,7 @@ int32_t ShmDataStream::Write(const PkgBuffer &data, size_t size, size_t start)
     size_t needWriteLen = size;
     size_t writedLen = 0;
     while (needWriteLen > 0) {
-        sem_wait(&rb_->sem_empty);
+        sem_wait(&rb_->semEmpty);
  
         size_t len = needWriteLen < SINGLE_BLOCK_SIZE ? needWriteLen : SINGLE_BLOCK_SIZE;
         size_t offset = rb_->tail * SINGLE_BLOCK_SIZE;
@@ -399,7 +399,7 @@ int32_t ShmDataStream::Write(const PkgBuffer &data, size_t size, size_t start)
         needWriteLen -= len;
         writedLen += len;
  
-        sem_post(&rb_->sem_full);
+        sem_post(&rb_->semFull);
     }
 
     offset_ += size;
@@ -425,8 +425,8 @@ void ShmDataStream::Exit()
         PKG_LOGE("rb_ is nullptr");
         return;
     }
-    sem_destroy(&rb_->sem_empty);
-    sem_destroy(&rb_->sem_full);
+    sem_destroy(&rb_->semEmpty);
+    sem_destroy(&rb_->semFull);
     if (munmap(rb_, sizeof(RingBuffer)) != 0) {
         PKG_LOGE("munmap failed : %s", strerror(errno));
         return;
