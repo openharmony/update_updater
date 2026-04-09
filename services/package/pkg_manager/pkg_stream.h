@@ -128,8 +128,8 @@ constexpr size_t SINGLE_BLOCK_SIZE = 50 * 1024;
 constexpr size_t RING_BUFFER_SIZE = BLOCK_NUM * SINGLE_BLOCK_SIZE;
 
 struct ShmRingBuffer {
-    sem_t sem_empty;                     // 空闲块信号量
-    sem_t sem_full;                      // 已用块信号量
+    sem_t semEmpty;                     // 空闲块信号量
+    sem_t semFull;                      // 已用块信号量
     size_t head;                        // 消费者读取位置
     size_t tail;                        // 生产者写入位置
     uint8_t buffer[RING_BUFFER_SIZE];    // 环形数据存储区
