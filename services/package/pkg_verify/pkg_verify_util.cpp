@@ -102,8 +102,8 @@ int32_t PkgVerifyUtil::VerifySign(std::vector<uint8_t> &signData, std::vector<ui
     return PKG_SUCCESS;
 }
 
-PkgVerifyUtil::PkgVerifyUtil(PkgFile::PkgType pkgType, bool isOldSigSupport):
-    pkgType_(pkgType), isOldSigSupport_(isOldSigSupport)
+PkgVerifyUtil::PkgVerifyUtil(PkgFile::PkgType pkgType, bool isOldSigSupport)
+    : pkgType_(pkgType), isOldSigSupport_(isOldSigSupport)
 {
     const std::unordered_map<PkgFile::PkgType, std::function<std::unique_ptr<PkgParse>(void)>> factoryFuncMap {
         {PkgFile::PKG_TYPE_ZIP, [] () { return std::make_unique<ZipPkgParse>(); }},
