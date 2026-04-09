@@ -275,7 +275,10 @@ int32_t ShmDataStream::ReadFully(size_t &needReadLen, size_t &readLen, PkgBuffer
         }
         size_t offset = rb_->head * SINGLE_BLOCK_SIZE;
         if (needReadLen >= len) {  // 取一个满块
-            memcpy_s(data.buffer + readLen, len, rb_->buffer + offset, len);
+            if (memcpy_s(data.buffer + readLen, len, rb_->buffer + offset, len) != 0) {
+                PKG_LOGE("memcpy_s fail, len: %d", len);
+                return PKG_INVALID_STREAM;
+            }
             rb_->efficientLen[rb_->head] = 0;
             needReadLen -= len;
             readLen += len;
@@ -287,9 +290,15 @@ int32_t ShmDataStream::ReadFully(size_t &needReadLen, size_t &readLen, PkgBuffer
 
         // 取部分块
         // rb_->head ~ rb_->head + needReadLen copy to dest
-        memcpy_s(data.buffer + readLen, needReadLen, rb_->buffer + offset, needReadLen);
+        if (memcpy_s(data.buffer + readLen, needReadLen, rb_->buffer + offset, needReadLen) != 0) {
+            PKG_LOGE("memcpy_s fail, needReadLen: %d", needReadLen);
+            return PKG_INVALID_STREAM;
+        }
         // rb_->head + needReadLen ~ rb_->head + block_len copy to temp buffer
-        memcpy_s(rb_->reserved, len - needReadLen, rb_->buffer + offset + needReadLen, len - needReadLen);
+        if (memcpy_s(rb_->reserved, len - needReadLen, rb_->buffer + offset + needReadLen, len - needReadLen) != 0) {
+            PKG_LOGE("memcpy_s fail, needReadLen: %d", len - needReadLen);
+            return PKG_INVALID_STREAM;
+        }
         rb_->currLen = len - needReadLen;
         rb_->currOffset = 0;
         readLen += needReadLen;
@@ -328,14 +337,22 @@ int32_t ShmDataStream::Read(PkgBuffer &data, size_t start, size_t needRead, size
     size_t needReadLen = needRead;
     if (rb_->currLen > 0) {
         if (rb_->currLen >= needReadLen) {
-            memcpy_s(data.buffer, needReadLen, rb_->reserved + rb_->currOffset, needReadLen);
+            if (memcpy_s(data.buffer, needReadLen, rb_->reserved + rb_->currOffset, needReadLen) != 0) {
+                PKG_LOGE("memcpy_s fail");
+                UPDATER_LAST_WORD(PKG_INVALID_STREAM, "memcpy_s fail");
+                return PKG_INVALID_STREAM;
+            }
             rb_->currOffset += needReadLen;
             rb_->currLen -= needReadLen;
             readLen = needReadLen;
             offset_ += readLen;
             return 0;
         }
-        memcpy_s(data.buffer, rb_->currLen, rb_->reserved + rb_->currOffset, rb_->currLen);
+        if (memcpy_s(data.buffer, rb_->currLen, rb_->reserved + rb_->currOffset, rb_->currLen) != 0) {
+            PKG_LOGE("memcpy_s fail");
+            UPDATER_LAST_WORD(PKG_INVALID_STREAM, "memcpy_s fail");
+            return PKG_INVALID_STREAM;
+        }
         needReadLen -= rb_->currLen;
         readLen += rb_->currLen;
         rb_->currLen = 0;
@@ -372,7 +389,11 @@ int32_t ShmDataStream::Write(const PkgBuffer &data, size_t size, size_t start)
  
         size_t len = needWriteLen < SINGLE_BLOCK_SIZE ? needWriteLen : SINGLE_BLOCK_SIZE;
         size_t offset = rb_->tail * SINGLE_BLOCK_SIZE;
-        memcpy_s(rb_->buffer + offset, len, data.buffer + writedLen, len);
+        if (memcpy_s(rb_->buffer + offset, len, data.buffer + writedLen, len) != 0) {
+            PKG_LOGE("memcpy_s fail");
+            UPDATER_LAST_WORD(PKG_INVALID_STREAM, "memcpy_s fail");
+            return PKG_INVALID_STREAM;
+        }
         rb_->efficientLen[rb_->tail] = len;
         rb_->tail = (rb_->tail + 1) % BLOCK_NUM;
         needWriteLen -= len;
