@@ -213,6 +213,54 @@ int32_t FileStream::Flush(size_t size)
     return PKG_SUCCESS;
 }
 
+#ifndef _WIN32
+bool ShmRbBlock::Push(const uint8_t* buf, size_t len)
+{
+    if (buf == nullptr) {
+        PKG_LOGE("Push error : buf is nullptr");
+        return false;
+    }
+    if (len == 0 || len > SINGLE_BLOCK_SIZE) {
+        PKG_LOGE("Push error : invalid len : %zu", len);
+        return false;
+    }
+    
+    if (memcpy_s(data_, SINGLE_BLOCK_SIZE, buf, len) != EOK) {
+        PKG_LOGE("memcpy_s error, len : %zu", len);
+        return false;
+    }
+    realLen_ = len;
+    blkOffset_ = 0;
+    return true;
+}
+
+bool ShmRbBlock::Pop(uint8_t* buf, size_t expectedLen, size_t &realLen)
+{
+    if (buf == nullptr) {
+        PKG_LOGE("Pop error : buf is nullptr");
+        return false;
+    }
+    if (expectedLen == 0 || expectedLen > SINGLE_BLOCK_SIZE) {
+        PKG_LOGE("Pop error : invalid expectedLen : %zu", expectedLen);
+        return false;
+    }
+
+    realLen = expectedLen < realLen_ ? expectedLen : realLen_;
+    if (memcpy_s(buf, expectedLen, data_ + blkOffset_, realLen) != EOK) {
+        PKG_LOGE("memcpy_s error, expectedLen : %zu, realLen : %zu", expectedLen, realLen);
+        return false;
+    }
+    realLen_ -= realLen;
+    blkOffset_ += realLen;
+    return true;
+}
+
+size_t ShmRbBlock::GetRealLen()
+{
+    return realLen_;
+}
+#endif
+
 #ifndef DIFF_PATCH_SDK
 int32_t ShmDataStream::CreateShmRingBuffer()
 {
@@ -433,54 +481,6 @@ void ShmDataStream::Exit()
     if (shm_unlink(shmId_.c_str()) != 0) {
         PKG_LOGE("shm_unlink failed : %s", strerror(errno));
     }
-}
-#endif
-
-#ifndef _WIN32
-bool ShmRbBlock::Push(const uint8_t* buf, size_t len)
-{
-    if (buf == nullptr) {
-        PKG_LOGE("Push error : buf is nullptr");
-        return false;
-    }
-    if (len == 0 || len > SINGLE_BLOCK_SIZE) {
-        PKG_LOGE("Push error : invalid len : %zu", len);
-        return false;
-    }
-    
-    if (memcpy_s(data_, SINGLE_BLOCK_SIZE, buf, len) != EOK) {
-        PKG_LOGE("memcpy_s error, len : %zu", len);
-        return false;
-    }
-    realLen_ = len;
-    blkOffset_ = 0;
-    return true;
-}
-
-bool ShmRbBlock::Pop(uint8_t* buf, size_t expectedLen, size_t &realLen)
-{
-    if (buf == nullptr) {
-        PKG_LOGE("Pop error : buf is nullptr");
-        return false;
-    }
-    if (expectedLen == 0 || expectedLen > SINGLE_BLOCK_SIZE) {
-        PKG_LOGE("Pop error : invalid expectedLen : %zu", expectedLen);
-        return false;
-    }
-
-    realLen = expectedLen < realLen_ ? expectedLen : realLen_;
-    if (memcpy_s(buf, expectedLen, data_ + blkOffset_, realLen) != EOK) {
-        PKG_LOGE("memcpy_s error, expectedLen : %zu, realLen : %zu", expectedLen, realLen);
-        return false;
-    }
-    realLen_ -= realLen;
-    blkOffset_ += realLen;
-    return true;
-}
-
-size_t ShmRbBlock::GetRealLen()
-{
-    return realLen_;
 }
 #endif
 
