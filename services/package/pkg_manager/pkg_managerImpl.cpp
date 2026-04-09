@@ -879,9 +879,6 @@ PkgFile::PkgType PkgManagerImpl::GetPkgTypeByName(const std::string &path)
     if (pos == std::string::npos) {
         return PkgFile::PKG_TYPE_NONE;
     }
-    std::string postfix = path.substr(pos + 1, -1);
-    std::transform(postfix.begin(), postfix.end(), postfix.begin(), ::tolower);
-
     const std::string_view upgradePrefix = "update_";
     std::string postfix = path.substr(pos + 1, -1);
     std::string fileName = GetName(path);
