@@ -154,6 +154,9 @@ public:
     int32_t DecodeCentralDirEntry(PkgStreamPtr inStream, PkgBuffer &buffer, size_t currentPos,
         size_t &decodeLen);
 
+    size_t GetOriginalSize() const override;
+
+    std::pair<size_t, size_t> GetEntryRange(void) override;
 protected:
     ZipFileInfo fileInfo_ {};
     uint32_t crc32_ {0};

@@ -19,6 +19,7 @@
 #include "dump.h"
 #include "log/dynamic_log.h"
 #include "log/log.h"
+#include "pkg_algorithm.h"
 #include "pkg_gzipfile.h"
 #include "pkg_lz4file.h"
 #include "pkg_stream.h"

@@ -18,9 +18,10 @@
 #include "openssl_util.h"
 #include "package/pkg_manager.h"
 #include "pkcs7_signed_data.h"
+#include "pkg_manager/pkg_manager_impl.h"
+#include "pkg_verify_util.h"
 #include "rust/hash_signed_data.h"
 #include "updater/updater_const.h"
-#include "zip_pkg_parse.h"
 
 namespace Hpackage {
 using namespace Updater;
@@ -122,7 +123,8 @@ bool HashDataVerifier::LoadPkcs7FromPackage(const std::string &pkgPath)
         return false;
     }
 
-    PkgVerifyUtil verifyUtil {};
+    PkgFile::PkgType pkgType = PkgManagerImpl::GetPkgTypeByName(pkgPath);
+    PkgVerifyUtil verifyUtil {pkgType, true};
     size_t signatureSize = 0;
     std::vector<uint8_t> signature {};
     uint16_t commentTotalLenAll = 0;
@@ -130,6 +132,7 @@ bool HashDataVerifier::LoadPkcs7FromPackage(const std::string &pkgPath)
         signatureSize, signature, commentTotalLenAll);
     manager_->ClosePkgStream(pkgStream);
     if (ret != PKG_SUCCESS) {
+        PKG_LOGE("GetSignature failed %s pkgType %d", pkgPath.c_str(), pkgType);
         UPDATER_LAST_WORD(ret, "GetSignature failed");
         return false;
     }

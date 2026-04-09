@@ -50,6 +50,20 @@ uint16_t ReadLE16(const uint8_t *buff);
 void WriteLE16(uint8_t *buff, uint16_t value);
 uint64_t ReadLE64(const uint8_t *buff);
 
+template<typename T>
+T ReadLE(const uint8_t *buff)
+{
+    static_assert((sizeof(T) == sizeof(uint16_t) || sizeof(T) == sizeof(uint32_t) ||
+        sizeof(T) == sizeof(uint64_t)), "only support 16 or 32 or 64 bit type");
+    if constexpr (sizeof(T) == sizeof(uint16_t)) {
+        return ReadLE16(buff);
+    } else if constexpr (sizeof(T) == sizeof(uint32_t)) {
+        return ReadLE32(buff);
+    } else if constexpr (sizeof(T) == sizeof(uint64_t)) {
+        return ReadLE64(buff);
+    }
+}
+
 #define PKG_LOGE(format, ...) Logger(Updater::ERROR, (UPDATER_LOG_FILE_NAME), (__LINE__), format, ##__VA_ARGS__)
 #define PKG_LOGI(format, ...) Logger(Updater::INFO, (UPDATER_LOG_FILE_NAME), (__LINE__), format, ##__VA_ARGS__)
 #define PKG_LOGW(format, ...) Logger(Updater::WARNING, (UPDATER_LOG_FILE_NAME), (__LINE__), format, ##__VA_ARGS__)

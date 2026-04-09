@@ -76,9 +76,11 @@ libupdaterpackage_common_source = [
   "./pkg_package/pkg_lz4file.cpp",
   "./pkg_package/pkg_pkgfile.cpp",
   "./pkg_package/pkg_upgradefile.cpp",
+  "./pkg_package/pkg_streamfile.cpp",
   "./pkg_package/pkg_zipfile.cpp",
   "./pkg_verify/pkg_verify_util.cpp",
   "./pkg_verify/zip_pkg_parse.cpp",
+  "./pkg_verify/bin_pkg_parse.cpp",
   "pkg_verify/hash_data_verifier.cpp",
 ]
 
@@ -135,6 +137,7 @@ ohos_shared_library("libupdaterpackage_shared") {
     "${updater_path}/services/common/ring_buffer:libringbuffer",
     "${updater_path}/services/log:libupdaterlog_shared",
     "${updater_path}/services/package:libverify_shared",
+    "${updater_path}/utils:libutils",
   ]
 
   external_deps = [
@@ -152,7 +155,6 @@ ohos_shared_library("libupdaterpackage_shared") {
 
   public_configs = [ ":libupdaterpackage_exported_headers" ]
   defines = [
-    "DIFF_PATCH_SDK",
     "OPENSSL_SUPPRESS_DEPRECATED",
   ]
 

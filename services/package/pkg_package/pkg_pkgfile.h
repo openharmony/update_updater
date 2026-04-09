@@ -56,14 +56,20 @@ public:
         UNUSED(fileNames);
         return PKG_SUCCESS;
     }
-
+    const std::vector<std::string> &GetComponents(void) const override
+    {
+        return components_;
+    }
     PkgEntryPtr FindPkgEntry(const std::string &fileName) override;
 
     PkgStreamPtr GetPkgStream() const override
     {
         return pkgStream_;
     }
-
+    PkgStreamPtr GetPkgEntryStream() const override
+    {
+        return pkgStream_;
+    }
     const PkgInfo *GetPkgInfo() const override
     {
         return nullptr;
@@ -106,6 +112,7 @@ protected:
     PkgStreamPtr pkgStream_ = nullptr;
     PkgManager::PkgManagerPtr pkgManager_ = nullptr;
     uint32_t nodeId_ = 0;
+    std::vector<std::string> components_;
     std::map<uint32_t, PkgEntryPtr> pkgEntryMapId_ {};
     std::multimap<std::string, PkgEntryPtr, std::greater<std::string>> pkgEntryMapFileName_ {};
     uint32_t state_ = PKG_FILE_STATE_IDLE;

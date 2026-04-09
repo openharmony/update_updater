@@ -106,6 +106,12 @@ int32_t Lz4FileEntry::Unpack(PkgStreamPtr outStream)
     return PKG_SUCCESS;
 }
 
+std::pair<size_t, size_t> Lz4FileEntry::GetEntryRange(void)
+{
+    PKG_LOGW("unimplemented for Lz4FileEntry");
+    return {0, 0};
+}
+
 int32_t Lz4FileEntry::DecodeHeader(PkgBuffer &buffer, size_t headerOffset, size_t dataOffset,
     size_t &decodeLen)
 {
@@ -165,6 +171,11 @@ int32_t Lz4PkgFile::AddEntry(const PkgManager::FileInfoPtr file, const PkgStream
     PKG_LOGI("offset:%zu ", currentOffset_);
     pkgStream_->Flush(currentOffset_);
     return PKG_SUCCESS;
+}
+
+size_t Lz4FileEntry::GetOriginalSize() const
+{
+    return fileInfo_.fileInfo.unpackedSize;
 }
 
 int32_t Lz4PkgFile::SavePackage(size_t &offset)

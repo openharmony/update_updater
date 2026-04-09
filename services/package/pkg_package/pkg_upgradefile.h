@@ -16,6 +16,7 @@
 #define UPGRADE_PKG_FILE_H
 
 #include <map>
+#include "dump.h"
 #include "rust/image_hash_check.h"
 #include "pkg_algorithm.h"
 #include "pkg_manager.h"
@@ -29,9 +30,17 @@ struct __attribute__((packed)) PkgTlv {
     uint16_t length;
 };
 
+template<typename TType, typename LType, TType expType> 
+struct __attribute__((packed)) ChunkTlv {
+    TType type;
+    LType length;
+    static inline TType expectedType = expType;
+};
+
 struct __attribute__((packed)) UpgradePkgHeader {
     uint32_t pkgInfoLength; // UpgradePkgTime + UpgradeCompInfo + UPGRADE_RESERVE_LEN
-    uint32_t updateFileVersion;
+    uint16_t updateFileVersion;
+    uint16_t updateFileType;
     uint8_t productUpdateId[64];
     uint8_t softwareVersion[64];
 };
@@ -65,6 +74,13 @@ enum {
     UPGRADE_FILE_VERSION_V2,        // bin v2 version, add img hash part
     UPGRADE_FILE_VERSION_V3,        // bin v3 version, modify img hash part
     UPGRADE_FILE_VERSION_V4,        // bin v4 version, modify bin file signature
+    UPGRADE_FILE_VERSION_V5,
+};
+
+enum {
+    UPGRADE_FILE_TYPE_LEGACY = 0,    // legacy package type
+    UPGRADE_FILE_TYPE_STREAM,        // stream package type
+    UPGRADE_FILE_TYPE_UNKNOWN
 };
 
 class UpgradeFileEntry : public PkgEntry {
@@ -91,9 +107,11 @@ public:
         return &fileInfo_.fileInfo;
     }
 
+    std::pair<size_t, size_t> GetEntryRange(void) override;
+
+    size_t GetOriginalSize() const override;
 protected:
     ComponentInfo fileInfo_ {};
-
 private:
     int32_t GetUpGradeCompInfo(UpgradeCompInfo &comp);
 };
@@ -138,6 +156,11 @@ public:
         return &pkgInfo_.pkgInfo;
     }
 
+    PkgType GetPkgType() const override
+    {
+        return PKG_TYPE_UPGRADE;
+    }
+
     const ImgHashData *GetImgHashData() const
     {
         return hashCheck_;
@@ -152,7 +175,11 @@ public:
     {
         return pkgInfo_.updateFileVersion;
     }
-
+    const UpgradeChunkInfo &GetUpgradeChunkInfo(void) const
+    {
+        return chunkInfo_;
+    }
+    virtual int32_t SetUpradeEntryStream(UpgradeFileEntry *entry);
 private:
     int16_t GetPackageTlvType();
     int32_t SaveEntry(const PkgBuffer &buffer, size_t &parsedLen, UpgradeParam &info,
@@ -175,6 +202,7 @@ private:
     int32_t ReadImgHashTLV(std::vector<uint8_t> &imgHashBuf, size_t &parsedLen,
                                         DigestAlgorithm::DigestAlgorithmPtr algorithm, uint32_t needType);
     int32_t ReadImgHashData(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm);
+
     int32_t ReadSignData(std::vector<uint8_t> &signData,
                          size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm);
     int32_t VerifyHeader(DigestAlgorithm::DigestAlgorithmPtr algorithm, VerifyFunction verifier,
@@ -185,13 +213,59 @@ private:
                          VerifyFunction verifier);
     int32_t VerifyFileV2(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm,
                          VerifyFunction verifier);
-
+        // chunk related function
+    int32_t ReadChunkInfo(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm);
+    int32_t ReadChunkListInfo(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm);
+    int32_t ReadPartitionNumChunk(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm);
+    int32_t ReadPartitionNameChunk(
+        size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm, std::string &paritionName);
+    int32_t ReadImageSizeChunk(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm, uint64_t &imageSize);
+    int32_t ReadImageHashChunk(
+        size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm, std::string &imageHash);
+    int32_t ReadHashPartitionChunk(
+        size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm, std::string &hashParitionName);
+    template <typename ChunkType>
+    int32_t ReadChunkTlv(PkgBuffer &buffer, size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm);
 private:
     UpgradePkgInfo pkgInfo_ {};
+    UpgradeChunkInfo chunkInfo_ {};
     size_t packedFileSize_ {0};
 
 protected:
     const ImgHashData *hashCheck_ = nullptr;
 };
+
+template<typename ChunkType>
+int32_t UpgradePkgFile::ReadChunkTlv(PkgBuffer &buffer, size_t &parsedLen,
+    DigestAlgorithm::DigestAlgorithmPtr algorithm)
+{
+    Updater::UPDATER_INIT_RECORD;
+    size_t readBytes = 0;
+    PkgBuffer tlBuffer(sizeof(ChunkType));
+    int32_t ret = pkgStream_->Read(tlBuffer, parsedLen, tlBuffer.length, readBytes);
+    if (ret != PKG_SUCCESS) {
+        PKG_LOGE("read chunk tlv failed %zu", static_cast<uint64_t>(ChunkType::expectedType));
+        UPDATER_LAST_WORD(ret, "read chunk tlv failed");
+        return ret;
+    }
+    parsedLen += tlBuffer.length;
+    algorithm->Update(tlBuffer, tlBuffer.length);
+    ChunkType *hashPartitionChunk = reinterpret_cast<ChunkType *>(tlBuffer.buffer);
+    if (hashPartitionChunk->type != ChunkType::expectedType) {
+        PKG_LOGE("type invalid %zu", static_cast<uint64_t>(ChunkType::expectedType));
+        UPDATER_LAST_WORD(ret, "chunk type invalid", ChunkType::expectedType);
+        return PKG_INVALID_PKG_FORMAT;
+    }
+    buffer.Resize(hashPartitionChunk->length);
+    ret = pkgStream_->Read(buffer, parsedLen, buffer.length, readBytes);
+    if (ret != PKG_SUCCESS) {
+        PKG_LOGE("read chunk value failed %zu", static_cast<uint64_t>(ChunkType::expectedType));
+        UPDATER_LAST_WORD(ret, "read chunk value failed", ChunkType::expectedType);
+        return ret;
+    }
+    parsedLen += buffer.length;
+    algorithm->Update(buffer, buffer.length);
+    return PKG_SUCCESS;
+}
 } // namespace Hpackage
 #endif

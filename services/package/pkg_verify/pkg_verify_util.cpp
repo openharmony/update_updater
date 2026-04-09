@@ -18,6 +18,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <unordered_map>
+#include "bin_pkg_parse.h"
 #include "dump.h"
 #include "openssl_util.h"
 #include "pkcs7_signed_data.h"
@@ -26,11 +28,9 @@
 #include "pkg_manager_impl.h"
 #include "pkg_utils.h"
 #include "securec.h"
-#include "zip_pkg_parse.h"
 
 namespace Hpackage {
 namespace {
-constexpr uint32_t ZIP_EOCD_FIXED_PART_LEN = 22;
 constexpr uint32_t PKG_FOOTER_SIZE = 6;
 constexpr uint32_t PKG_HASH_CONTENT_LEN = SHA256_DIGEST_LENGTH;
 constexpr uint32_t INTERCEPT_HASH_LENGTH = 8;
@@ -102,11 +102,24 @@ int32_t PkgVerifyUtil::VerifySign(std::vector<uint8_t> &signData, std::vector<ui
     return PKG_SUCCESS;
 }
 
+PkgVerifyUtil::PkgVerifyUtil(PkgFile::PkgType pkgType, bool isOldSigSupport):
+    pkgType_(pkgType), isOldSigSupport_(isOldSigSupport)
+{
+    const std::unordered_map<PkgFile::PkgType, std::function<std::unique_ptr<PkgParse>(void)>> factoryFuncMap {
+        {PkgFile::PKG_TYPE_ZIP, [] () { return std::make_unique<ZipPkgParse>(); }},
+        {PkgFile::PKG_TYPE_UPGRADE, [] () { return std::make_unique<BinPkgParse>(); }},
+    };
+    if (auto it = factoryFuncMap.find(pkgType_); it != factoryFuncMap.end()) {
+        pkgParse_ = it->second();
+    }
+}
+
 int32_t PkgVerifyUtil::VerifyPackageSign(const PkgStreamPtr pkgStream, const std::string &path) const
 {
     Updater::UPDATER_INIT_RECORD;
-    if (pkgStream == nullptr) {
-        UPDATER_LAST_WORD(PKG_INVALID_PARAM, "pkgStream is null");
+    // stage1: get sig
+    if (pkgStream == nullptr || pkgParse_ == nullptr) {
+        UPDATER_LAST_WORD(PKG_INVALID_PARAM, "pkgStream or pkgParse is null");
         return PKG_INVALID_PARAM;
     }
     size_t signatureSize = 0;
@@ -117,7 +130,7 @@ int32_t PkgVerifyUtil::VerifyPackageSign(const PkgStreamPtr pkgStream, const std
         UPDATER_LAST_WORD(PKG_INVALID_SIGNATURE, "get package signature fail!");
         return PKG_INVALID_SIGNATURE;
     }
-
+    // stage2: init pkcs7
     std::vector<uint8_t> hash;
     int32_t ret = Pkcs7verify(signature, hash);
     if (ret != PKG_SUCCESS) {
@@ -125,12 +138,14 @@ int32_t PkgVerifyUtil::VerifyPackageSign(const PkgStreamPtr pkgStream, const std
         UPDATER_LAST_WORD(ret, "pkcs7 verify fail!");
         return ret;
     }
+    // stage3: hash check
     size_t srcDataLen = pkgStream->GetFileLength() - commentTotalLenAll - 2;
     PKG_LOGI("is old sig support %d", isOldSigSupport_);
     // normal mode currently do not support this signature format. skip this check to save time
-    ret = isOldSigSupport_ ? HashCheck(pkgStream, srcDataLen, hash, path) : PKG_INVALID_DIGEST;
+    ret = isOldSigSupport_ && pkgParse_->IsSupportOldSig() ?
+        HashCheck(pkgStream, srcDataLen, hash, path) : PKG_INVALID_DIGEST;
     if (ret != PKG_SUCCESS) {
-        srcDataLen = pkgStream->GetFileLength() - signatureSize - ZIP_EOCD_FIXED_PART_LEN;
+        srcDataLen = pkgStream->GetFileLength() - signatureSize - pkgParse_->GetFixedPartLen();
         ret = HashCheck(pkgStream, srcDataLen, hash, path);
     }
     // add dump
@@ -150,8 +165,8 @@ int32_t PkgVerifyUtil::GetSignature(const PkgStreamPtr pkgStream, size_t &signat
     Updater::UPDATER_INIT_RECORD;
     size_t signatureStart = 0;
     int32_t ret = ParsePackage(pkgStream, signatureStart, signatureSize, commentTotalLenAll);
-    if (ret != PKG_SUCCESS || signatureSize < PKG_FOOTER_SIZE) {
-        PKG_LOGE("Parse package failed.");
+    if (ret != PKG_SUCCESS || signatureSize < PKG_FOOTER_SIZE || pkgParse_ == nullptr) {
+        PKG_LOGE("Parse package failed. signatureSize %zu ret %d", signatureSize, ret);
         UPDATER_LAST_WORD(-1, "Parse package failed.");
         return -1;
     }
@@ -168,7 +183,7 @@ int32_t PkgVerifyUtil::GetSignature(const PkgStreamPtr pkgStream, size_t &signat
     signature.assign(signData.buffer, signData.buffer + readLen);
 
     size_t fileLen = pkgStream->GetFileLength();
-    if (fileLen < (signatureSize + ZIP_EOCD_FIXED_PART_LEN)) {
+    if (fileLen < (signatureSize + pkgParse_->GetFixedPartLen())) {
         PKG_LOGE("Invalid fileLen[%zu] and signature size[%zu]", fileLen, signatureSize);
         UPDATER_LAST_WORD(PKG_INVALID_PARAM, fileLen, signatureSize);
         return PKG_INVALID_PARAM;
@@ -183,9 +198,9 @@ int32_t PkgVerifyUtil::ParsePackage(const PkgStreamPtr pkgStream, size_t &signat
     Updater::UPDATER_INIT_RECORD;
     ZipPkgParse zipParse;
     PkgSignComment pkgSignComment {};
-    int32_t ret = zipParse.ParseZipPkg(pkgStream, pkgSignComment);
+    int32_t ret = pkgParse_->ParsePkg(pkgStream, pkgSignComment);
     if (ret != PKG_SUCCESS) {
-        PKG_LOGE("Parse zip package signature failed.");
+        PKG_LOGE("Parse package signature failed. pkg type is %d", pkgType_);
         UPDATER_LAST_WORD(ret);
         return ret;
     }

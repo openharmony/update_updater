@@ -29,9 +29,9 @@
 #include "cert_verify.h"
 #include "hash_data_verifier.h"
 #include "openssl_util.h"
+#include "pkcs7_signed_data.h"
 #include "pkg_verify_util.h"
 #include "zip_pkg_parse.h"
-#include "pkcs7_signed_data.h"
 
 using namespace std;
 using namespace Hpackage;

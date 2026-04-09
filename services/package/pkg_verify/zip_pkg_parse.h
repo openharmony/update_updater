@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,25 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef PKG_PARSE_H
-#define PKG_PARSE_H
+#ifndef ZIP_PKG_PARSE_H
+#define ZIP_PKG_PARSE_H
 
+#include "pkg_parse.h"
 #include "pkg_stream.h"
-#include "pkg_verify_util.h"
 
 namespace Hpackage {
-class ZipPkgParse {
+class ZipPkgParse : public PkgParse {
 public:
     ZipPkgParse() {};
-
-    ~ZipPkgParse() {};
-
+    ~ZipPkgParse() override {};
+    int32_t ParsePkg(Hpackage::PkgStreamPtr pkgStream, PkgSignComment &pkgSignComment) const override;
+    uint32_t GetFixedPartLen(void) const override;
+    bool IsSupportOldSig(void) const override;
+protected:
+    int32_t ReadFooterFromStream(PkgStreamPtr pkgStream, size_t &readLen, uint16_t &signCommentAppendLen,
+        uint16_t &signCommentTotalLen) const;
+private:
     int32_t DoParseZipPkg(PkgStreamPtr pkgStream, PkgSignComment &pkgSignComment,
         size_t &readLen, const uint16_t &signCommentAppendLen, uint16_t &signCommentTotalLen) const;
-
-    int32_t ParseZipPkg(Hpackage::PkgStreamPtr pkgStream, PkgSignComment &pkgSignComment) const;
-
-private:
     int32_t ParsePkgFooter(const uint8_t *footer, size_t length, uint16_t &signCommentAppendLen,
         uint16_t &signCommentTotalLen) const;
 
