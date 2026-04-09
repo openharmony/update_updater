@@ -377,8 +377,8 @@ int32_t UpgradePkgFile::ReadPartitionNumChunk(size_t &parsedLen, DigestAlgorithm
     return PKG_SUCCESS;
 }
 
-int32_t UpgradePkgFile::ReadPartitionNameChunk(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm,
-        std::string &paritionName)
+int32_t UpgradePkgFile::ReadPartitionNameChunk(size_t &parsedLen,
+    DigestAlgorithm::DigestAlgorithmPtr algorithm, std::string &paritionName)
 {
     Updater::UPDATER_INIT_RECORD;
     PkgBuffer buffer {};
@@ -387,11 +387,10 @@ int32_t UpgradePkgFile::ReadPartitionNameChunk(size_t &parsedLen, DigestAlgorith
     }
     PkgFileImpl::ConvertBufferToString(paritionName, {buffer.buffer, buffer.length});
     return PKG_SUCCESS;
- 
 }
 
-int32_t UpgradePkgFile::ReadImageSizeChunk(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm,
-        uint64_t &imageSize)
+int32_t UpgradePkgFile::ReadImageSizeChunk(size_t &parsedLen,
+    DigestAlgorithm::DigestAlgorithmPtr algorithm, uint64_t &imageSize)
 {
     Updater::UPDATER_INIT_RECORD;
     PkgBuffer buffer {};
@@ -407,8 +406,8 @@ int32_t UpgradePkgFile::ReadImageSizeChunk(size_t &parsedLen, DigestAlgorithm::D
     return PKG_SUCCESS;
 }
 
-int32_t UpgradePkgFile::ReadImageHashChunk(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm,
-        std::string &imageHash)
+int32_t UpgradePkgFile::ReadImageHashChunk(size_t &parsedLen,
+    DigestAlgorithm::DigestAlgorithmPtr algorithm, std::string &imageHash)
 {
     Updater::UPDATER_INIT_RECORD;
     PkgBuffer buffer {};
@@ -419,8 +418,8 @@ int32_t UpgradePkgFile::ReadImageHashChunk(size_t &parsedLen, DigestAlgorithm::D
     return PKG_SUCCESS;
 }
 
-int32_t UpgradePkgFile::ReadHashPartitionChunk(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm,
-        std::string &hashParitionName)
+int32_t UpgradePkgFile::ReadHashPartitionChunk(size_t &parsedLen,
+    DigestAlgorithm::DigestAlgorithmPtr algorithm, std::string &hashParitionName)
 {
     Updater::UPDATER_INIT_RECORD;
     PkgBuffer buffer {};
