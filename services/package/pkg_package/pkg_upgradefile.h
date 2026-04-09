@@ -30,7 +30,7 @@ struct __attribute__((packed)) PkgTlv {
     uint16_t length;
 };
 
-template<typename TType, typename LType, TType expType> 
+template <typename TType, typename LType, TType expType> 
 struct __attribute__((packed)) ChunkTlv {
     TType type;
     LType length;
