@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "applypatch/command_function.h"
+#include "applypatch/command_iterator.h"
 #include "log/log.h"
 #include "updater/updater_const.h"
 #include "utils.h"
@@ -27,16 +28,21 @@
 namespace Updater {
 using namespace Updater::Utils;
 
+constexpr static size_t TRANSFER_VERSION_IDX = 0;
+constexpr static size_t TRANSFER_BLOCK_COUNT_IDX = 1;
+constexpr static size_t TRANSFER_MAX_ENTRIES_IDX = 2;
+constexpr static size_t TRANSFER_MAX_BLOCKS_IDX = 3;
+
 TransferManager::TransferManager()
 {
     transferParams_ = std::make_unique<TransferParams>();
     transferParams_->writerThreadInfo = std::make_unique<WriterThreadInfo>();
 }
 
-bool TransferManager::CommandsExecute(int fd, Command &cmd)
+bool TransferManager::CommandsExecute(int sourceFd, int targetFd, Command &cmd)
 {
-    cmd.SetSrcFileDescriptor(fd);
-    cmd.SetTargetFileDescriptor(fd);
+    cmd.SetSrcFileDescriptor(sourceFd);
+    cmd.SetTargetFileDescriptor(targetFd);
     CommandFunction* cf = CommandFunctionFactory::GetInstance().GetCommandFunction(cmd.GetCommandHead());
     if (cf == nullptr) {
         LOG(ERROR) << "Failed to get cmd exec";
@@ -63,23 +69,26 @@ static bool JudgeBlockVerifyCmdType(Command &cmd)
     return true;
 }
 
-std::vector<std::string>::const_iterator TransferManager::InitCommandParser(std::vector<std::string>::const_iterator ct,
-    std::string &retryCmd)
+bool TransferManager::InitCommandParser(const std::vector<std::string> &headers, std::string &retryCmd)
 {
-    transferParams_->version = Utils::String2Int<size_t>(*ct++, Utils::N_DEC);
-    transferParams_->blockCount = Utils::String2Int<size_t>(*ct++, Utils::N_DEC);
-    transferParams_->maxEntries = Utils::String2Int<size_t>(*ct++, Utils::N_DEC);
-    transferParams_->maxBlocks = Utils::String2Int<size_t>(*ct++, Utils::N_DEC);
+    if (headers.size() != TRANSFER_HEADERS_COUNT) {
+        LOG(ERROR) << "header size invalid " << headers.size();
+        return false;
+    }
+    transferParams_->version = Utils::String2Int<size_t>(headers[TRANSFER_VERSION_IDX], Utils::N_DEC);
+    transferParams_->blockCount = Utils::String2Int<size_t>(headers[TRANSFER_BLOCK_COUNT_IDX], Utils::N_DEC);
+    transferParams_->maxEntries = Utils::String2Int<size_t>(headers[TRANSFER_MAX_ENTRIES_IDX], Utils::N_DEC);
+    transferParams_->maxBlocks = Utils::String2Int<size_t>(headers[TRANSFER_MAX_BLOCKS_IDX], Utils::N_DEC);
     if (transferParams_->env != nullptr && transferParams_->env->IsRetry()) {
         retryCmd = ReloadForRetry();
     }
-    return ct;
+    return true;
 }
 
-bool TransferManager::CommandParserPreCheck(const std::vector<std::string> &context)
+bool TransferManager::CommandParserPreCheck(CommandIterator &cmdIter)
 {
-    if (context.size() < 1) {
-        LOG(ERROR) << "too small context in transfer file";
+    if (!cmdIter->Check()) {
+        LOG(ERROR) << "command iterator check failed";
         return false;
     }
     if (transferParams_ == nullptr) {
@@ -89,40 +98,46 @@ bool TransferManager::CommandParserPreCheck(const std::vector<std::string> &cont
     return true;
 }
 
-bool TransferManager::CommandsParser(int fd, const std::vector<std::string> &context)
+bool TransferManager::CommandsParser(int sourceFd, int targetFd, const std::vector<std::string> &context)
 {
-    if (!CommandParserPreCheck(context)) {
+    CommandIterator cmdIter(context.cbegin() + TRANSFER_HEADERS_COUNT, context.cend());
+    return CommandsParser(sourceFd, targetFd, std::vector<std::string> {context.cbegin(),
+        context.cbegin() + TRANSFER_HEADERS_COUNT}, cmdIter);
+}
+
+bool TransferManager::CommandsParser(int sourceFd, int targetFd, const std::vector<std::string> &headers,
+    CommandIterator &cmdIter, bool isStream)
+{
+    std::string retryCmd = "";
+    if (!CommandParserPreCheck(cmdIter) || !InitCommandParser(headers, retryCmd)) {
         return false;
     }
-
-    std::string retryCmd = "";
-    std::vector<std::string>::const_iterator ct = context.begin();
-    ct = InitCommandParser(ct, retryCmd);
     size_t totalSize = transferParams_->blockCount;
     size_t initBlock = 0;
-    for (; ct != context.end(); ct++) {
+    for (cmdIter.Start(); !cmdIter.Done(); cmdIter.Next()) {
         std::unique_ptr<Command> cmd = std::make_unique<Command>(transferParams_.get());
         if (cmd == nullptr) {
             LOG(ERROR) << "Failed to parse command line.";
             return false;
         }
-        if (!cmd->Init(*ct) || transferParams_->env == nullptr) {
+        cmd->SetIsStreamCmd(isStream);
+        if (!cmd->Init(*cmdIter) || transferParams_->env == nullptr) {
             continue;
         }
         if (!retryCmd.empty() && transferParams_->env->IsRetry()) {
-            if (*ct == retryCmd) {
+            if (*cmdIter == retryCmd) {
                 LOG(INFO) << "Start Retry from Command: " << retryCmd;
                 retryCmd.clear();
             }
             if (cmd->GetCommandType() != CommandType::NEW) {
-                LOG(DEBUG) << "Retry: Command " << *ct << " passed";
+                LOG(DEBUG) << "Retry: Command " << *cmdIter << " passed";
                 continue;
             }
         }
         if (!transferParams_->canWrite && !JudgeBlockVerifyCmdType(*cmd)) {
             continue;
         }
-        if (!CommandsExecute(fd, *cmd)) {
+        if (!CommandsExecute(sourceFd, targetFd, *cmd)) {
             LOG(ERROR) << "Running command : " << cmd->GetCommandLine() << " fail";
             return false;
         }
