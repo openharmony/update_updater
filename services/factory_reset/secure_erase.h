@@ -19,6 +19,15 @@
 #include "macros_updater.h"
 
 namespace Updater {
+
+enum {
+    OVERWRITE_BASE_FAIL = 200,
+    OVERWRITE_INVALID_INFOS,
+    OVERWRITE_OPEN_FAILED,
+    OVERWRITE_FAILED,
+    OVERWRITE_INVALID_OFFSET,
+};
+
 class SecureErase {
     DISALLOW_COPY_MOVE(SecureErase);
 public:

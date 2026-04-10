@@ -18,6 +18,7 @@
 #include "utils_fs.h"
 #include "utils_common.h"
 #include <cerrno>
+#include <charconv>
 #include <chrono>
 #include <optional>
 #include <string>
@@ -68,6 +69,21 @@ T String2Int(const std::string &str, int base = N_HEX)
         result = strtoll(str.c_str(), &end, base);
     } else {
         errno = EINVAL;
+    }
+    return result;
+}
+
+template<typename T>
+T ConvertStringToNum(const std::string &str, int base = N_HEX)
+{
+    static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
+            "Type must be integral or floating point");
+    T result = 0;
+    const char *begin = str.data();
+    const char *end = begin + str.size();
+    auto [ptr, ec] = std::from_chars(begin, end, result, base);
+    if (ec != std::errc() || ptr != end) {
+        LOG(ERROR) << "Convert string to number failed, str " << str;
     }
     return result;
 }
