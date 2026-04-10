@@ -777,7 +777,7 @@ int32_t PkgManagerImpl::CreatePkgStream(PkgStreamPtr &stream, const std::string 
             UPDATER_LAST_WORD(ret, "DoCreatePkgStream failed");
             return ret;
         }
-    } else if (type == PkgStream::PkgStreamType_MemoryMap || type == PkgStream::PKgStreamType_FileMap) {
+    } else if (type == PkgStream::PkgStreamType_MemoryMap || type == PkgStream::PkgStreamType_FileMap) {
         if ((size == 0) && (access(fileName.c_str(), 0) != 0)) {
             UPDATER_LAST_WORD(PKG_INVALID_FILE, "can not access file " + fileName);
             return PKG_INVALID_FILE;
