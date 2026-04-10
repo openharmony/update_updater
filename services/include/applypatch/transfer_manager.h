@@ -26,7 +26,6 @@
 
 
 namespace Updater {
-
 struct WriterThreadInfo {
     pthread_mutex_t mutex;
     pthread_cond_t cond;
@@ -70,10 +69,10 @@ public:
     TransferManager();
     virtual ~TransferManager() {};
 
+    bool CommandsParser(int fd, const std::vector<std::string> &context);
     bool CommandsParser(int sourceFd, int targetFd, const std::vector<std::string> &context);
     bool CommandsParser(int sourceFd, int targetFd, const std::vector<std::string> &headers,
         CommandIterator &cmdIter, bool isStream = false);
-
     TransferParams* GetTransferParams()
     {
         return transferParams_.get();
@@ -84,7 +83,6 @@ public:
 private:
     void UpdateProgress(size_t &initBlock, size_t totalSize);
     bool RegisterForRetry(const std::string &cmd);
-    bool CommandsExecute(int fd, Command &cmd);
     bool CommandsExecute(int sourceFd, int targetFd, Command &cmd);
     bool CommandParserPreCheck(CommandIterator &cmdIter);
     bool InitCommandParser(const std::vector<std::string> &headers, std::string &retryCmd);

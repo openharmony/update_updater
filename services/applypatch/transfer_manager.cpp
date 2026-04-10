@@ -98,6 +98,11 @@ bool TransferManager::CommandParserPreCheck(CommandIterator &cmdIter)
     return true;
 }
 
+bool CommandsParser(int fd, const std::vector<std::string> &context)
+{
+    return CommandsParser(fd, fd, context);
+}
+
 bool TransferManager::CommandsParser(int sourceFd, int targetFd, const std::vector<std::string> &context)
 {
     CommandIterator cmdIter(context.cbegin() + TRANSFER_HEADERS_COUNT, context.cend());

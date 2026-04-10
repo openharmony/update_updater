@@ -18,8 +18,9 @@
 
 namespace Updater {
 CommandIterator::CommandIterator(const std::vector<std::string>::const_iterator &ct,
-    const std::vector<std::string>::const_iterator &ctEnd) :
-    ct_(ct), ctEnd_(ctEnd) {}
+    const std::vector<std::string>::const_iterator &ctEnd) : ct_(ct), ctEnd_(ctEnd)
+{
+}
 
 CommandIterator *CommandIterator::operator->()
 {
