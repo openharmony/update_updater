@@ -83,7 +83,7 @@ T ConvertStringToNum(const std::string &str, int base = N_HEX)
     const char *end = begin + str.size();
     auto [ptr, ec] = std::from_chars(begin, end, result, base);
     if (ec != std::errc() || ptr != end) {
-        LOG(ERROR) << "Convert string to number failed, str " << str;
+        errno = EINVAL;
     }
     return result;
 }
