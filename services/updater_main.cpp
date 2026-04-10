@@ -1333,7 +1333,11 @@ std::unordered_map<std::string, std::function<void ()>> InitOptionsFuncTab(char*
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_REBOOTFACTORYRST);
             if (optarg != nullptr) {
                 std::string offsetStr(optarg);
-                uint64_t offset = Utils::ConvertStringToNum<uint64_t>(offsetStr, Utils::N_DEC);
+                uint64_t offset = 0;
+                if (!Utils::ConvertToUnsignedLongLong(offsetStr, offset)) {
+                    LOG(ERROR) << "Convert secure erase offset error";
+                    offset = 0;
+                }
                 LOG(INFO) << "secure erase offset: " << offset;
                 SecureErase::GetInstance().LoadOffsetInRetry(offset);
             }
