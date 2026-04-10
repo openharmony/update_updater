@@ -210,29 +210,6 @@ private:
 };
 #endif
 
-#ifndef _WIN32
-class ShmRbBlock {
-public:
-    bool Push(const uint8_t* buf, size_t len);
-    bool Pop(uint8_t* buf, size_t expectedLen, size_t &realLen);
-    size_t GetRealLen();
-
-private:
-    size_t realLen_ = 0;              // 块内偏移数据
-    size_t blkOffset_ = 0;            // 头偏移
-    uint8_t data_[SINGLE_BLOCK_SIZE]; // 数据域
-};
-
-struct ShmParameter {
-    std::string shmId;
-    size_t pkgLen = 0;
-    size_t offset = 0;
-
-    ShmParameter(const std::string &shmId, size_t pkgLen, size_t offset)
-        : shmId(shmId), pkgLen(pkgLen), offset(offset) {}
-};
-#endif
-
 class MemoryMapStream : public PkgStreamImpl {
 public:
     MemoryMapStream(PkgManager::PkgManagerPtr pkgManager, const std::string fileName, const PkgBuffer &buffer,
@@ -255,6 +232,8 @@ public:
     {
         return memSize_;
     }
+
+    int32_t Flush(size_t size) override;
 
     int32_t GetBuffer(PkgBuffer &buffer) const override
     {
@@ -286,6 +265,8 @@ public:
         UNUSED(needRead);
         return PKG_INVALID_STREAM;
     }
+
+    int32_t Write(const PkgBuffer &data, size_t size, size_t start) override;
 
     int32_t Seek(long int size, int whence) override
     {
