@@ -20,7 +20,6 @@
 #include <atomic>
 #include <mutex>
 #include <semaphore.h>
-#include <semaphore.h>
 #include "pkg_manager.h"
 #include "pkg_utils.h"
 
@@ -114,7 +113,6 @@ public:
         return streamType_;
     }
     int64_t GetReadOffset() const override;
-
 private:
     FILE *stream_;
     size_t fileLength_;
