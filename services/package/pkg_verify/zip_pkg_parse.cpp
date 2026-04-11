@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -87,10 +87,12 @@ int32_t ZipPkgParse::DoParseZipPkg(PkgStreamPtr pkgStream, PkgSignComment &pkgSi
     return PKG_SUCCESS;
 }
 
-int32_t ZipPkgParse::ParseZipPkg(PkgStreamPtr pkgStream, PkgSignComment &pkgSignComment) const
+int32_t ZipPkgParse::ReadFooterFromStream(PkgStreamPtr pkgStream, size_t &readLen, uint16_t &signCommentAppendLen,
+    uint16_t &signCommentTotalLen) const
 {
     Updater::UPDATER_INIT_RECORD;
     if (pkgStream == nullptr) {
+        PKG_LOGE("pkgStream is null");
         UPDATER_LAST_WORD(PKG_INVALID_PARAM, "pkgStream is invalid");
         return PKG_INVALID_PARAM;
     }
@@ -102,7 +104,6 @@ int32_t ZipPkgParse::ParseZipPkg(PkgStreamPtr pkgStream, PkgSignComment &pkgSign
         return PKG_INVALID_FILE;
     }
     size_t footerStart = fileLen - footerSize;
-    size_t readLen = 0;
     PkgBuffer footer(footerSize);
     int32_t ret = pkgStream->Read(footer, footerStart, footerSize, readLen);
     if (ret != PKG_SUCCESS) {
@@ -111,12 +112,23 @@ int32_t ZipPkgParse::ParseZipPkg(PkgStreamPtr pkgStream, PkgSignComment &pkgSign
         return ret;
     }
 
-    uint16_t signCommentAppendLen = 0;
-    uint16_t signCommentTotalLen = 0;
     ret = ParsePkgFooter(footer.buffer, PKG_FOOTER_SIZE, signCommentAppendLen, signCommentTotalLen);
     if (ret != PKG_SUCCESS) {
         PKG_LOGE("ParsePkgFooter() error, ret[%d]", ret);
         UPDATER_LAST_WORD(ret, "ParsePkgFooter() error");
+        return ret;
+    }
+    return PKG_SUCCESS;
+}
+
+int32_t ZipPkgParse::ParsePkg(PkgStreamPtr pkgStream, PkgSignComment &pkgSignComment) const
+{
+    Updater::UPDATER_INIT_RECORD;
+    uint16_t signCommentAppendLen = 0;
+    uint16_t signCommentTotalLen = 0;
+    size_t readLen = 0;
+    if (auto ret = ReadFooterFromStream(pkgStream, readLen, signCommentAppendLen, signCommentTotalLen);
+        ret != PKG_SUCCESS) {
         return ret;
     }
     return DoParseZipPkg(pkgStream, pkgSignComment, readLen, signCommentAppendLen, signCommentTotalLen);
@@ -158,6 +170,16 @@ int32_t ZipPkgParse::ParsePkgFooter(const uint8_t *footer, size_t length,
     }
 
     return PKG_SUCCESS;
+}
+
+uint32_t ZipPkgParse::GetFixedPartLen(void) const
+{
+    return ZIP_EOCD_FIXED_PART_LEN;
+}
+
+bool ZipPkgParse::IsSupportOldSig(void) const
+{
+    return true;
 }
 
 int32_t ZipPkgParse::CheckZipEocd(const uint8_t *eocd, size_t length,

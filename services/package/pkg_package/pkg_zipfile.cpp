@@ -218,7 +218,7 @@ int32_t ZipPkgFile::LoadPackage(std::vector<std::string>& fileNames, VerifyFunct
     if (magic != END_CENTRAL_SIGNATURE) { // 按签名处理
         ZipPkgParse zipParse;
         PkgSignComment pkgSignComment {};
-        ret = zipParse.ParseZipPkg(pkgStream_, pkgSignComment);
+        ret = zipParse.ParsePkg(pkgStream_, pkgSignComment);
         signatureLen = pkgSignComment.signCommentTotalLen;
         if (ret != PKG_SUCCESS) {
             PKG_LOGE("Parse zip package signature failed");
@@ -682,6 +682,12 @@ int32_t ZipFileEntry::Unpack(PkgStreamPtr outStream)
     return PKG_SUCCESS;
 }
 
+std::pair<size_t, size_t> ZipFileEntry::GetEntryRange(void)
+{
+    PKG_LOGW("unimplemented for ZipFileEntry");
+    return {0, 0};
+}
+
 void ZipFileEntry::CombineTimeAndDate(time_t &time, uint16_t modifiedTime, uint16_t modifiedDate) const
 {
     struct tm newTime;
@@ -757,5 +763,10 @@ int32_t ZipFileEntry::Init(const PkgManager::FileInfoPtr fileInfo, PkgStreamPtr 
         fileInfo_.windowBits = info->windowBits;
     }
     return PKG_SUCCESS;
+}
+
+size_t ZipFileEntry::GetOriginalSize() const
+{
+    return fileInfo_.fileInfo.unpackedSize;
 }
 } // namespace Hpackage

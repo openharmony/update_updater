@@ -23,13 +23,16 @@
 #include <iterator>
 #include <unistd.h>
 #include <vector>
+#include <string_view>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "dump.h"
 #include "pkg_gzipfile.h"
 #include "pkg_lz4file.h"
 #include "pkg_manager.h"
+#include "pkg_stream.h"
 #include "pkg_upgradefile.h"
+#include "pkg_streamfile.h"
 #include "pkg_verify_util.h"
 #include "pkg_zipfile.h"
 #include "ring_buffer/ring_buffer.h"
@@ -257,6 +260,11 @@ int32_t PkgManagerImpl::LoadPackageWithoutUnPack(const std::string &packagePath,
         ClearPkgFile();
         return ret;
     }
+    if (LoadPackageInnerZip(packagePath, fileIds) != PKG_SUCCESS) {
+        PKG_LOGE("Parse inner zip %s fail ", packagePath.c_str());
+        ClearPkgFile();
+        return ret;
+    }
     return PKG_SUCCESS;
 }
 
@@ -286,6 +294,71 @@ int32_t PkgManagerImpl::ParsePackage(StreamPtr stream, std::vector<std::string> 
     return PKG_SUCCESS;
 }
 
+int32_t PkgManagerImpl::LoadPackageInnerZip(const std::string &packagePath, std::vector<std::string> &fileIds)
+{
+    if (GetPkgTypeByName(packagePath) != PkgFile::PKG_TYPE_UPGRADE) {
+        PKG_LOGI("no need to parse innner updater.zip");
+        return PKG_SUCCESS;
+    }
+    if (std::find(fileIds.begin(), fileIds.end(), "/update.zip") == fileIds.end()) {
+        PKG_LOGI("no innner update.zip");
+        return PKG_SUCCESS;
+    }
+    std::remove(fileIds.begin(), fileIds.end(), "/update.zip");
+    std::vector<std::string> innerFileNames;
+    PKG_LOGI("update.zip in update.bin, begin to load update.zip");
+    if (int32_t ret = ExtraAndLoadPackage(GetFilePath(packagePath), "/update.zip",
+        PkgFile::PKG_TYPE_ZIP, innerFileNames); ret != PKG_SUCCESS) {
+        UPDATER_LAST_WORD("LoadPackage inner update.zip failed", packagePath, ret);
+        PKG_LOGE("Parse %s fail ", packagePath.c_str());
+        return ret;
+    }
+    std::vector<std::string> zipInnerIds;
+    // parse inner zip, e.x. build_tools.zip, no parse bin again
+    for (auto name : innerFileNames) {
+        PkgFile::PkgType pkgType = GetPkgTypeByName(name);
+        if (pkgType == PkgFile::PKG_TYPE_NONE || pkgType == PkgFile::PKG_TYPE_UPGRADE) {
+            zipInnerIds.push_back(name);
+            continue;
+        }
+        int32_t ret = ExtraAndLoadPackage(GetFilePath(packagePath), name, pkgType, zipInnerIds);
+        if (ret != PKG_SUCCESS) {
+            UPDATER_LAST_WORD(ret, "ExtraAndLoadPackage failed", name);
+            PKG_LOGE("unpack %s fail in package %s ", name.c_str(), packagePath.c_str());
+            return ret;
+        }
+    }
+    return PKG_SUCCESS;
+}
+
+int32_t PkgManagerImpl::LoadUpgradePackage(const std::string &packagePath, std::vector<std::string> &fileIds)
+{
+    if (int32_t ret = LoadPackage(packagePath, fileIds, PkgFile::PKG_TYPE_UPGRADE); ret != PKG_SUCCESS) {
+        ClearPkgFile();
+        UPDATER_LAST_WORD("LoadPackage failed", packagePath, ret);
+        PKG_LOGE("Parse %s fail ", packagePath.c_str());
+        return ret;
+    }
+    if (LoadPackageInnerZip(packagePath, fileIds) != PKG_SUCCESS) {
+        ClearPkgFile();
+        UPDATER_LAST_WORD("Load Package inner zip failed", packagePath);
+        PKG_LOGE("Parse %s inner zip failed", packagePath.c_str());
+        return PKG_INVALID_PKG_FORMAT;
+    }
+    return PKG_SUCCESS;
+}
+
+PkgFilePtr PkgManagerImpl::GetPkgFile(const std::string &packagePath)
+{
+    for (auto pkgFile : pkgFiles_) {
+        if (pkgFile != nullptr && pkgFile->GetPkgStream() != nullptr &&
+            pkgFile->GetPkgStream()->GetFileName().compare(packagePath) == 0) {
+            return pkgFile;
+        }
+    }
+    return nullptr;
+}
+
 int32_t PkgManagerImpl::LoadPackage(const std::string &packagePath, const std::string &keyPath,
     std::vector<std::string> &fileIds)
 {
@@ -298,21 +371,13 @@ int32_t PkgManagerImpl::LoadPackage(const std::string &packagePath, const std::s
         UPDATER_LAST_WORD(PKG_INVALID_FILE, "SetSignVerifyKeyName failed");
         return PKG_INVALID_FILE;
     }
-    // Check if package already loaded
-    for (auto iter : pkgFiles_) {
-        if (iter != nullptr && iter->GetPkgStream()->GetFileName().compare(packagePath) == 0) {
-            return PKG_SUCCESS;
-        }
+    if (GetPkgFile(packagePath) != nullptr) {
+        return PKG_SUCCESS;
     }
     PkgFile::PkgType pkgType = GetPkgTypeByName(packagePath);
     unzipToFile_ = ((pkgType == PkgFile::PKG_TYPE_GZIP) ? true : unzipToFile_);
     if (pkgType == PkgFile::PKG_TYPE_UPGRADE) {
-        if (LoadPackage(packagePath, fileIds, pkgType) != PKG_SUCCESS) {
-            ClearPkgFile();
-            UPDATER_LAST_WORD("LoadPackage failed", packagePath);
-            PKG_LOGE("Parse %s fail ", packagePath.c_str());
-            return PKG_INVALID_FILE;
-        }
+        return LoadUpgradePackage(packagePath, fileIds);
     } else if (pkgType != PkgFile::PKG_TYPE_NONE) {
         std::vector<std::string> innerFileNames;
         int32_t ret = LoadPackage(packagePath, innerFileNames, pkgType);
@@ -369,12 +434,18 @@ int32_t PkgManagerImpl::ExtraAndLoadPackage(const std::string &path, const std::
         (void)mkdir(tempPath.c_str(), 0775); // 0775 : rwxrwxr-x
 #endif
     }
-    
+
+    std::string fileName = name;
+    if (fileName.size() >= 1 && fileName[0] == '/') {
+        fileName.erase(0, 1); // e.x /updater.zip -> updater.zip
+    }
     // Extract package to file or memory
     if (unzipToFile_ || type == PkgFile::PKG_TYPE_UPGRADE) {
-        ret = CreatePkgStream(stream, tempPath + name + ".tmp", info->unpackedSize, PkgStream::PkgStreamType_Write);
+        ret = CreatePkgStream(stream, tempPath + fileName + ".tmp", info->unpackedSize,
+            PkgStream::PkgStreamType_Write);
     } else {
-        ret = CreatePkgStream(stream, tempPath + name + ".tmp", info->unpackedSize, PkgStream::PkgStreamType_MemoryMap);
+        ret = CreatePkgStream(stream, tempPath + fileName + ".tmp", info->unpackedSize,
+            PkgStream::PkgStreamType_MemoryMap);
     }
     if (ret != PKG_SUCCESS) {
         PKG_LOGE("Create middle stream fail %s", name.c_str());
@@ -390,12 +461,75 @@ int32_t PkgManagerImpl::ExtraAndLoadPackage(const std::string &path, const std::
     return LoadPackageWithStream(path, fileIds, type, stream);
 }
 
+int32_t PkgManagerImpl::LoadStreamPackage(const std::string &packageHeadPath, const std::string &fileName,
+    const ShmInfo &shmInfo, std::vector<std::string> &fileIds, PkgFile::PkgType type)
+{
+#ifndef DIFF_PATCH_SDK
+    UPDATER_INIT_RECORD;
+    PkgStreamPtr entryStream = nullptr;
+    int32_t ret = CreatePkgStream(entryStream, fileName, shmInfo);
+    if (ret != PKG_SUCCESS || entryStream == nullptr || entryStream->GetStreamType() !=
+        PkgStream::PkgStreamType_ShmData) {
+        PKG_LOGE("Create input shm stream fail %s", shmInfo.shmId.c_str());
+        UPDATER_LAST_WORD(ret, "CreatePkgStream failed", shmInfo.shmId);
+        return PKG_INVALID_STREAM;
+    }
+    ShmDataStream *shmDataStream = static_cast<ShmDataStream *>(entryStream);
+    if (shmDataStream->InitShmRingBuffer() != 0) {
+        PKG_LOGE("init shm stream fail %s", shmInfo.shmId.c_str());
+        UPDATER_LAST_WORD(ret, "InitShmRingBuffer failed", shmInfo.shmId);
+        return PKG_INVALID_STREAM;
+    }
+    PkgStreamPtr headStream = nullptr;
+    ret = CreatePkgStream(headStream, packageHeadPath, 0, PkgStream::PkgStreamType_Read);
+    if (ret != PKG_SUCCESS) {
+        PKG_LOGE("Create head stream fail %s", packageHeadPath.c_str());
+        UPDATER_LAST_WORD(ret, "CreatePkgStream failed", packageHeadPath);
+        return ret;
+    }
+    return LoadStreamPackageWithStream(packageHeadPath, fileIds, type, headStream, entryStream);
+#else
+    return PKG_SUCCESS;
+#endif
+}
+
+int32_t PkgManagerImpl::LoadStreamPackageWithStream(const std::string &packagePath,
+    std::vector<std::string> &fileIds, PkgFile::PkgType type, PkgStreamPtr headStream, PkgStreamPtr entryStream)
+{
+#ifndef DIFF_PATCH_SDK
+    UPDATER_INIT_RECORD;
+    int32_t ret = PKG_SUCCESS;
+    PkgFile *streamPkgFile = new (std::nothrow) StreamPkgFile(this, headStream, entryStream, nullptr);
+    if (streamPkgFile == nullptr) {
+        PKG_LOGE("Create package fail %s", packagePath.c_str());
+        ClosePkgStream(headStream);
+        UPDATER_LAST_WORD(ret, "Create package fail");
+        return PKG_INVALID_PARAM;
+    }
+ 
+    ret = streamPkgFile->LoadPackage(fileIds,
+        [this](const PkgInfoPtr info, const std::vector<uint8_t> &digest, const std::vector<uint8_t> &signature)->int {
+            return Verify(info->digestMethod, digest, signature);
+        });
+    if (ret != PKG_SUCCESS) {
+        PKG_LOGE("Load package fail %s", packagePath.c_str());
+        delete streamPkgFile;
+        UPDATER_LAST_WORD(ret, "Load package fail");
+        return ret;
+    }
+    pkgFiles_.push_back(streamPkgFile);
+#endif
+    return PKG_SUCCESS;
+}
+
 int32_t PkgManagerImpl::LoadPackage(const std::string &packagePath, std::vector<std::string> &fileIds,
     PkgFile::PkgType type)
 {
     UPDATER_INIT_RECORD;
     PkgStreamPtr stream = nullptr;
-    int32_t ret = CreatePkgStream(stream, packagePath, 0, PkgStream::PkgStreamType_Read);
+    // using PkgStreamType_Read type to reduce memory usage
+    auto streamType = PkgStream::PkgStreamType_Read;
+    int32_t ret = CreatePkgStream(stream, packagePath, 0, streamType);
     if (ret != PKG_SUCCESS) {
         PKG_LOGE("Create input stream fail %s", packagePath.c_str());
         UPDATER_LAST_WORD(ret, "CreatePkgStream failed");
@@ -499,6 +633,17 @@ int32_t PkgManagerImpl::ExtractFile(const std::string &path, PkgManager::StreamP
         PKG_LOGE("Can not find file %s", path.c_str());
     }
     return ret;
+}
+
+PkgManager::PkgEntryInfo PkgManagerImpl::GetPkgEntryInfo(const std::string &path)
+{
+    PkgEntryPtr pkgEntry = GetPkgEntry(path);
+    if (pkgEntry == nullptr || pkgEntry->GetPkgFile() == nullptr) {
+        PKG_LOGE("Can not find entry %s", path.c_str());
+        return {nullptr, pkgEntry, 0, 0};
+    }
+    return {pkgEntry->GetEntryPkgStream(), pkgEntry, pkgEntry->GetEntryRange().first,
+        pkgEntry->GetEntryRange().second};
 }
 
 int32_t PkgManagerImpl::ParseComponents(const std::string &packagePath, std::vector<std::string> &fileName)
@@ -632,7 +777,7 @@ int32_t PkgManagerImpl::CreatePkgStream(PkgStreamPtr &stream, const std::string 
             UPDATER_LAST_WORD(ret, "DoCreatePkgStream failed");
             return ret;
         }
-    } else if (type == PkgStream::PkgStreamType_MemoryMap || type == PkgStream::PKgStreamType_FileMap) {
+    } else if (type == PkgStream::PkgStreamType_MemoryMap || type == PkgStream::PkgStreamType_FileMap) {
         if ((size == 0) && (access(fileName.c_str(), 0) != 0)) {
             UPDATER_LAST_WORD(PKG_INVALID_FILE, "can not access file " + fileName);
             return PKG_INVALID_FILE;
@@ -673,6 +818,18 @@ int32_t PkgManagerImpl::CreatePkgStream(PkgStreamPtr &stream, const std::string 
         PKG_LOGE("Failed to create stream");
         return -1;
     }
+    return PKG_SUCCESS;
+}
+
+int32_t PkgManagerImpl::CreatePkgStream(StreamPtr &stream, const std::string &fileName, const ShmInfo &shmInfo)
+{
+#ifndef DIFF_PATCH_SDK
+    stream = new ShmDataStream(this, fileName, shmInfo, PkgStream::PkgStreamType_ShmData);
+    if (stream == nullptr) {
+        PKG_LOGE("Failed to create stream");
+        return -1;
+    }
+#endif
     return PKG_SUCCESS;
 }
 
@@ -722,10 +879,12 @@ PkgFile::PkgType PkgManagerImpl::GetPkgTypeByName(const std::string &path)
     if (pos == std::string::npos) {
         return PkgFile::PKG_TYPE_NONE;
     }
+    const std::string_view upgradePrefix = "update_";
     std::string postfix = path.substr(pos + 1, -1);
+    std::string fileName = GetName(path);
     std::transform(postfix.begin(), postfix.end(), postfix.begin(), ::tolower);
-
-    if (path.compare("update.bin") == 0) {
+    if ((fileName.substr(0, upgradePrefix.size()) == upgradePrefix && postfix.compare("bin") == 0) ||
+        path.compare("update.bin") == 0) {
         return PkgFile::PKG_TYPE_UPGRADE;
     } else if (path.substr(pos + 1, -1).compare("zip") == 0) {
         return PkgFile::PKG_TYPE_ZIP;
@@ -1113,7 +1272,8 @@ int32_t PkgManagerImpl::VerifyOtaPackage(const std::string &packagePath, bool is
         return ret;
     }
 
-    PkgVerifyUtil verifyUtil {isSupportOldSig};
+    PkgFile::PkgType pkgType = GetPkgTypeByName(packagePath);
+    PkgVerifyUtil verifyUtil {pkgType, isSupportOldSig};
     ret = verifyUtil.VerifyPackageSign(pkgStream, packagePath);
     if (ret != PKG_SUCCESS) {
         PKG_LOGE("Verify zpkcs7 signature failed.");

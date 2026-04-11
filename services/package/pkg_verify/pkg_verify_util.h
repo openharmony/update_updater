@@ -19,12 +19,14 @@
 #include <vector>
 #include "pkcs7_signed_data.h"
 #include "pkg_stream.h"
+#include "zip_pkg_parse.h"
 
 namespace Hpackage {
 class PkgVerifyUtil {
 public:
     PkgVerifyUtil() {}
     explicit PkgVerifyUtil(bool isOldSigSupport) : isOldSigSupport_(isOldSigSupport) {}
+    explicit PkgVerifyUtil(PkgFile::PkgType pkgType, bool isOldSigSupport);
 
     ~PkgVerifyUtil() {}
 
@@ -54,7 +56,9 @@ public:
     void RecordHash(const std::string &orgHash, const std::string &hash) const;
     void GetRecordHash(const std::string &pkgPath) const;
 private:
+    PkgFile::PkgType pkgType_ {PkgFile::PKG_TYPE_ZIP};
     bool isOldSigSupport_ {true};
+    std::unique_ptr<PkgParse> pkgParse_ = std::make_unique<ZipPkgParse>();
 };
 } // namespace Hpackage
 #endif

@@ -33,6 +33,7 @@ namespace Hpackage {
 class PkgFile;
 class PkgStream;
 class PkgEntry;
+struct ShmInfo;
 using PkgFilePtr = PkgFile *;
 using PkgStreamPtr = PkgStream *;
 using PkgEntryPtr = PkgEntry *;
@@ -55,7 +56,7 @@ public:
         PkgStreamType_MemoryMap,    // memory mapping
         PkgStreamType_Process,      // processing while parsing
         PkgStreamType_Buffer,       // buffer
-        PKgStreamType_FileMap,      // file map to memory
+        PkgStreamType_FileMap,      // file map to memory
         PkgStreamType_FlowData,     // flow data
         PkgStreamType_ShmData       // shm data
     };
@@ -107,7 +108,7 @@ public:
         return ret;
     }
 
-    virtual size_t GetReadOffset() const
+    virtual int64_t GetReadOffset() const
     {
         return 0;
     }
@@ -126,6 +127,7 @@ public:
         PKG_TYPE_ZIP = PKG_PACK_TYPE_ZIP,     // zip压缩包
         PKG_TYPE_LZ4 = PKG_PACK_TYPE_LZ4,     // lz4压缩包
         PKG_TYPE_GZIP = PKG_PACK_TYPE_GZIP,     // gzip压缩包
+        PKG_TYPE_STREAM = PKG_PACK_TYPE_STREAM,     // 流式包
         PKG_TYPE_MAX
     };
 
@@ -145,9 +147,13 @@ public:
 
     virtual int32_t ParseComponents(std::vector<std::string> &fileNames) = 0;
 
+    virtual const std::vector<std::string> &GetComponents(void) const = 0;
+
     virtual PkgEntryPtr FindPkgEntry(const std::string &fileName) = 0;
 
     virtual PkgStreamPtr GetPkgStream() const = 0;
+
+    virtual PkgStreamPtr GetPkgEntryStream() const = 0;
 
     virtual const PkgInfo *GetPkgInfo() const = 0;
 
@@ -175,11 +181,13 @@ public:
 
     virtual int32_t Unpack(PkgStreamPtr outStream) = 0;
 
+    virtual std::pair<size_t, size_t> GetEntryRange(void) = 0;
+
     virtual const std::string GetFileName() const
     {
         return fileName_;
     };
-
+    virtual size_t GetOriginalSize() const = 0;
     virtual const FileInfo *GetFileInfo() const = 0;
 
     PkgFilePtr GetPkgFile() const
@@ -196,7 +204,15 @@ public:
     {
         dataOffset_ += offset;
     }
-
+    size_t GetDataOffset(void)
+    {
+        return dataOffset_;
+    }
+    // read offset inner entry to support read from middle
+    void SetReadOffset(size_t offset)
+    {
+        readOffset_ = offset;
+    }
     uint32_t GetFileNum()
     {
         return fileNum_;
@@ -206,16 +222,25 @@ public:
     {
         fileNum_ = num;
     }
-
+    void SetEntryPkgStream(PkgStreamPtr pkgStream)
+    {
+        pkgStream_ = pkgStream;
+    }
+    PkgStreamPtr GetEntryPkgStream(void) const
+    {
+        return pkgStream_;
+    }
 protected:
     int32_t Init(FileInfoPtr localFileInfo, const FileInfoPtr fileInfo,
         PkgStreamPtr inStream);
 
 protected:
     uint32_t nodeId_ {0};
+    PkgStreamPtr pkgStream_ {nullptr};
     PkgFilePtr pkgFile_ {nullptr};
     size_t headerOffset_ {0};
     size_t dataOffset_ {0};
+    size_t readOffset_ {0};
     std::string fileName_ {};
     uint32_t fileNum_ = 0;
 };
@@ -234,6 +259,7 @@ public:
     using VerifyCallback = std::function<void(int32_t result, uint32_t percent)>;
     using PkgFileConstructor = std::function<PkgFilePtr(
         PkgManagerPtr manager, PkgStreamPtr stream, PkgManager::PkgInfoPtr header)>;
+    using PkgEntryInfo = std::tuple<PkgStreamPtr, PkgEntryPtr, size_t, size_t>;
 
     class PkgManagerFactory {
     public:
@@ -300,6 +326,7 @@ public:
     virtual int32_t VerifyBinFile(const std::string &packagePath, const std::string &keyPath,
         const std::string &version, const PkgBuffer &digest) = 0;
 
+    virtual PkgEntryInfo GetPkgEntryInfo(const std::string &path) = 0;
     /**
      * Get the information about the update package.
      *
@@ -318,12 +345,28 @@ public:
     virtual int32_t ExtractFile(const std::string &fileId, StreamPtr output) = 0;
 
     /**
+     * Get Pkg file instance from pkg manager.
+     *
+     * @param packagePath   package file path
+     * @return              pkg file ptr
+     */
+    virtual PkgFilePtr GetPkgFile(const std::string &packagePath) = 0;
+
+    /**
      * Obtain information about the files in the update package.
      *
      * @param fileId        file ID
      * @return              file information
      */
     virtual const FileInfo *GetFileInfo(const std::string &fileId) = 0;
+
+    /**
+     * Obtain pkg entry from package
+     *
+     * @param path          entry path
+     * @return              pkg entry ptr
+     */
+    virtual PkgEntryPtr GetPkgEntry(const std::string &path) = 0;
 
     /**
      * Create a a package stream to output.
@@ -336,6 +379,18 @@ public:
      */
     virtual int32_t CreatePkgStream(StreamPtr &stream, const std::string &fileName, size_t size,
         int32_t type) = 0;
+
+    /**
+     * Create a package stream that can be processed while parsing.
+     *
+     * @param stream        stream used for io management
+     * @param fileName      file name corresponding to the stream
+     * @param shmId         shared memory id
+     * @param pkgOffset     package offset
+     * @return              creation result
+     */
+    virtual int32_t CreatePkgStream(StreamPtr &stream, const std::string &fileName,
+        const ShmInfo &shmInfo) = 0;
 
     /**
      * Create a package stream that can be processed while parsing.
@@ -388,6 +443,12 @@ public:
 
     virtual int32_t LoadPackageWithStreamForApp(AppPkgInfo &info,
         std::vector<std::string> &fileIds, StreamPtr stream) = 0;
+
+    virtual int32_t LoadStreamPackageWithStream(const std::string &packagePath, std::vector<std::string> &fileIds,
+        PkgFile::PkgType type, PkgStreamPtr headStream, PkgStreamPtr entryStream) = 0;
+
+    virtual int32_t LoadStreamPackage(const std::string &packageHeadPath, const std::string &fileName,
+        const ShmInfo &shmInfo, std::vector<std::string> &fileIds, PkgFile::PkgType type) = 0;
 
     virtual int32_t ParsePackage(StreamPtr stream, std::vector<std::string> &fileIds, int32_t type) = 0;
 

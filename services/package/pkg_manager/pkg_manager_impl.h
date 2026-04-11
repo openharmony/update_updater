@@ -55,7 +55,7 @@ public:
 
     const PkgInfo *GetPackageInfo(const std::string &packagePath) override;
 
-    PkgEntryPtr GetPkgEntry(const std::string &path);
+    PkgEntryPtr GetPkgEntry(const std::string &path) override;
 
     int32_t DecompressBuffer(FileInfoPtr info, const PkgBuffer &buffer, StreamPtr stream) const override;
 
@@ -65,6 +65,12 @@ public:
 
     int32_t LoadPackageWithStream(const std::string &packagePath, const std::string &keyPath,
         std::vector<std::string> &fileIds, uint8_t type, StreamPtr stream) override;
+
+    int32_t LoadStreamPackageWithStream(const std::string &packagePath, std::vector<std::string> &fileIds,
+        PkgFile::PkgType type, PkgStreamPtr headStream, PkgStreamPtr entryStream) override;
+
+    int32_t LoadStreamPackage(const std::string &packageHeadPath, const std::string &fileName,
+        const ShmInfo &shmInfo, std::vector<std::string> &fileIds, PkgFile::PkgType type) override;
 
     int32_t LoadPackageWithStreamForApp(AppPkgInfo &info,
         std::vector<std::string> &fileIds, StreamPtr stream) override;
@@ -78,6 +84,7 @@ public:
 
     int32_t CreatePkgStream(StreamPtr &stream, const std::string &fileName,
         uint64_t fileLen, Updater::RingBuffer *buffer) override;
+    int32_t CreatePkgStream(StreamPtr &stream, const std::string &fileName, const ShmInfo &shmInfo) override;
     int32_t VerifyAccPackage(const std::string &packagePath, const std::string &keyPath) override;
     int32_t VerifyOtaPackage(const std::string &packagePath) override;
     int32_t VerifyOtaPackage(const std::string &packagePath, bool isSupportOldSig) override;
@@ -90,9 +97,13 @@ public:
         decodeProgress_ = decodeProgress;
     }
 
+    PkgFilePtr GetPkgFile(const std::string &packagePath) override;
+
     void PostDecodeProgress(int type, size_t writeDataLen, const void *context) override;
 
     PkgManager::StreamPtr GetPkgFileStream(const std::string &fileName) override;
+
+    PkgEntryInfo GetPkgEntryInfo(const std::string &path) override;
 
     int32_t CreatePkgStream(PkgStreamPtr &stream, const std::string &fileName, size_t size, int32_t type) override;
 
@@ -100,11 +111,13 @@ public:
 
     int32_t ParseComponents(const std::string &packagePath, std::vector<std::string> &fileName) override;
 
-    int32_t LoadPackage(const std::string &packagePath,
-        std::vector<std::string> &fileIds, PkgFile::PkgType type) override;
+    static PkgFile::PkgType GetPkgTypeByName(const std::string &path);
 
 private:
     PkgFilePtr CreatePackage(PkgStreamPtr stream, PkgFile::PkgType type, PkgInfoPtr header = nullptr);
+
+    int32_t LoadPackage(const std::string &packagePath,
+        std::vector<std::string> &fileIds, PkgFile::PkgType type) override;
 
     template<class T>
     PkgFilePtr CreatePackage(const std::string &path,
@@ -117,8 +130,6 @@ private:
         std::vector<std::string> &fileIds, PkgFile::PkgType type, PkgStreamPtr stream);
 
     std::string GetPkgName(const std::string &path);
-
-    PkgFile::PkgType GetPkgTypeByName(const std::string &path);
 
     int32_t Sign(PkgStreamPtr stream, size_t offset, const PkgInfoPtr &info);
 
@@ -138,6 +149,9 @@ private:
 
     const std::string GetExtraPath(const std::string &path);
 
+    int32_t LoadUpgradePackage(const std::string &packagePath, std::vector<std::string> &fileIds);
+
+    int32_t LoadPackageInnerZip(const std::string &packagePath, std::vector<std::string> &fileIds);
 private:
     bool unzipToFile_ {false};
     std::vector<PkgFilePtr> pkgFiles_ {};

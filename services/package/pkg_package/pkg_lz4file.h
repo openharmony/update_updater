@@ -47,6 +47,9 @@ public:
 
     int32_t DecodeHeader(PkgBuffer &buffer, size_t, size_t, size_t &decodeLen) override;
 
+    std::pair<size_t, size_t> GetEntryRange(void) override;
+
+    size_t GetOriginalSize() const override;
 private:
     Lz4FileInfo fileInfo_ {};
 };

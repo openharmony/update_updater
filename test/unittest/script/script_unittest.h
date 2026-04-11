@@ -76,6 +76,18 @@ public:
     {
         return nullptr;
     }
+    PkgEntryInfo GetPkgEntryInfo(const std::string &path) override
+    {
+        return {nullptr, nullptr, 0, 0};
+    }
+    PkgEntryPtr GetPkgEntry(const std::string &path) override
+    {
+        return nullptr;
+    }
+    PkgFilePtr GetPkgFile(const std::string &packagePath) override
+    {
+        return nullptr;
+    }
     int32_t CreatePkgStream(StreamPtr &stream, const std::string &fileName, size_t size,
         int32_t type) override
     {
@@ -87,6 +99,10 @@ public:
         return PKG_SUCCESS;
     }
     int32_t CreatePkgStream(StreamPtr &stream, const std::string &fileName, const PkgBuffer &buffer) override
+    {
+        return PKG_SUCCESS;
+    }
+    int32_t CreatePkgStream(StreamPtr &stream, const std::string &fileName, const ShmInfo &shmInfo) override
     {
         return PKG_SUCCESS;
     }
@@ -143,6 +159,16 @@ public:
     }
     int32_t LoadPackageWithStreamForApp(AppPkgInfo &info,
         std::vector<std::string> &fileIds, StreamPtr stream) override
+    {
+        return PKG_SUCCESS;
+    }
+    int32_t LoadStreamPackageWithStream(const std::string &packagePath, std::vector<std::string> &fileIds,
+        PkgFile::PkgType type, PkgStreamPtr headStream, PkgStreamPtr entryStream) override
+    {
+        return PKG_SUCCESS;
+    }
+    int32_t LoadStreamPackage(const std::string &packageHeadPath, const std::string &fileName,
+        const ShmInfo &shmInfo, std::vector<std::string> &fileIds, PkgFile::PkgType type) override
     {
         return PKG_SUCCESS;
     }

@@ -56,6 +56,14 @@ constexpr int16_t TLV_TYPE_FOR_SHA256 = 0x0001;
 constexpr int16_t TLV_TYPE_FOR_SHA384 = 0x0011;
 constexpr size_t BUFFER_SIZE = 4 * 1024 * 1024;
 
+// chunk tlv type
+using ChunkListInfoTlv = ChunkTlv<uint16_t, uint32_t, 0x10>;
+using ParitionNumChunkTlv = ChunkTlv<uint16_t, uint16_t, 0x16>;
+using HashParitionChunkTlv = ChunkTlv<uint16_t, uint16_t, 0x17>;
+using ImageHashChunkTlv = ChunkTlv<uint16_t, uint16_t, 0x18>;
+using ImageSizeChunkTlv = ChunkTlv<uint16_t, uint16_t, 0x19>;
+using ParitionNameChunkTlv = ChunkTlv<uint16_t, uint16_t, 0x20>;
+
 int32_t UpgradeFileEntry::Init(const PkgManager::FileInfoPtr fileInfo, PkgStreamPtr inStream)
 {
     int32_t ret = PkgEntry::Init(&fileInfo_.fileInfo, fileInfo, inStream);
@@ -341,6 +349,136 @@ int32_t UpgradePkgFile::ReadImgHashTLV(std::vector<uint8_t> &imgHashBuf, size_t 
     return PKG_SUCCESS;
 }
 
+int32_t UpgradePkgFile::ReadChunkListInfo(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm)
+{
+    Updater::UPDATER_INIT_RECORD;
+    PkgBuffer buffer {};
+    if (ReadChunkTlv<ChunkListInfoTlv>(buffer, parsedLen, algorithm) != PKG_SUCCESS) {
+        return PKG_INVALID_PKG_FORMAT;
+    }
+    chunkInfo_.chunkListCount = ReadLE32(buffer.buffer);
+    chunkInfo_.chunkListSize = ReadLE64(buffer.buffer + sizeof(uint32_t));
+    return PKG_SUCCESS;
+}
+
+int32_t UpgradePkgFile::ReadPartitionNumChunk(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm)
+{
+    Updater::UPDATER_INIT_RECORD;
+    PkgBuffer buffer {};
+    if (ReadChunkTlv<ParitionNumChunkTlv>(buffer, parsedLen, algorithm) != PKG_SUCCESS) {
+        return PKG_INVALID_PKG_FORMAT;
+    }
+    if (buffer.Size() != sizeof(uint16_t)) {
+        PKG_LOGE("paritionNum size invalid %zu", buffer.Size());
+        UPDATER_LAST_WORD("paritionNum size invalid", buffer.Size());
+        return PKG_INVALID_PKG_FORMAT;
+    }
+    chunkInfo_.partitionNum = ReadLE16(buffer.buffer);
+    return PKG_SUCCESS;
+}
+
+int32_t UpgradePkgFile::ReadPartitionNameChunk(size_t &parsedLen,
+    DigestAlgorithm::DigestAlgorithmPtr algorithm, std::string &paritionName)
+{
+    Updater::UPDATER_INIT_RECORD;
+    PkgBuffer buffer {};
+    if (ReadChunkTlv<ParitionNameChunkTlv>(buffer, parsedLen, algorithm) != PKG_SUCCESS) {
+        return PKG_INVALID_PKG_FORMAT;
+    }
+    PkgFileImpl::ConvertBufferToString(paritionName, {buffer.buffer, buffer.length});
+    return PKG_SUCCESS;
+}
+
+int32_t UpgradePkgFile::ReadImageSizeChunk(size_t &parsedLen,
+    DigestAlgorithm::DigestAlgorithmPtr algorithm, uint64_t &imageSize)
+{
+    Updater::UPDATER_INIT_RECORD;
+    PkgBuffer buffer {};
+    if (ReadChunkTlv<ImageSizeChunkTlv>(buffer, parsedLen, algorithm) != PKG_SUCCESS) {
+        return PKG_INVALID_PKG_FORMAT;
+    }
+    if (buffer.Size() != sizeof(uint64_t)) {
+        PKG_LOGE("imageSize len invalid %zu", buffer.Size());
+        UPDATER_LAST_WORD("imageSize len invalid", buffer.Size());
+        return PKG_INVALID_PKG_FORMAT;
+    }
+    imageSize = ReadLE64(buffer.buffer);
+    return PKG_SUCCESS;
+}
+
+int32_t UpgradePkgFile::ReadImageHashChunk(size_t &parsedLen,
+    DigestAlgorithm::DigestAlgorithmPtr algorithm, std::string &imageHash)
+{
+    Updater::UPDATER_INIT_RECORD;
+    PkgBuffer buffer {};
+    if (ReadChunkTlv<ImageHashChunkTlv>(buffer, parsedLen, algorithm) != PKG_SUCCESS) {
+        return PKG_INVALID_PKG_FORMAT;
+    }
+    PkgFileImpl::ConvertBufferToString(imageHash, {buffer.buffer, buffer.length});
+    return PKG_SUCCESS;
+}
+
+int32_t UpgradePkgFile::ReadHashPartitionChunk(size_t &parsedLen,
+    DigestAlgorithm::DigestAlgorithmPtr algorithm, std::string &hashParitionName)
+{
+    Updater::UPDATER_INIT_RECORD;
+    PkgBuffer buffer {};
+    if (ReadChunkTlv<HashParitionChunkTlv>(buffer, parsedLen, algorithm) != PKG_SUCCESS) {
+        return PKG_INVALID_PKG_FORMAT;
+    }
+    PkgFileImpl::ConvertBufferToString(hashParitionName, {buffer.buffer, buffer.length});
+    return PKG_SUCCESS;
+}
+
+int32_t UpgradePkgFile::ReadChunkInfo(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm)
+{
+    Updater::UPDATER_INIT_RECORD;
+    if (pkgInfo_.updateFileVersion < UPGRADE_FILE_VERSION_V5 || pkgInfo_.updateFileType != UPGRADE_FILE_TYPE_STREAM) {
+        PKG_LOGI("file version is %d, file type is %d, skip chunk info",
+            pkgInfo_.updateFileVersion, pkgInfo_.updateFileType);
+        return PKG_SUCCESS;
+    }
+    size_t beginParsedLen = parsedLen;
+    if (ReadChunkListInfo(parsedLen, algorithm) != PKG_SUCCESS) {
+        return PKG_INVALID_PKG_FORMAT;
+    }
+    if (ReadPartitionNumChunk(parsedLen, algorithm) != PKG_SUCCESS) {
+        return PKG_INVALID_PKG_FORMAT;
+    }
+    for (int i = 0; i < chunkInfo_.partitionNum; ++i) {
+        std::string paritionName;
+        uint64_t imageSize = 0;
+        if (ReadPartitionNameChunk(parsedLen, algorithm, paritionName) != PKG_SUCCESS ||
+            ReadImageSizeChunk(parsedLen, algorithm, imageSize) != PKG_SUCCESS) {
+            return PKG_INVALID_PKG_FORMAT;
+        }
+        paritionName.insert(0, "/");
+        PKG_LOGI("image size info image: %s, %llu", paritionName.c_str(), imageSize);
+        if (!chunkInfo_.imageSizeMap.emplace(paritionName, imageSize).second) {
+            PKG_LOGE("image size map emplace failed %s %llu", paritionName.c_str(), imageSize);
+            return PKG_INVALID_PKG_FORMAT;
+        }
+    }
+    for (int i = 0; i < chunkInfo_.partitionNum; ++i) {
+        std::string hashParitionName;
+        std::string imageHash;
+        if (ReadHashPartitionChunk(parsedLen, algorithm, hashParitionName) != PKG_SUCCESS ||
+            ReadImageHashChunk(parsedLen, algorithm, imageHash) != PKG_SUCCESS) {
+            return PKG_INVALID_PKG_FORMAT;
+        }
+        hashParitionName.insert(0, "/");
+        if (!chunkInfo_.imageHashMap.emplace(hashParitionName, imageHash).second) {
+            PKG_LOGE("image size map emplace failed %s %s", hashParitionName.c_str(), imageHash.c_str());
+            return PKG_INVALID_PKG_FORMAT;
+        }
+    }
+    // refresh component data offset
+    for (auto &it : pkgEntryMapId_) {
+        it.second->AddDataOffset(parsedLen - beginParsedLen);
+    }
+    return PKG_SUCCESS;
+}
+
 int32_t UpgradePkgFile::ReadImgHashData(size_t &parsedLen, DigestAlgorithm::DigestAlgorithmPtr algorithm)
 {
     Updater::UPDATER_INIT_RECORD;
@@ -478,7 +616,12 @@ int32_t UpgradePkgFile::LoadPackage(std::vector<std::string> &fileNames, VerifyF
         UPDATER_LAST_WORD(ret, "Decode components fail");
         return ret;
     }
-
+    ret = ReadChunkInfo(parsedLen, algorithm);
+    if (ret != PKG_SUCCESS) {
+        PKG_LOGE("read chunkinfo fail %d", ret);
+        UPDATER_LAST_WORD(ret, "read chunkinfo fail");
+        return ret;
+    }
     ret = VerifyFile(parsedLen, algorithm, verifier);
     pkgInfo_.pkgInfo.updateFileHeadLen = parsedLen;
     return ret;
@@ -592,6 +735,16 @@ int32_t UpgradePkgFile::VerifyHeader(DigestAlgorithm::DigestAlgorithmPtr algorit
     return 0;
 }
 
+int32_t UpgradePkgFile::SetUpradeEntryStream(UpgradeFileEntry *entry)
+{
+    if (entry == nullptr || pkgStream_ == nullptr) {
+        PKG_LOGE("entry or stream is null");
+        return PKG_INVALID_PARAM;
+    }
+    entry->SetEntryPkgStream(pkgStream_);
+    return PKG_SUCCESS;
+}
+
 int32_t UpgradePkgFile::SaveEntry(const PkgBuffer &buffer, size_t &parsedLen, UpgradeParam &info,
     DigestAlgorithm::DigestAlgorithmPtr algorithm, std::vector<std::string> &fileNames)
 {
@@ -612,11 +765,17 @@ int32_t UpgradePkgFile::SaveEntry(const PkgBuffer &buffer, size_t &parsedLen, Up
         PKG_LOGE("Fail to decode header");
         return ret;
     }
+    // Set entry stream
+    if (SetUpradeEntryStream(entry) != PKG_SUCCESS) {
+        delete entry;
+        PKG_LOGE("Fail to set entry stream");
+        return PKG_INVALID_PARAM;
+    }
     // Save entry
     pkgEntryMapId_.insert(pair<uint32_t, PkgEntryPtr>(entry->GetNodeId(), entry));
     pkgEntryMapFileName_.insert(std::pair<std::string, PkgEntryPtr>(entry->GetFileName(), entry));
     fileNames.push_back(entry->GetFileName());
-
+    components_.push_back(entry->GetFileName());
     PkgBuffer signBuffer(buffer.buffer + info.currLen, decodeLen);
     algorithm->Update(signBuffer, decodeLen); // Generate digest for components
 
@@ -700,7 +859,8 @@ void UpgradePkgFile::ParsePkgHeaderToTlv(const PkgBuffer &buffer, size_t &currLe
     // Header information
     currLen = sizeof(PkgTlv);
     UpgradePkgHeader *header = reinterpret_cast<UpgradePkgHeader *>(buffer.buffer + currLen);
-    pkgInfo_.updateFileVersion = ReadLE32(buffer.buffer + currLen + offsetof(UpgradePkgHeader, updateFileVersion));
+    pkgInfo_.updateFileVersion = ReadLE16(buffer.buffer + currLen + offsetof(UpgradePkgHeader, updateFileVersion));
+    pkgInfo_.updateFileType = ReadLE16(buffer.buffer + currLen + offsetof(UpgradePkgHeader, updateFileType));
     PkgFileImpl::ConvertBufferToString(pkgInfo_.softwareVersion, {header->softwareVersion,
         sizeof(header->softwareVersion)});
     PkgFileImpl::ConvertBufferToString(pkgInfo_.productUpdateId, {header->productUpdateId,
@@ -920,6 +1080,7 @@ int32_t UpgradeFileEntry::DecodeHeader(PkgBuffer &buffer, size_t headerOffset, s
     fileInfo_.resType = info->resType;
     fileInfo_.compFlags = info->flags;
     fileInfo_.type = info->type;
+    fileInfo_.fileInfo.type = info->type;
 
     headerOffset_ = headerOffset;
     dataOffset_ = dataOffset;
@@ -936,7 +1097,7 @@ int32_t UpgradeFileEntry::Unpack(PkgStreamPtr outStream)
         return PKG_INVALID_PARAM;
     }
 
-    PkgStreamPtr inStream = pkgFile_->GetPkgStream();
+    PkgStreamPtr inStream = pkgFile_->GetPkgEntryStream();
     if (outStream == nullptr || inStream == nullptr) {
         PKG_LOGE("outStream or inStream null for %s", fileName_.c_str());
         return PKG_INVALID_PARAM;
@@ -963,6 +1124,29 @@ int32_t UpgradeFileEntry::Unpack(PkgStreamPtr outStream)
         << " packedSize:" << fileInfo_.fileInfo.packedSize << " unpackedSize:" << fileInfo_.fileInfo.unpackedSize;
     outStream->Flush(fileInfo_.fileInfo.unpackedSize);
     return PKG_SUCCESS;
+}
+
+std::pair<size_t, size_t> UpgradeFileEntry::GetEntryRange(void)
+{
+    return {this->dataOffset_ + readOffset_, this->dataOffset_ + fileInfo_.fileInfo.packedSize};
+}
+
+size_t UpgradeFileEntry::GetOriginalSize() const
+{
+    UpgradePkgFile *pkgFile = static_cast<UpgradePkgFile*>(GetPkgFile());
+    if (pkgFile == nullptr) {
+        PKG_LOGE("pkg file is null");
+        return 0;
+    }
+    const auto &chunkInfo = pkgFile->GetUpgradeChunkInfo();
+    auto it = chunkInfo.imageSizeMap.find(fileName_);
+    if (it != chunkInfo.imageSizeMap.end()) {
+        PKG_LOGI("%s found in chunk info, return image size %zu", fileName_.c_str(), it->second);
+        return it->second;
+    }
+    PKG_LOGI("%s not found in chunk info, return unpacked size %zu", fileName_.c_str(),
+        fileInfo_.fileInfo.unpackedSize);
+    return fileInfo_.fileInfo.unpackedSize;
 }
 
 int32_t UpgradeFileEntry::Verify(PkgBuffer &buffer, size_t len, size_t offset)

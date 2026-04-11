@@ -50,6 +50,11 @@ enum {
 };
 
 enum {
+    PKG_FULL_COMPONENT,
+    PKG_DIFF_COMPONENT,
+};
+
+enum {
     POST_TYPE_UPLOAD_PKG = 0,
     POST_TYPE_DECODE_PKG,
     POST_TYPE_VERIFY_PKG,
@@ -79,6 +84,7 @@ struct PkgInfo {
 struct FileInfo {
     uint8_t flags = 0;
     uint8_t resType = 0;
+    uint8_t type = PKG_FULL_COMPONENT;
     uint8_t digestMethod = 0;
     uint16_t packMethod = 0;
     time_t modifiedTime = 0;
@@ -95,11 +101,20 @@ struct FileInfo {
 struct UpgradePkgInfo {
     PkgInfo pkgInfo;
     uint32_t updateFileVersion = 0;
+    uint32_t updateFileType = 0;
     std::string productUpdateId;
     std::string softwareVersion;
     std::string date;
     std::string time;
     std::string descriptPackageId;
+};
+
+struct UpgradeChunkInfo {
+    uint32_t chunkListCount;
+    uint64_t chunkListSize;
+    uint16_t partitionNum;
+    std::unordered_map<std::string, uint64_t> imageSizeMap;
+    std::unordered_map<std::string, std::string> imageHashMap;
 };
 
 /**
@@ -166,12 +181,82 @@ struct PkgBuffer {
         this->buffer = buffer.data();
         this->length = buffer.capacity();
     }
-
     PkgBuffer(size_t bufferSize)
+    {
+        Resize(bufferSize);
+    }
+    PkgBuffer(const PkgBuffer &buffer)
+    {
+        if (buffer.data.empty() && buffer.data.data() != buffer.buffer) {
+            this->buffer = buffer.buffer;
+            this->length = buffer.length;
+            return;
+        }
+        data = buffer.data;
+        this->buffer = data.data();
+        this->length = data.capacity();
+    }
+    PkgBuffer(PkgBuffer &&buffer)
+    {
+        if (buffer.data.empty() && buffer.data.data() != buffer.buffer) {
+            this->buffer = buffer.buffer;
+            this->length = buffer.length;
+            return;
+        }
+        data = std::move(buffer.data);
+        this->buffer = data.data();
+        this->length = data.capacity();
+        buffer.Reset();
+    }
+    PkgBuffer &operator=(const PkgBuffer &buffer)
+    {
+        if (this == &buffer) {
+            return *this;
+        }
+        if (buffer.data.empty() && buffer.data.data() != buffer.buffer) {
+            this->buffer = buffer.buffer;
+            this->length = buffer.length;
+            return *this;
+        }
+        data = buffer.data;
+        this->buffer = data.data();
+        this->length = data.capacity();
+        return *this;
+    }
+
+    PkgBuffer &operator=(PkgBuffer &&buffer) noexcept
+    {
+        if (this == &buffer) {
+            return *this;
+        }
+        if (buffer.data.empty() && buffer.data.data() != buffer.buffer) {
+            this->buffer = buffer.buffer;
+            this->length = buffer.length;
+            return *this;
+        }
+        data = std::move(buffer.data);
+        this->buffer = data.data();
+        this->length = data.capacity();
+        return *this;
+    }
+    void Reset(void)
+    {
+        buffer = nullptr;
+        length = 0;
+        std::vector<uint8_t>().swap(data);
+    }
+    void Resize(size_t bufferSize)
     {
         data.resize(bufferSize, 0);
         this->buffer = data.data();
         this->length = bufferSize;
+    }
+    size_t Size(void) const
+    {
+        if (this->buffer != nullptr) {
+            return this->length;
+        }
+        return data.size();
     }
 };
 } // namespace Hpackage

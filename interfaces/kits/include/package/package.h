@@ -34,7 +34,8 @@ enum PkgPackType {
     PKG_PACK_TYPE_UPGRADE,              // upgrade package
     PKG_PACK_TYPE_ZIP,                  // zip package
     PKG_PACK_TYPE_LZ4,                  // lz4 package
-    PKG_PACK_TYPE_GZIP                  // gzip package
+    PKG_PACK_TYPE_GZIP,                 // gzip package
+    PKG_PACK_TYPE_STREAM                // stream package
 };
 
 /**

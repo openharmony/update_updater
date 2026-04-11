@@ -112,7 +112,7 @@ public:
     {
         return streamType_;
     }
-
+    int64_t GetReadOffset() const override;
 private:
     FILE *stream_;
     size_t fileLength_;
@@ -120,59 +120,44 @@ private:
     std::recursive_mutex fileStreamLock_;
 };
 
-#ifndef _WIN32
-constexpr int32_t BLOCK_NUM = 32;
+#ifndef DIFF_PATCH_SDK
+constexpr size_t BLOCK_NUM = 32;
 constexpr size_t SINGLE_BLOCK_SIZE = 50 * 1024;
 constexpr size_t RING_BUFFER_SIZE = BLOCK_NUM * SINGLE_BLOCK_SIZE;
 
-class ShmRbBlock {
-public:
-    bool Push(const uint8_t* buf, size_t len);
-    bool Pop(uint8_t* buf, size_t expectedLen, size_t &realLen);
-    size_t GetRealLen();
-
-private:
-    size_t realLen_ = 0;              // 块内偏移数据
-    size_t blkOffset_ = 0;            // 头偏移
-    uint8_t data_[SINGLE_BLOCK_SIZE]; // 数据域
-};
-
 struct ShmRingBuffer {
-    sem_t semEmpty;            // 空闲块信号量
-    sem_t semFull;             // 已用块信号量
-    int32_t head = 0;           // 消费者写入位置
-    int32_t tail = 0;           // 生产者写入位置
-    ShmRbBlock data[BLOCK_NUM]; // 环形数据缓冲区
+    sem_t semEmpty;                     // 空闲块信号量
+    sem_t semFull;                      // 已用块信号量
+    size_t head;                        // 消费者读取位置
+    size_t tail;                        // 生产者写入位置
+    uint8_t buffer[RING_BUFFER_SIZE];    // 环形数据存储区
+    size_t efficientLen[BLOCK_NUM];      // 块有效长度
+    uint8_t reserved[SINGLE_BLOCK_SIZE]; // 临时缓冲区
+    size_t currLen;                      // 临时缓冲区长度
+    size_t currOffset;                   // 临时缓冲区头偏移
 };
 
-struct ShmParameter {
+struct ShmInfo {
     std::string shmId;
-    size_t pkgLen = 0;
-    size_t offset = 0;
-
-    ShmParameter(const std::string &shmId, size_t pkgLen, size_t offset)
-        : shmId(shmId), pkgLen(pkgLen), offset(offset) {}
+    size_t fileLen;
+    size_t offset;
 };
 
 class ShmDataStream : public PkgStreamImpl {
 public:
-    ShmDataStream(PkgManager::PkgManagerPtr pkgManager, const std::string fileName, const ShmParameter &shmParameter,
-        int32_t streamType) : PkgStreamImpl(pkgManager, fileName), streamType_(streamType)
-    {
-        shmId_ = shmParameter.shmId;
-        pkgLen_ = shmParameter.pkgLen;
-        offset_ = shmParameter.offset;
-    }
+    ShmDataStream(PkgManager::PkgManagerPtr pkgManager, const std::string &fileName, const ShmInfo &shmInfo,
+        int32_t streamType) : PkgStreamImpl(pkgManager, fileName), shmId_(shmInfo.shmId), streamType_(streamType),
+        pkgLen_(shmInfo.fileLen), offset_(shmInfo.offset) {}
 
     ~ShmDataStream() override
     {
         Stop();
-    }
+    };
 
     int32_t CreateShmRingBuffer();
-    
+
     int32_t InitShmRingBuffer();
-    
+
     int32_t Read(PkgBuffer &data, size_t start, size_t needRead, size_t &readLen) override;
 
     int32_t Write(const PkgBuffer &data, size_t size, size_t start) override;
@@ -193,12 +178,12 @@ public:
         offset_ = offset;
     }
 
-    size_t GetReadOffset() const override
+    int64_t GetReadOffset() const override
     {
-        return offset_;
+        return static_cast<int64_t>(offset_);
     }
 
-    void SetPkgLen(size_t pkgLen)
+    void SetpkgLen(size_t pkgLen)
     {
         pkgLen_ = pkgLen;
     }
@@ -214,9 +199,10 @@ public:
     }
 
 private:
+    int32_t ReadFully(size_t &needReadLen, size_t &readLen, PkgBuffer &data);
     ShmRingBuffer* rb_ = nullptr;
     std::string shmId_;
-    int32_t streamType_ = PkgStreamType_ShmData;
+    int32_t streamType_;
     size_t pkgLen_ = 0; // 整包大小
     size_t offset_ = 0; // 偏移
 };
@@ -245,17 +231,7 @@ public:
         return memSize_;
     }
 
-    int32_t Flush(size_t size) override
-    {
-        if (size != memSize_) {
-            PKG_LOGE("Flush size %zu local size:%zu", size, memSize_);
-        }
-        if (streamType_ == PkgStreamType_MemoryMap) {
-            msync(static_cast<void *>(memMap_), memSize_, MS_ASYNC);
-        }
-        currOffset_ = size;
-        return PKG_SUCCESS;
-    }
+    int32_t Flush(size_t size) override;
 
     int32_t GetBuffer(PkgBuffer &buffer) const override
     {
@@ -288,16 +264,7 @@ public:
         return PKG_INVALID_STREAM;
     }
 
-    int32_t Write(const PkgBuffer &data, size_t size, size_t start) override
-    {
-        if (processor_ == nullptr) {
-            PKG_LOGE("processor not exist");
-            return PKG_INVALID_STREAM;
-        }
-        int ret = processor_(data, size, start, false, context_);
-        PostDecodeProgress(POST_TYPE_DECODE_PKG, size, nullptr);
-        return ret;
-    }
+    int32_t Write(const PkgBuffer &data, size_t size, size_t start) override;
 
     int32_t Seek(long int size, int whence) override
     {
@@ -316,16 +283,7 @@ public:
         return 0;
     }
 
-    int32_t Flush(size_t size) override
-    {
-        UNUSED(size);
-        if (processor_ == nullptr) {
-            PKG_LOGE("processor not exist");
-            return PKG_INVALID_STREAM;
-        }
-        PkgBuffer data = {};
-        return processor_(data, 0, 0, true, context_);
-    }
+    int32_t Flush(size_t size) override;
 
 private:
     ExtractFileProcessor processor_ = nullptr;
@@ -369,9 +327,9 @@ public:
         return Hpackage::PKG_INVALID_STREAM;
     }
 
-    size_t GetReadOffset() const override
+    int64_t GetReadOffset() const override
     {
-        return readOffset_;
+        return static_cast<int64_t>(readOffset_);
     }
 
     void Stop() override;
