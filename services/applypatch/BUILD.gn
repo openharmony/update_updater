@@ -34,6 +34,7 @@ ohos_static_library("libapplypatch") {
     "block_writer.cpp",
     "command.cpp",
     "command_function.cpp",
+    "command_iterator.cpp",
     "command_process.cpp",
     "data_writer.cpp",
     "partition_record.cpp",

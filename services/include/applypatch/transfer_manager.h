@@ -26,7 +26,6 @@
 
 
 namespace Updater {
-
 struct WriterThreadInfo {
     pthread_mutex_t mutex;
     pthread_cond_t cond;
@@ -37,6 +36,8 @@ struct WriterThreadInfo {
     Hpackage::PkgManager::FileInfoPtr fileInfo;
     std::string newPatch;
 };
+
+constexpr static size_t TRANSFER_HEADERS_COUNT = 4;
 
 struct TransferParams {
     size_t version;
@@ -61,6 +62,7 @@ struct TransferParams {
 };
 
 class TransferManager;
+class CommandIterator;
 using TransferManagerPtr = TransferManager *;
 class TransferManager {
 public:
@@ -68,7 +70,9 @@ public:
     virtual ~TransferManager() {};
 
     bool CommandsParser(int fd, const std::vector<std::string> &context);
-
+    bool CommandsParser(int sourceFd, int targetFd, const std::vector<std::string> &context);
+    bool CommandsParser(int sourceFd, int targetFd, const std::vector<std::string> &headers,
+        CommandIterator &cmdIter, bool isStream = false);
     TransferParams* GetTransferParams()
     {
         return transferParams_.get();
@@ -79,10 +83,9 @@ public:
 private:
     void UpdateProgress(size_t &initBlock, size_t totalSize);
     bool RegisterForRetry(const std::string &cmd);
-    bool CommandsExecute(int fd, Command &cmd);
-    bool CommandParserPreCheck(const std::vector<std::string> &context);
-    std::vector<std::string>::const_iterator InitCommandParser(std::vector<std::string>::const_iterator ct,
-        std::string &retryCmd);
+    bool CommandsExecute(int sourceFd, int targetFd, Command &cmd);
+    bool CommandParserPreCheck(CommandIterator &cmdIter);
+    bool InitCommandParser(const std::vector<std::string> &headers, std::string &retryCmd);
     std::unique_ptr<TransferParams> transferParams_;
 };
 } // namespace Updater
