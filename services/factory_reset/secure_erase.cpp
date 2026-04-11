@@ -198,9 +198,9 @@ void SecureErase::AddOverWritePartInfo(const PartInfo &partInfo)
 void SecureErase::SyncOffsetInMisc(uint64_t offset)
 {
     std::ostringstream cmdStream;
-    cmdStream << "secure_erase=" << offset;
+    cmdStream << "secure_erase";
     std::string cmd = cmdStream.str();
-    Utils::AddUpdateInfoToMisc(cmd, std::nullopt);
+    Utils::AddUpdateInfoToMisc(cmd, offset);
 }
 
 float SecureErase::CalcOverWriteProgress()

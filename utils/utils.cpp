@@ -54,7 +54,7 @@ constexpr const char *PREFIX_PARTITION_NODE = "/dev/block/by-name/";
 constexpr mode_t DEFAULT_DIR_MODE = 0775;
 
 namespace {
-void UpdateInfoInMisc(const std::string headInfo, const std::optional<int> message, bool isRemove)
+void UpdateInfoInMisc(const std::string headInfo, const std::optional<int64_t> message, bool isRemove)
 {
     if (headInfo.empty()) {
         return;
@@ -88,7 +88,7 @@ void UpdateInfoInMisc(const std::string headInfo, const std::optional<int> messa
             return;
         }
     } else {
-        if (snprintf_s(buffer, sizeof(buffer), sizeof(buffer) - 1, "--%s=%d",
+        if (snprintf_s(buffer, sizeof(buffer), sizeof(buffer) - 1, "--%s=%lld",
             headInfo.c_str(), message.value()) == -1) {
             LOG(ERROR) << "SetMessageToMisc snprintf_s failed";
             return;
@@ -924,7 +924,7 @@ void SetCmdToMisc(const std::string &miscCmd)
     }
 }
 
-void AddUpdateInfoToMisc(const std::string headInfo, const std::optional<int> message)
+void AddUpdateInfoToMisc(const std::string headInfo, const std::optional<int64_t> message)
 {
     UpdateInfoInMisc(headInfo, message, false);
 }
