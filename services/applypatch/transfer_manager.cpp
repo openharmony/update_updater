@@ -98,7 +98,7 @@ bool TransferManager::CommandParserPreCheck(CommandIterator &cmdIter)
     return true;
 }
 
-bool CommandsParser(int fd, const std::vector<std::string> &context)
+bool TransferManager::CommandsParser(int fd, const std::vector<std::string> &context)
 {
     return CommandsParser(fd, fd, context);
 }
