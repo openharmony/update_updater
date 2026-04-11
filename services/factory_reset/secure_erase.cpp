@@ -100,6 +100,7 @@ bool SecureErase::OverWritePartition()
     UPDATER_UI_INSTANCE.ShowProgressPage();
     if (overwritePartInfos_.empty()) {
         LOG(ERROR) << "no partition to overwrite";
+        UPDATER_LAST_WORD(OVERWRITE_INVALID_INFOS, "empty partition infos");
         return false;
     }
     for (const auto &partInfo : overwritePartInfos_) {
@@ -108,6 +109,7 @@ bool SecureErase::OverWritePartition()
         int fd = open(partInfo.devPath.c_str(), O_RDWR | O_LARGEFILE);
         if (fd < 0) {
             LOG(ERROR) << "open failed " << partInfo.devPath;
+            UPDATER_LAST_WORD(OVERWRITE_OPEN_FAILED, "open failed");
             return false;
         }
         while (overwriteOffset_ < partInfo.partSize) {
@@ -122,6 +124,7 @@ bool SecureErase::OverWritePartition()
                 LOG(ERROR) << "Overwrite error " << partInfo.devPath;
                 fsync(fd);
                 close(fd);
+                UPDATER_LAST_WORD(OVERWRITE_FAILED, "overwrite failed");
                 return false;
             }
             time_t end = time(nullptr);
@@ -134,6 +137,7 @@ bool SecureErase::OverWritePartition()
         close(fd);
         if (overwriteOffset_ == 0) {
             LOG(ERROR) << "Overwrite error, offset is 0 " << partInfo.devPath;
+            UPDATER_LAST_WORD(OVERWRITE_INVALID_OFFSET, "overwrite offset is 0");
             return false;
         }
     }
@@ -194,9 +198,9 @@ void SecureErase::AddOverWritePartInfo(const PartInfo &partInfo)
 void SecureErase::SyncOffsetInMisc(uint64_t offset)
 {
     std::ostringstream cmdStream;
-    cmdStream << "--secure_erase=" << offset;
+    cmdStream << "secure_erase=" << offset;
     std::string cmd = cmdStream.str();
-    Utils::SetCmdToMisc(cmd);
+    Utils::AddUpdateInfoToMisc(cmd, std::nullopt);
 }
 
 float SecureErase::CalcOverWriteProgress()
