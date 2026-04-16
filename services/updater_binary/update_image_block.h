@@ -15,6 +15,7 @@
 
 #ifndef UPDATER_UPDATE_IMAGE_BLOCK_H
 #define UPDATER_UPDATE_IMAGE_BLOCK_H
+#include "applypatch/transfer_manager.h"
 #include "pkg_manager.h"
 #include "script_instruction.h"
 #include "script_manager.h"
@@ -28,11 +29,36 @@ struct UpdateBlockInfo {
     std::string devPath;
 };
 
+struct UpdateFdInfo {
+    int sourceFd {-1};
+    int targetFd {-1};
+};
+
 class UScriptInstructionBlockUpdate : public Uscript::UScriptInstruction {
 public:
     UScriptInstructionBlockUpdate() {}
     virtual ~UScriptInstructionBlockUpdate() {}
     int32_t Execute(Uscript::UScriptEnv &env, Uscript::UScriptContext &context) override;
+private:
+    int32_t ExecuteUpdateBlock(Uscript::UScriptEnv &env, Uscript::UScriptContext &context);
+    int32_t DoExecuteUpdateBlock(const UpdateBlockInfo &infos, TransferManagerPtr tm,
+        Hpackage::PkgManager::StreamPtr &outStream, const std::vector<std::string> &lines,
+        Uscript::UScriptContext &context);
+    int32_t ExecuteTransferCommand(const UpdateFdInfo &fdInfo, const std::vector<std::string> &lines,
+        TransferManagerPtr tm, Uscript::UScriptContext &context, const UpdateBlockInfo &infos);
+    virtual bool ExecuteTransferCommands(TransferManagerPtr tm, const UpdateFdInfo &fdInfo,
+        [[maybe_unused]] const UpdateBlockInfo &infos, const std::vector<std::string> &lines);
+    virtual int32_t ExtractDiffPackageAndLoad(const UpdateBlockInfo &infos, Uscript::UScriptEnv &env,
+        Uscript::UScriptContext &context);
+    virtual int32_t GetUpdateBlockInfo(struct UpdateBlockInfo &infos, Uscript::UScriptEnv &env,
+        Uscript::UScriptContext &context);
+    virtual int InitThread(const struct UpdateBlockInfo &infos, TransferManagerPtr tm);
+    virtual void JoinThread(TransferManagerPtr tm);
+    virtual int32_t ExtractPatchFile(Uscript::UScriptEnv &env, const UpdateBlockInfo &infos,
+        Hpackage::PkgManager::StreamPtr outStream, TransferParams *transferParams);
+    bool GetPartitionInfo(const std::string &partition, std::string &partitionPath, size_t &partitionOffset) const;
+    void HandleUpdateSuccess(const UpdateBlockInfo &infos, const std::string &dataDevPath, bool noStash) const;
+    std::string GetStashedPath(const UpdateBlockInfo &infos) const;
 };
 
 class UScriptInstructionBlockCheck : public Uscript::UScriptInstruction {
@@ -65,6 +91,8 @@ private:
     int32_t SetShaInfo(Uscript::UScriptContext &context, ShaInfo &shaInfo);
     bool IsTargetShaDiff(const std::string &devPath, const ShaInfo &shaInfo);
 };
+
+int32_t ReturnAndPushParam(int32_t returnValue, Uscript::UScriptContext &context);
 
 #ifdef __cplusplus
 #if __cplusplus

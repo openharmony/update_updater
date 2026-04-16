@@ -59,6 +59,7 @@ struct TransferParams {
     size_t offset {0};
     bool canWrite;
     bool isUpdaterMode;
+    bool noStash {false};
 };
 
 class TransferManager;
