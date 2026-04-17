@@ -32,6 +32,9 @@ struct UpdateBlockInfo {
 struct UpdateFdInfo {
     int sourceFd {-1};
     int targetFd {-1};
+    bool usedStashPtn {false};
+
+    void Close();
 };
 
 class UScriptInstructionBlockUpdate : public Uscript::UScriptInstruction {
@@ -41,6 +44,7 @@ public:
     int32_t Execute(Uscript::UScriptEnv &env, Uscript::UScriptContext &context) override;
 private:
     int32_t ExecuteUpdateBlock(Uscript::UScriptEnv &env, Uscript::UScriptContext &context);
+    UpdateFdInfo CreateFdInfo(const UpdateBlockInfo &infos, TransferManagerPtr tm);
     int32_t DoExecuteUpdateBlock(const UpdateBlockInfo &infos, TransferManagerPtr tm,
         Hpackage::PkgManager::StreamPtr &outStream, const std::vector<std::string> &lines,
         Uscript::UScriptContext &context);
@@ -57,7 +61,7 @@ private:
     virtual int32_t ExtractPatchFile(Uscript::UScriptEnv &env, const UpdateBlockInfo &infos,
         Hpackage::PkgManager::StreamPtr outStream, TransferParams *transferParams);
     bool GetPartitionInfo(const std::string &partition, std::string &partitionPath, size_t &partitionOffset) const;
-    void HandleUpdateSuccess(const UpdateBlockInfo &infos, const std::string &dataDevPath, bool noStash) const;
+    void HandleUpdateSuccess(const UpdateBlockInfo &infos, bool usedStashPtn) const;
     std::string GetStashedPath(const UpdateBlockInfo &infos) const;
 };
 

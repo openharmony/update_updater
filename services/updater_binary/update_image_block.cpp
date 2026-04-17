@@ -73,6 +73,44 @@ __attribute__((weak)) void SyncWriteDevPath(int fd, [[maybe_unused]] const std::
     return;
 }
 
+void UpdateFdInfo::Close()
+{
+    if (sourceFd == targetFd && sourceFd != -1) {
+        close(sourceFd);
+        sourceFd = -1;
+        targetFd = -1;
+        return;
+    }
+    if (sourceFd != -1) {
+        close(sourceFd);
+        sourceFd = -1;
+    }
+    if (targetFd != -1) {
+        close(targetFd);
+        targetFd = -1;
+    }
+}
+
+static bool BuildSafeStashedDevPath(const std::string &subPath, std::string &stashedDevPath)
+{
+    const std::string prefix = std::string(STASHED_PATH) + "/";
+    std::string fullPath = prefix + subPath + std::string(IMG_SUFFIX);
+    if (!Utils::PathToRealPath(fullPath, stashedDevPath)) {
+        LOG(WARNING) << "Failed to build stashed dev path for " << subPath;
+        return false;
+    }
+
+    if (stashedDevPath.size() <= prefix.size()) {
+        LOG(WARNING) << "Invalid stashed dev path for " << subPath;
+        return false;
+    }
+    if (stashedDevPath.compare(0, prefix.size(), prefix) != 0) {
+        LOG(WARNING) << "Outside stashed dev path for " << subPath;
+        return false;
+    }
+    return true;
+}
+
 static int ExtractNewData(const PkgBuffer &buffer, size_t size, size_t start, bool isFinish, const void* context)
 {
     void *p = const_cast<void *>(context);
@@ -334,50 +372,56 @@ int32_t UScriptInstructionBlockUpdate::ExtractDiffPackageAndLoad(const UpdateBlo
     return USCRIPT_SUCCESS;
 }
 
-int32_t UScriptInstructionBlockUpdate::DoExecuteUpdateBlock(const UpdateBlockInfo &infos, TransferManagerPtr tm,
-    Hpackage::PkgManager::StreamPtr &outStream, const std::vector<std::string> &lines, Uscript::UScriptContext &context)
+UpdateFdInfo UScriptInstructionBlockUpdate::CreateFdInfo(const UpdateBlockInfo &infos, TransferManagerPtr tm)
 {
+    UpdateFdInfo fdInfo;
     std::string devPath = "";
     GetWriteDevPath(infos.devPath, infos.partitionName, devPath);
-    int sourceFd = -1;
-    int targetFd = -1;
+    std::string dataDevPath = GetStashedPath(infos);
+    // ab or vab
+    if (devPath != infos.devPath) {
+        fdInfo.sourceFd = open(infos.devPath.c_str(), O_RDWR | O_LARGEFILE);
+        fdInfo.targetFd = open(devPath.c_str(), O_RDWR | O_LARGEFILE);
+        return fdInfo;
+    }
+
     std::string targetPartitionPath = infos.devPath;
     size_t targetPartitionOffset = 0;
     if (!GetPartitionInfo(infos.partitionName, targetPartitionPath, targetPartitionOffset)) {
         LOG(ERROR) << "cannot find device path for partition " << infos.partitionName;
-        return USCRIPT_ERROR_EXECUTE;
+        return fdInfo;
     }
-    std::string dataDevPath = GetStashedPath(infos);
-    if (devPath != infos.devPath) {
-        sourceFd = open(infos.devPath.c_str(), O_RDWR | O_LARGEFILE);
-        targetFd = open(devPath.c_str(), O_RDWR | O_LARGEFILE);
-    } else if (Utils::IsFileExist(dataDevPath) && !targetPartitionPath.empty()) {
-        sourceFd = open(dataDevPath.c_str(), O_RDWR | O_LARGEFILE);
-        targetFd = open(targetPartitionPath.c_str(), O_RDWR | O_LARGEFILE);
+    // need backup partitions
+    if (Utils::IsFileExist(dataDevPath) && !targetPartitionPath.empty()) {
+        fdInfo.sourceFd = open(dataDevPath.c_str(), O_RDWR | O_LARGEFILE);
+        fdInfo.targetFd = open(targetPartitionPath.c_str(), O_RDWR | O_LARGEFILE);
         tm->GetTransferParams()->offset = targetPartitionOffset;
-        tm->GetTransferParams()->noStash = true;
-    } else {
-        sourceFd = open(infos.devPath.c_str(), O_RDWR | O_LARGEFILE);
-        targetFd = sourceFd;
+        fdInfo.usedStashPtn = true;
+        return fdInfo;
     }
+
+    fdInfo.sourceFd = open(infos.devPath.c_str(), O_RDWR | O_LARGEFILE);
+    fdInfo.targetFd = fdInfo.sourceFd;
+    return fdInfo;
+}
+
+int32_t UScriptInstructionBlockUpdate::DoExecuteUpdateBlock(const UpdateBlockInfo &infos, TransferManagerPtr tm,
+    Hpackage::PkgManager::StreamPtr &outStream, const std::vector<std::string> &lines, Uscript::UScriptContext &context)
+{
+    UpdateFdInfo fdInfo = CreateFdInfo(infos, tm);
     auto env = tm->GetTransferParams()->env;
-    if (targetFd == -1 || sourceFd == -1) {
+    if (fdInfo.targetFd == -1 || fdInfo.sourceFd == -1) {
         LOG(ERROR) << "Failed to open block";
+        fdInfo.Close();
         env->GetPkgManager()->ClosePkgStream(outStream);
         return USCRIPT_ERROR_EXECUTE;
     }
-    UpdateFdInfo fdInfo {.sourceFd = sourceFd, .targetFd = targetFd};
     int32_t ret = ExecuteTransferCommand(fdInfo, lines, tm, context, infos);
-    SyncWriteDevPath(targetFd, infos.partitionName);
-    if (sourceFd != targetFd) {
-        close(targetFd);
-    }
-    close(sourceFd);
-    sourceFd = -1;
-    targetFd = -1;
+    SyncWriteDevPath(fdInfo.targetFd, infos.partitionName);
+    fdInfo.Close();
     env->GetPkgManager()->ClosePkgStream(outStream);
     if (ret == USCRIPT_SUCCESS) {
-        HandleUpdateSuccess(infos, dataDevPath, tm->GetTransferParams()->noStash);
+        HandleUpdateSuccess(infos, fdInfo.usedStashPtn);
     }
     return ret;
 }
@@ -530,33 +574,37 @@ bool UScriptInstructionBlockUpdate::GetPartitionInfo(const std::string &partitio
     return true;
 }
 
-void UScriptInstructionBlockUpdate::HandleUpdateSuccess(const UpdateBlockInfo &infos, const std::string &dataDevPath,
-    bool noStash) const
+void UScriptInstructionBlockUpdate::HandleUpdateSuccess(const UpdateBlockInfo &infos, bool usedStashPtn) const
 {
     PartitionRecord::GetInstance().RecordPartitionUpdateStatus(infos.partitionName, true);
 #ifndef UPDATER_UT
-    if (noStash) {
-        Utils::DeleteFile(dataDevPath);
-        LOG(INFO) << "Delete stashed partition " << dataDevPath;
-        std::string doneListPath = std::string(STASHED_PATH) + "/done.list";
-        std::ofstream fout(doneListPath, std::ios::app | std::ios::out);
-        if (fout.is_open()) {
-            fout << infos.partitionName.substr(1) + std::string(IMG_SUFFIX) << "\n";
-            fout.close();
-            LOG(INFO) << "Write to done.list: " << infos.partitionName;
-        } else {
-            LOG(ERROR) << "Failed to open done.list";
-        }
+    if (!usedStashPtn) {
+        return;
     }
-#endif
+    std::string dataDevPath = GetStashedPath(infos);
+    if (!Utils::DeleteFile(dataDevPath)) {
+        LOG(WARNING) << "Failed to delete stashed partition " << dataDevPath;
+    }
+    std::string doneListPath;
+    if (!BuildSafeStashedDevPath("done.list", doneListPath)) {
+        LOG(WARNING) << "Failed to build done.list path";
+        return;
+    }
+    std::ofstream fout(doneListPath, std::ios::app | std::ios::out);
+    if (!fout.is_open()) {
+        LOG(WARNING) << "Failed to open done.list";
+        return;
+    }
+    fout << infos.partitionName.substr(1) + std::string(IMG_SUFFIX) << "\n";
+    fout.close();
     LOG(INFO) << "Update partition " << infos.partitionName << " success";
+#endif
 }
 
 std::string UScriptInstructionBlockUpdate::GetStashedPath(const UpdateBlockInfo &infos) const
 {
-    std::string stashedPath = std::string(STASHED_PATH) + infos.partitionName + std::string(IMG_SUFFIX);
     std::string dataDevPath;
-    Utils::PathToRealPath(stashedPath, dataDevPath);
+    BuildSafeStashedDevPath(infos.partitionName.substr(1), dataDevPath);
     return dataDevPath;
 }
 
@@ -904,11 +952,9 @@ int32_t UScriptInstructionShaCheck::Execute(Uscript::UScriptEnv &env, Uscript::U
 #else
     devPath = "/data/updater" + partitionName;
 #endif
-    std::string stashedPath = std::string(STASHED_PATH) + partitionName + std::string(IMG_SUFFIX);
-    std::string dataDevPath;
-    Utils::PathToRealPath(stashedPath, dataDevPath);
-    if (Utils::IsFileExist(dataDevPath)) {
-        devPath = dataDevPath;
+    std::string stashedDevPath;
+    if (BuildSafeStashedDevPath(partitionName, stashedDevPath) && Utils::IsFileExist(stashedDevPath)) {
+        devPath = stashedDevPath;
     }
     LOG(INFO) << "write partition path: " << devPath;
     ret = ExecReadShaInfo(env, devPath, shaInfo, partitionName);
