@@ -56,7 +56,7 @@ public:
 class PkgStreamImplTest : public PkgTest {
 public:
     PkgStreamImplTest() {}
-    virtual ~PkgStreamImplTest() override {}
+    ~PkgStreamImplTest() override {}
  
 protected:
     void SetUp() override
@@ -72,13 +72,14 @@ protected:
 class FileStreamTest : public PkgTest {
 public:
     FileStreamTest() {}
-    virtual ~FileStreamTest() override {}
+    ~FileStreamTest() override {}
  
 protected:
     void SetUp() override
     {
         PkgTest::SetUp();
-        mkdir("/data/updater", 0755);
+        static const mode_t PERMISSION_DIR = 0755;
+        mkdir("/data/updater", PERMISSION_DIR);
         testFilePath_ = "/data/updater/test_pkg_stream.bin";
         FILE *fp = fopen(testFilePath_.c_str(), "wb");
         if (fp != nullptr) {
@@ -101,16 +102,15 @@ protected:
 class MemoryMapStreamTest : public PkgTest {
 public:
     MemoryMapStreamTest() {}
-    virtual ~MemoryMapStreamTest() override {}
+    ~MemoryMapStreamTest() override {}
  
 protected:
     void SetUp() override
     {
         PkgTest::SetUp();
         constexpr size_t testMemSize = 4096;
-        memBuffer_.buffer = new uint8_t[testMemSize];
+        memBuffer_.buffer = new uint8_t[testSize]{};
         memBuffer_.length = testMemSize;
-        memset(memBuffer_.buffer, 0, testMemSize);
     }
     void TearDown() override
     {
@@ -123,7 +123,7 @@ protected:
 class FlowDataStreamTest : public PkgTest {
 public:
     FlowDataStreamTest() {}
-    virtual ~FlowDataStreamTest() override {}
+    ~FlowDataStreamTest() override {}
  
 protected:
     void SetUp() override
@@ -131,7 +131,7 @@ protected:
         PkgTest::SetUp();
         ringBuf_ = new Updater::RingBuffer();
         if (ringBuf_ != nullptr) {
-            (void)ringBuf_->Init(1024, 4);
+            (void)ringBuf_->Init(1024 /* buffer size in bytes */, 4 /* channel count */);
         }
     }
     void TearDown() override
@@ -545,7 +545,7 @@ HWTEST_F(FlowDataStreamTest, FlowDataStreamGetStreamType, TestSize.Level1)
 class ProcessorStreamTest : public PkgTest {
 public:
     ProcessorStreamTest() {}
-    virtual ~ProcessorStreamTest() override {}
+    ~ProcessorStreamTest() override {}
  
 protected:
     void SetUp() override
@@ -719,7 +719,7 @@ HWTEST_F(FlowDataStreamTest, FlowDataStreamReadWithMemcpyFail, TestSize.Level1)
  
 HWTEST_F(MemoryMapStreamTest, MemoryMapStreamReadWithEmptyDataVector, TestSize.Level1)
 {
-    memcpy(memBuffer_.buffer, "Test data for memory map", 25);
+    strcpy(memBuffer_.buffer, "Test data for memory map", 25);
     MemoryMapStream mms(nullptr, "test.bin", memBuffer_, PkgStream::PkgStreamType_MemoryMap);
     PkgBuffer data;
     data.buffer = nullptr;
@@ -737,7 +737,7 @@ HWTEST_F(MemoryMapStreamTest, MemoryMapStreamWriteWithSizeExceedCopyLen, TestSiz
     constexpr size_t bigSize = 1024 * 1024 * 10;
     memBuffer_.buffer = new uint8_t[bigSize];
     memBuffer_.length = bigSize;
-    memset(memBuffer_.buffer, 0, bigSize);
+    std::fill(memBuffer_.buffer, memBuffer_.buffer + bigSize, 0);
     constexpr size_t largeDataSize = bigSize << 1;
     std::vector<uint8_t> largeData(largeDataSize, 'x');
     PkgBuffer data(largeData.data(), largeDataSize);
@@ -832,14 +832,15 @@ HWTEST_F(FileStreamTest, FileStreamGetStreamTypeWrite, TestSize.Level1)
 class ShmDataStreamTest : public PkgTest {
 public:
     ShmDataStreamTest() : shmId_("ut_test_shm") {}
-    virtual ~ShmDataStreamTest() override {}
+    ~ShmDataStreamTest() override {}
  
 protected:
     void SetUp() override
     {
         PkgTest::SetUp();
         shmInfo_.shmId = shmId_;
-        shmInfo_.fileLen = 1024;
+        const int DefaultFileLength = 1024;
+        shmInfo_.fileLen = DefaultFileLength;
         shmInfo_.offset = 0;
     }
     void TearDown() override
