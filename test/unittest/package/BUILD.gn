@@ -27,6 +27,7 @@ ohos_unittest("package_unittest") {
   ]
   sources = [
     "package_unittest.cpp",
+    "pkg_stream_unittest.cpp",    
     "pkg_algo_unittest.cpp",
     "pkg_manager_unittest.cpp",
     "pkg_package_unittest.cpp",
