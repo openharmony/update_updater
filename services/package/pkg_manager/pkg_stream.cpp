@@ -259,6 +259,22 @@ int32_t ShmDataStream::InitShmRingBuffer()
     return 0;
 }
 
+int32_t ShmDataStream::WaitSemWithTimeout(sem_t &sem)
+{
+    if (timeoutMs_ == 0) {
+        return sem_wait(&sem);
+    }
+    timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ts.tv_sec += timeoutMs_ / MS_PER_SEC;
+    ts.tv_nsec += (timeoutMs_ % MS_PER_SEC) * NS_PER_MS;
+    if (ts.tv_nsec >= NS_PER_SEC) {
+        ts.tv_sec += ts.tv_nsec / NS_PER_SEC;
+        ts.tv_nsec %= NS_PER_SEC;
+    }
+    return sem_timedwait(&sem, &ts);
+}
+ 
 int32_t ShmDataStream::ReadFully(size_t &needReadLen, size_t &readLen, PkgBuffer &data)
 {
     if (rb_ == nullptr) {
@@ -266,7 +282,10 @@ int32_t ShmDataStream::ReadFully(size_t &needReadLen, size_t &readLen, PkgBuffer
         return PKG_INVALID_PARAM;
     }
     while (needReadLen > 0) {
-        sem_wait(&rb_->semFull);
+        if (WaitSemWithTimeout(rb_->semFull) != 0) {
+            PKG_LOGE("WaitSemWithTimeout timeout");
+            return PKG_INVALID_STREAM;
+        }
 
         size_t len = rb_->efficientLen[rb_->head];  // 块实际长度
         if (len == 0) {
@@ -314,7 +333,7 @@ int32_t ShmDataStream::ReadFully(size_t &needReadLen, size_t &readLen, PkgBuffer
 int32_t ShmDataStream::Read(PkgBuffer &data, size_t start, size_t needRead, size_t &readLen)
 {
     if (start != offset_) {
-        PKG_LOGE("offset_ not matched");
+        PKG_LOGE("offset_ not matched %zu", offset_);
         UPDATER_LAST_WORD(PKG_INVALID_STREAM, "offset_ not matched");
         return PKG_INVALID_STREAM;
     }
@@ -366,7 +385,7 @@ int32_t ShmDataStream::Read(PkgBuffer &data, size_t start, size_t needRead, size
 int32_t ShmDataStream::Write(const PkgBuffer &data, size_t size, size_t start)
 {
     if (start != offset_) {
-        PKG_LOGE("offset_ not matched");
+        PKG_LOGE("offset_ not matched %zu", offset_);
         UPDATER_LAST_WORD(PKG_INVALID_STREAM, "offset_ not matched");
         return PKG_INVALID_STREAM;
     }
@@ -383,7 +402,11 @@ int32_t ShmDataStream::Write(const PkgBuffer &data, size_t size, size_t start)
     size_t needWriteLen = size;
     size_t writedLen = 0;
     while (needWriteLen > 0) {
-        sem_wait(&rb_->semEmpty);
+        if (WaitSemWithTimeout(rb_->semEmpty) != 0) {
+            PKG_LOGE("WaitSemWithTimeout timeout");
+            UPDATER_LAST_WORD(PKG_INVALID_STREAM, "WaitSemWithTimeout timeout");
+            return PKG_INVALID_STREAM;
+        }
  
         size_t len = needWriteLen < SINGLE_BLOCK_SIZE ? needWriteLen : SINGLE_BLOCK_SIZE;
         size_t offset = rb_->tail * SINGLE_BLOCK_SIZE;

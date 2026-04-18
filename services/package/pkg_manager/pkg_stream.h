@@ -124,6 +124,9 @@ private:
 constexpr size_t BLOCK_NUM = 32;
 constexpr size_t SINGLE_BLOCK_SIZE = 50 * 1024;
 constexpr size_t RING_BUFFER_SIZE = BLOCK_NUM * SINGLE_BLOCK_SIZE;
+constexpr long NS_PER_MS = 1000000L;
+constexpr long NS_PER_SEC = 1000000000L;
+constexpr size_t MS_PER_SEC = 1000;
 
 struct ShmRingBuffer {
     sem_t semEmpty;                     // 空闲块信号量
@@ -146,8 +149,8 @@ struct ShmInfo {
 class ShmDataStream : public PkgStreamImpl {
 public:
     ShmDataStream(PkgManager::PkgManagerPtr pkgManager, const std::string &fileName, const ShmInfo &shmInfo,
-        int32_t streamType) : PkgStreamImpl(pkgManager, fileName), shmId_(shmInfo.shmId), streamType_(streamType),
-        pkgLen_(shmInfo.fileLen), offset_(shmInfo.offset) {}
+        int32_t streamType, size_t timeoutMs = 0) : PkgStreamImpl(pkgManager, fileName), shmId_(shmInfo.shmId),
+        streamType_(streamType), pkgLen_(shmInfo.fileLen), offset_(shmInfo.offset), timeoutMs_(timeoutMs) {}
 
     ~ShmDataStream() override
     {
@@ -200,11 +203,13 @@ public:
 
 private:
     int32_t ReadFully(size_t &needReadLen, size_t &readLen, PkgBuffer &data);
+    int32_t WaitSemWithTimeout(sem_t &sem);
     ShmRingBuffer* rb_ = nullptr;
     std::string shmId_;
     int32_t streamType_;
     size_t pkgLen_ = 0; // 整包大小
     size_t offset_ = 0; // 偏移
+    size_t timeoutMs_ = 0; // 信号量超时时间(ms)，0表示永不超时
 };
 #endif
 
