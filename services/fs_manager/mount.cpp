@@ -294,13 +294,7 @@ static int WriteZeroData(int fileFd, uint64_t partitionSize)
     size_t sectorSize = 0;
     ssize_t bytesWritten = 0;
 
-    unsigned long long sectorSizeTemp = 0;
-    if (ioctl(fileFd, BLKSSZGET, &sectorSizeTemp) == -1) {
-        LOG(ERROR) << "failed to get sector size.";
-        return -1;
-    }
-
-    sectorSize = static_cast<size_t>(sectorSizeTemp);
+    sectorSize = 4096; // 4096 bytes: length of write
     std::unique_ptr<char[]> buffer = std::make_unique<char[]>(sectorSize);
     (void)memset_s(buffer.get(), sectorSize, 0, sectorSize);
 
