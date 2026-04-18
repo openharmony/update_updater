@@ -721,7 +721,7 @@ HWTEST_F(FlowDataStreamTest, FlowDataStreamReadWithMemcpyFail, TestSize.Level1)
  
 HWTEST_F(MemoryMapStreamTest, MemoryMapStreamReadWithEmptyDataVector, TestSize.Level1)
 {
-    strncpy(memBuffer_.buffer, "Test data for memory map", 25);
+    strncpy_s(memBuffer_.buffer, sizeof(memBuffer_.buffer), "Test data for memory map", _TRUNCATE);
     MemoryMapStream mms(nullptr, "test.bin", memBuffer_, PkgStream::PkgStreamType_MemoryMap);
     PkgBuffer data;
     data.buffer = nullptr;
