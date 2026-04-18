@@ -15,6 +15,7 @@
 #include "update_image_block.h"
 #include <cerrno>
 #include <fcntl.h>
+#include <fstream>
 #include <pthread.h>
 #include <sstream>
 #include <sys/stat.h>
@@ -28,6 +29,9 @@
 #include "fs_manager/mount.h"
 #include "log/dump.h"
 #include "log/log.h"
+#ifdef UPDATER_USE_PTABLE
+#include "ptable_manager.h"
+#endif
 #include "updater/updater_const.h"
 #include "updater/hardware_fault_retry.h"
 #include "utils.h"
@@ -46,6 +50,8 @@ constexpr int32_t SHA_CHECK_TARGETSHA_INDEX = 4;
 constexpr int32_t SHA_CHECK_TARGET_PARAMS = 5;
 constexpr int32_t SHA_DELAY_MILLIS_SECOND = 1;
 constexpr int32_t SHA_DELAY_CYCLE_COUNT = 250;
+constexpr const char *STASHED_PATH = "/data/updater/partitions";
+constexpr const char *IMG_SUFFIX = ".img";
 
 __attribute__((weak)) void GetWriteDevPath(const std::string &path, [[maybe_unused]] const std::string &partitionName,
     std::string &devPath)
@@ -65,6 +71,47 @@ __attribute__((weak)) void SyncWriteDevPath(int fd, [[maybe_unused]] const std::
         LOG(ERROR) << "fsync failed for " << partitionName;
     }
     return;
+}
+
+void UpdateFdInfo::Close()
+{
+    if (sourceFd == targetFd && sourceFd != -1) {
+        close(sourceFd);
+        sourceFd = -1;
+        targetFd = -1;
+        return;
+    }
+    if (sourceFd != -1) {
+        close(sourceFd);
+        sourceFd = -1;
+    }
+    if (targetFd != -1) {
+        close(targetFd);
+        targetFd = -1;
+    }
+}
+
+static bool BuildSafeStashedDevPath(const std::string &subPath, std::string &stashedDevPath)
+{
+    const std::string prefix = std::string(STASHED_PATH) + "/";
+    std::string fullPath = prefix + subPath + std::string(IMG_SUFFIX);
+    if (!Utils::PathToRealPath(fullPath, stashedDevPath)) {
+        LOG(WARNING) << "Failed to build stashed dev path for " << subPath;
+        return false;
+    }
+    if (stashedDevPath.find(prefix) != 0) {
+        LOG(WARNING) << "Invalid stashed dev path for " << subPath;
+        return false;
+    }
+    return true;
+}
+
+static std::string GetPartName(const std::string &partitionName)
+{
+    if (partitionName.empty()) {
+        return "";
+    }
+    return partitionName[0] == '/' ? partitionName.substr(1) : partitionName;
 }
 
 static int ExtractNewData(const PkgBuffer &buffer, size_t size, size_t start, bool isFinish, const void* context)
@@ -153,13 +200,13 @@ void* UnpackNewData(void *arg)
     return nullptr;
 }
 
-static int32_t ReturnAndPushParam(int32_t returnValue, Uscript::UScriptContext &context)
+int32_t ReturnAndPushParam(int32_t returnValue, Uscript::UScriptContext &context)
 {
     context.PushParam(returnValue);
     return returnValue;
 }
 
-static int32_t GetUpdateBlockInfo(struct UpdateBlockInfo &infos, Uscript::UScriptEnv &env,
+int32_t UScriptInstructionBlockUpdate::GetUpdateBlockInfo(struct UpdateBlockInfo &infos, Uscript::UScriptEnv &env,
     Uscript::UScriptContext &context)
 {
     if (context.GetParamCount() != 4) { // 4:Determine the number of parameters
@@ -211,12 +258,21 @@ static int32_t GetUpdateBlockInfo(struct UpdateBlockInfo &infos, Uscript::UScrip
     return USCRIPT_SUCCESS;
 }
 
-static int32_t ExecuteTransferCommand(int fd, const std::vector<std::string> &lines, TransferManagerPtr tm,
-    Uscript::UScriptContext &context, const UpdateBlockInfo &infos)
+bool UScriptInstructionBlockUpdate::ExecuteTransferCommands(TransferManagerPtr tm, const UpdateFdInfo &fdInfo,
+    const UpdateBlockInfo &infos, const std::vector<std::string> &lines)
+{
+    if (tm == nullptr) {
+        LOG(ERROR) << "TransferManager is nullptr";
+        return false;
+    }
+    return tm->CommandsParser(fdInfo.sourceFd, fdInfo.targetFd, lines);
+}
+
+int32_t UScriptInstructionBlockUpdate::ExecuteTransferCommand(const UpdateFdInfo &fdInfo,
+    const std::vector<std::string> &lines, TransferManagerPtr tm, Uscript::UScriptContext &context,
+    const UpdateBlockInfo &infos)
 {
     auto transferParams = tm->GetTransferParams();
-    auto writerThreadInfo = transferParams->writerThreadInfo.get();
-
     transferParams->storeBase = std::string("/data/updater") + infos.partitionName + "_tmp";
     transferParams->retryFile = std::string("/data/updater") + infos.partitionName + "_retry";
     transferParams->devPath = infos.devPath;
@@ -228,9 +284,24 @@ static int32_t ExecuteTransferCommand(int fd, const std::vector<std::string> &li
     }
     transferParams->storeCreated = ret;
 
-    if (!tm->CommandsParser(fd, lines)) {
+    if (!ExecuteTransferCommands(tm, fdInfo, infos, lines)) {
         return USCRIPT_ERROR_EXECUTE;
     }
+    JoinThread(tm);
+    if (transferParams->storeCreated != -1) {
+        Store::DoFreeSpace(transferParams->storeBase);
+    }
+    return USCRIPT_SUCCESS;
+}
+
+void UScriptInstructionBlockUpdate::JoinThread(TransferManagerPtr tm)
+{
+    if (tm == nullptr) {
+        LOG(ERROR) << "transfermanager is null";
+        return;
+    }
+    auto transferParams = tm->GetTransferParams();
+    auto writerThreadInfo = transferParams->writerThreadInfo.get();
     pthread_mutex_lock(&writerThreadInfo->mutex);
     if (writerThreadInfo->readyToWrite) {
         LOG(WARNING) << "New data writer thread is still available...";
@@ -239,20 +310,18 @@ static int32_t ExecuteTransferCommand(int fd, const std::vector<std::string> &li
     writerThreadInfo->readyToWrite = false;
     pthread_cond_broadcast(&writerThreadInfo->cond);
     pthread_mutex_unlock(&writerThreadInfo->mutex);
-    ret = pthread_join(transferParams->thread, nullptr);
+    int32_t ret = pthread_join(transferParams->thread, nullptr);
+
     std::ostringstream logMessage;
     logMessage << "pthread join returned with " << ret;
     if (ret != 0) {
         LOG(WARNING) << logMessage.str();
     }
-    if (transferParams->storeCreated != -1) {
-        Store::DoFreeSpace(transferParams->storeBase);
-    }
-    return USCRIPT_SUCCESS;
 }
 
-static int InitThread(const struct UpdateBlockInfo &infos, TransferManagerPtr tm)
+int UScriptInstructionBlockUpdate::InitThread(const struct UpdateBlockInfo &infos, TransferManagerPtr tm)
 {
+    LOG(INFO) << "Ready to start a thread to handle new data processing";
     auto transferParams = tm->GetTransferParams();
     auto writerThreadInfo = transferParams->writerThreadInfo.get();
     writerThreadInfo->readyToWrite = true;
@@ -266,7 +335,7 @@ static int InitThread(const struct UpdateBlockInfo &infos, TransferManagerPtr tm
     return error;
 }
 
-static int32_t ExtractDiffPackageAndLoad(const UpdateBlockInfo &infos, Uscript::UScriptEnv &env,
+int32_t UScriptInstructionBlockUpdate::ExtractDiffPackageAndLoad(const UpdateBlockInfo &infos, Uscript::UScriptEnv &env,
     Uscript::UScriptContext &context)
 {
     Hpackage::PkgManager::StreamPtr outStream = nullptr;
@@ -306,25 +375,56 @@ static int32_t ExtractDiffPackageAndLoad(const UpdateBlockInfo &infos, Uscript::
     return USCRIPT_SUCCESS;
 }
 
-static int32_t DoExecuteUpdateBlock(const UpdateBlockInfo &infos, TransferManagerPtr tm,
-    Hpackage::PkgManager::StreamPtr &outStream, const std::vector<std::string> &lines, Uscript::UScriptContext &context)
+UpdateFdInfo UScriptInstructionBlockUpdate::CreateFdInfo(const UpdateBlockInfo &infos, TransferManagerPtr tm)
 {
+    UpdateFdInfo fdInfo;
     std::string devPath = "";
     GetWriteDevPath(infos.devPath, infos.partitionName, devPath);
-    int fd = open(devPath.c_str(), O_RDWR | O_LARGEFILE);
+    std::string dataDevPath = GetStashedPath(infos);
+    // ab or vab
+    if (devPath != infos.devPath) {
+        fdInfo.sourceFd = open(infos.devPath.c_str(), O_RDWR | O_LARGEFILE);
+        fdInfo.targetFd = open(devPath.c_str(), O_RDWR | O_LARGEFILE);
+        return fdInfo;
+    }
+
+    std::string targetPartitionPath = infos.devPath;
+    size_t targetPartitionOffset = 0;
+    if (!GetPartitionInfo(infos.partitionName, targetPartitionPath, targetPartitionOffset)) {
+        LOG(ERROR) << "cannot find device path for partition " << infos.partitionName;
+        return fdInfo;
+    }
+    // need backup partitions
+    if (Utils::IsFileExist(dataDevPath) && !targetPartitionPath.empty()) {
+        fdInfo.sourceFd = open(dataDevPath.c_str(), O_RDWR | O_LARGEFILE);
+        fdInfo.targetFd = open(targetPartitionPath.c_str(), O_RDWR | O_LARGEFILE);
+        tm->GetTransferParams()->offset = targetPartitionOffset;
+        usedStashPtn_ = true;
+        return fdInfo;
+    }
+
+    fdInfo.sourceFd = open(infos.devPath.c_str(), O_RDWR | O_LARGEFILE);
+    fdInfo.targetFd = fdInfo.sourceFd;
+    return fdInfo;
+}
+
+int32_t UScriptInstructionBlockUpdate::DoExecuteUpdateBlock(const UpdateBlockInfo &infos, TransferManagerPtr tm,
+    Hpackage::PkgManager::StreamPtr &outStream, const std::vector<std::string> &lines, Uscript::UScriptContext &context)
+{
+    UpdateFdInfo fdInfo = CreateFdInfo(infos, tm);
     auto env = tm->GetTransferParams()->env;
-    if (fd == -1) {
+    if (fdInfo.targetFd == -1 || fdInfo.sourceFd == -1) {
         LOG(ERROR) << "Failed to open block";
+        fdInfo.Close();
         env->GetPkgManager()->ClosePkgStream(outStream);
         return USCRIPT_ERROR_EXECUTE;
     }
-    int32_t ret = ExecuteTransferCommand(fd, lines, tm, context, infos);
-    SyncWriteDevPath(fd, infos.partitionName);
-    close(fd);
-    fd = -1;
+    int32_t ret = ExecuteTransferCommand(fdInfo, lines, tm, context, infos);
+    SyncWriteDevPath(fdInfo.targetFd, infos.partitionName);
+    fdInfo.Close();
     env->GetPkgManager()->ClosePkgStream(outStream);
     if (ret == USCRIPT_SUCCESS) {
-        PartitionRecord::GetInstance().RecordPartitionUpdateStatus(infos.partitionName, true);
+        HandleUpdateSuccess(infos);
     }
     return ret;
 }
@@ -388,7 +488,21 @@ static int32_t ExtractPatchDatFile(Uscript::UScriptEnv &env, const UpdateBlockIn
     return USCRIPT_SUCCESS;
 }
 
-static int32_t ExecuteUpdateBlock(Uscript::UScriptEnv &env, Uscript::UScriptContext &context)
+int32_t UScriptInstructionBlockUpdate::ExtractPatchFile(Uscript::UScriptEnv &env, const UpdateBlockInfo &infos,
+    Hpackage::PkgManager::StreamPtr outStream, TransferParams *transferParams)
+{
+    if (transferParams == nullptr) {
+        LOG(ERROR) << "transfer param is null";
+        return USCRIPT_ERROR_EXECUTE;
+    }
+    LOG(INFO) << "Start unpack new data thread done. Get patch data: " << infos.patchDataName;
+    transferParams->isUpdaterMode = Utils::IsUpdaterMode();
+    return transferParams->isUpdaterMode ? ExtractFileByName(env, infos.patchDataName, outStream,
+        transferParams->dataBuffer, transferParams->dataBufferSize) : ExtractPatchDatFile(env,
+            infos, outStream, transferParams->patchDatFile);
+}
+
+int32_t UScriptInstructionBlockUpdate::ExecuteUpdateBlock(Uscript::UScriptEnv &env, Uscript::UScriptContext &context)
 {
     UpdateBlockInfo infos {};
     if (GetUpdateBlockInfo(infos, env, context) != USCRIPT_SUCCESS) {
@@ -427,16 +541,10 @@ static int32_t ExecuteUpdateBlock(Uscript::UScriptEnv &env, Uscript::UScriptCont
     // Close stream opened before.
     env.GetPkgManager()->ClosePkgStream(outStream);
 
-    LOG(INFO) << "Start unpack new data thread done. Get patch data: " << infos.patchDataName;
-    transferParams->isUpdaterMode = Utils::IsUpdaterMode();
-    int ret = transferParams->isUpdaterMode ? ExtractFileByName(env, infos.patchDataName, outStream,
-        transferParams->dataBuffer, transferParams->dataBufferSize) : ExtractPatchDatFile(env,
-        infos, outStream, transferParams->patchDatFile);
-    if (ret != USCRIPT_SUCCESS) {
+    if (ExtractPatchFile(env, infos, outStream, transferParams) != USCRIPT_SUCCESS) {
         return USCRIPT_ERROR_EXECUTE;
     }
 
-    LOG(INFO) << "Ready to start a thread to handle new data processing";
     if (InitThread(infos, tm.get()) != 0) {
         LOG(ERROR) << "Failed to create pthread";
         env.GetPkgManager()->ClosePkgStream(outStream);
@@ -452,6 +560,64 @@ int32_t UScriptInstructionBlockUpdate::Execute(Uscript::UScriptEnv &env, Uscript
     int32_t result = ExecuteUpdateBlock(env, context);
     context.PushParam(result);
     return result;
+}
+
+bool UScriptInstructionBlockUpdate::GetPartitionInfo(const std::string &partition, std::string &partitionPath,
+    size_t &partitionOffset) const
+{
+#ifdef UPDATER_USE_PTABLE
+    DevicePtable &devicePtb = DevicePtable::GetInstance();
+    Ptable::PtnInfo ptnInfo;
+    if (!devicePtb.GetPartionInfoByName(partition, ptnInfo)) {
+        return false;
+    }
+    partitionPath = ptnInfo.writePath;
+    partitionOffset = ptnInfo.startAddr;
+#endif
+    return true;
+}
+
+void UScriptInstructionBlockUpdate::HandleUpdateSuccess(const UpdateBlockInfo &infos) const
+{
+    PartitionRecord::GetInstance().RecordPartitionUpdateStatus(infos.partitionName, true);
+#ifndef UPDATER_UT
+    if (!usedStashPtn_) {
+        return;
+    }
+    std::string dataDevPath = GetStashedPath(infos);
+    if (!Utils::DeleteFile(dataDevPath)) {
+        LOG(WARNING) << "Failed to delete stashed partition " << dataDevPath;
+    }
+    std::string doneListPath;
+    if (!BuildSafeStashedDevPath("done.list", doneListPath)) {
+        LOG(WARNING) << "Failed to build done.list path";
+        return;
+    }
+    std::ofstream fout(doneListPath, std::ios::app | std::ios::out);
+    if (!fout.is_open()) {
+        LOG(WARNING) << "Failed to open done.list";
+        return;
+    }
+    fout << GetPartName(infos.partitionName) + std::string(IMG_SUFFIX) << "\n";
+    fout.flush();
+    fout.close();
+    int fd = open(doneListPath.c_str(), O_RDWR);
+    if (fd < 0) {
+        LOG(WARNING) << "Failed to sync done.list";
+    } else {
+        fsync(fd);
+        close(fd);
+        fd = -1;
+    }
+    LOG(INFO) << "Update partition " << infos.partitionName << " success";
+#endif
+}
+
+std::string UScriptInstructionBlockUpdate::GetStashedPath(const UpdateBlockInfo &infos) const
+{
+    std::string dataDevPath;
+    BuildSafeStashedDevPath(GetPartName(infos.partitionName), dataDevPath);
+    return dataDevPath;
 }
 
 bool UScriptInstructionBlockCheck::ExecReadBlockInfo(const std::string &devPath, Uscript::UScriptContext &context,
@@ -542,14 +708,6 @@ int32_t UScriptInstructionBlockCheck::Execute(Uscript::UScriptEnv &env, Uscript:
     return USCRIPT_SUCCESS;
 }
 
-static std::string GetPartName(const std::string &partitionName)
-{
-    if (partitionName.empty()) {
-        return "";
-    }
-    return partitionName[0] == '/' ? partitionName.substr(1) : partitionName;
-}
-
 int32_t UScriptInstructionShaCheck::DoBlocksVerify(Uscript::UScriptEnv &env, const std::string &partitionName,
     const std::string &devPath)
 {
@@ -590,7 +748,7 @@ int32_t UScriptInstructionShaCheck::DoBlocksVerify(Uscript::UScriptEnv &env, con
         LOG(ERROR) << "Failed to open block";
         return USCRIPT_ERROR_EXECUTE;
     }
-    if (!tm->CommandsParser(fd, lines)) {
+    if (!tm->CommandsParser(fd, fd, lines)) {
         close(fd);
         LOG(ERROR) << "Failed to block verify";
         return USCRIPT_ERROR_EXECUTE;
@@ -795,10 +953,14 @@ int32_t UScriptInstructionShaCheck::Execute(Uscript::UScriptEnv &env, Uscript::U
         std::string suffix = Utils::GetUpdateSuffix();
         devPath += suffix;
     }
-    LOG(INFO) << "write partition path: " << devPath;
 #else
     devPath = "/data/updater" + partitionName;
 #endif
+    std::string stashedDevPath;
+    if (BuildSafeStashedDevPath(partitionName, stashedDevPath) && Utils::IsFileExist(stashedDevPath)) {
+        devPath = stashedDevPath;
+    }
+    LOG(INFO) << "write partition path: " << devPath;
     ret = ExecReadShaInfo(env, devPath, shaInfo, partitionName);
     return ReturnAndPushParam(ret, context);
 }

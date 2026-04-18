@@ -40,6 +40,11 @@ BlockSet::BlockSet()
     offset_ = 0;
 }
 
+BlockSet::BlockSet(size_t offset)
+{
+    offset_ = offset;
+}
+
 BlockSet::BlockSet(std::vector<BlockPair> &&pairs)
 {
     blockSize_ = 0;
@@ -420,7 +425,7 @@ int32_t BlockSet::WriteZeroToBlock(int fd, bool isErase)
 
     auto iter = blocks_.begin();
     while (iter != blocks_.end()) {
-        off64_t offset = static_cast<off64_t>(iter->first * H_BLOCK_SIZE);
+        off64_t offset = static_cast<off64_t>(iter->first * H_BLOCK_SIZE + offset_);
         int ret = 0;
 
         if (isErase && Utils::IsUpdaterMode()) {
@@ -463,7 +468,7 @@ int32_t BlockSet::WriteDiffToBlock(const Command &cmd, std::vector<uint8_t> &sou
     if (isImgDiff) {
         std::vector<uint8_t> empty;
         UpdatePatch::PatchParam patchParam = {sourceBuffer.data(), srcBuffSize, patchBuffer, patchLength};
-        std::unique_ptr<BlockWriter> writer = std::make_unique<BlockWriter>(cmd.GetTargetFileDescriptor(), *this);
+        auto writer = std::make_unique<BlockWriter>(cmd.GetTargetFileDescriptor(), offset_, *this);
         if (writer.get() == nullptr) {
             LOG(ERROR) << "Cannot create block writer, pkgdiff patch abort!";
             return -1;
@@ -480,7 +485,7 @@ int32_t BlockSet::WriteDiffToBlock(const Command &cmd, std::vector<uint8_t> &sou
     } else {
         LOG(DEBUG) << "Run bsdiff patch.";
         UpdatePatch::PatchBuffer patchInfo = {patchBuffer, 0, patchLength};
-        std::unique_ptr<BlockWriter> writer = std::make_unique<BlockWriter>(cmd.GetTargetFileDescriptor(), *this);
+        auto writer = std::make_unique<BlockWriter>(cmd.GetTargetFileDescriptor(), offset_, *this);
         if (writer.get() == nullptr) {
             LOG(ERROR) << "Cannot create block writer, pkgdiff patch abort!";
             return -1;
@@ -520,7 +525,7 @@ bool BlockSet::CompareDataFromBlock(int fd, const std::vector<uint8_t> &buffer) 
     for (size_t i = 0; i < blocks_.size(); ++i) {
         const BlockPair &block = blocks_[i];
         const size_t blockBytes = (block.second - block.first) * blockSize;
-        if (lseek64(fd, static_cast<off64_t>(block.first * blockSize), SEEK_SET) == -1) {
+        if (lseek64(fd, static_cast<off64_t>(block.first * blockSize + offset_), SEEK_SET) == -1) {
             LOG(ERROR) << "Seek error. index: " << i << ", block(" << block.first << "," << block.second << ")";
             return false;
         }

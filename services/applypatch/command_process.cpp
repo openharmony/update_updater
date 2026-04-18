@@ -50,7 +50,8 @@ CommandResult NewCommandFn::Execute(const Command &params)
     LOG(DEBUG) << " writing " << bs.TotalBlockSize() << " blocks of new data";
     auto writerThreadInfo = params.GetTransferParams()->writerThreadInfo.get();
     pthread_mutex_lock(&writerThreadInfo->mutex);
-    writerThreadInfo->writer = std::make_unique<BlockWriter>(params.GetTargetFileDescriptor(), bs);
+    size_t offset = params.GetTransferParams()->offset;
+    writerThreadInfo->writer = std::make_unique<BlockWriter>(params.GetTargetFileDescriptor(), offset, bs);
     pthread_cond_broadcast(&writerThreadInfo->cond);
     while (writerThreadInfo->writer != nullptr) {
         LOG(DEBUG) << "wait for new data write done...";
@@ -133,7 +134,8 @@ CommandResult ZeroAndEraseCommandFn::Execute(const Command &params)
 #endif
     }
 
-    BlockSet blk;
+    size_t offset = params.GetTransferParams()->offset;
+    BlockSet blk(offset);
     blk.ParserAndInsert(params.GetArgumentByPos(1));
     LOG(INFO) << "Parser params to block set";
     auto ret = CommandResult(blk.WriteZeroToBlock(params.GetTargetFileDescriptor(), isErase));
@@ -225,7 +227,7 @@ CommandResult DiffAndMoveCommandFn::Execute(const Command &params)
         pos = H_COPY_CMD_ARGS_START;
     }
 
-    BlockSet targetBlock;
+    BlockSet targetBlock(params.GetTransferParams()->offset);
     std::vector<uint8_t> buffer;
     CommandResult result = FAILED;
     if (!LoadTarget(params, pos, buffer, targetBlock, result) || !params.GetTransferParams()->canWrite) {
