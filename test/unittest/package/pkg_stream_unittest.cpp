@@ -78,8 +78,8 @@ protected:
     void SetUp() override
     {
         PkgTest::SetUp();
-        static const mode_t PERMISSION_DIR = 0755;
-        mkdir("/data/updater", PERMISSION_DIR);
+        static const mode_t permissionDir = 0755;
+        mkdir("/data/updater", permissionDir);
         testFilePath_ = "/data/updater/test_pkg_stream.bin";
         FILE *fp = fopen(testFilePath_.c_str(), "wb");
         if (fp != nullptr) {
@@ -131,7 +131,9 @@ protected:
         PkgTest::SetUp();
         ringBuf_ = new Updater::RingBuffer();
         if (ringBuf_ != nullptr) {
-            (void)ringBuf_->Init(1024 /* buffer size in bytes */, 4 /* channel count */);
+            const int bufferSize = 1024;
+            const int channelCount = 4;
+            (void)ringBuf_->Init(bufferSize, channelCount);
         }
     }
     void TearDown() override
@@ -363,7 +365,7 @@ HWTEST_F(MemoryMapStreamTest, MemoryMapStreamReadWithInsufficientBuffer, TestSiz
  
 HWTEST_F(MemoryMapStreamTest, MemoryMapStreamReadSuccess, TestSize.Level1)
 {
-    memcpy(memBuffer_.buffer, "Test data for memory map", 25);
+    strncpy(memBuffer_.buffer, "Test data for memory map", 25);
     MemoryMapStream mms(nullptr, "test.bin", memBuffer_, PkgStream::PkgStreamType_MemoryMap);
     PkgBuffer data(100);
     data.data.resize(100);
@@ -719,7 +721,7 @@ HWTEST_F(FlowDataStreamTest, FlowDataStreamReadWithMemcpyFail, TestSize.Level1)
  
 HWTEST_F(MemoryMapStreamTest, MemoryMapStreamReadWithEmptyDataVector, TestSize.Level1)
 {
-    strcpy(memBuffer_.buffer, "Test data for memory map", 25);
+    strncpy(memBuffer_.buffer, "Test data for memory map", 25);
     MemoryMapStream mms(nullptr, "test.bin", memBuffer_, PkgStream::PkgStreamType_MemoryMap);
     PkgBuffer data;
     data.buffer = nullptr;
@@ -839,8 +841,8 @@ protected:
     {
         PkgTest::SetUp();
         shmInfo_.shmId = shmId_;
-        const int DefaultFileLength = 1024;
-        shmInfo_.fileLen = DefaultFileLength;
+        const int defaultFileLength = 1024;
+        shmInfo_.fileLen = defaultFileLength;
         shmInfo_.offset = 0;
     }
     void TearDown() override
