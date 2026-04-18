@@ -109,7 +109,7 @@ protected:
     {
         PkgTest::SetUp();
         constexpr size_t testMemSize = 4096;
-        memBuffer_.buffer = new uint8_t[testSize]{};
+        memBuffer_.buffer = new uint8_t[testMemSize]{};
         memBuffer_.length = testMemSize;
     }
     void TearDown() override
@@ -365,7 +365,7 @@ HWTEST_F(MemoryMapStreamTest, MemoryMapStreamReadWithInsufficientBuffer, TestSiz
  
 HWTEST_F(MemoryMapStreamTest, MemoryMapStreamReadSuccess, TestSize.Level1)
 {
-    strncpy_s(memBuffer_.buffer, sizeof(memBuffer_.buffer), "Test data for memory map", _TRUNCATE);
+    strncpy_s(memBuffer_.buffer, sizeof(memBuffer_.buffer), "Test data for memory map", 25);
     MemoryMapStream mms(nullptr, "test.bin", memBuffer_, PkgStream::PkgStreamType_MemoryMap);
     PkgBuffer data(100);
     data.data.resize(100);
@@ -721,7 +721,7 @@ HWTEST_F(FlowDataStreamTest, FlowDataStreamReadWithMemcpyFail, TestSize.Level1)
  
 HWTEST_F(MemoryMapStreamTest, MemoryMapStreamReadWithEmptyDataVector, TestSize.Level1)
 {
-    strncpy_s(memBuffer_.buffer, sizeof(memBuffer_.buffer), "Test data for memory map", _TRUNCATE);
+    strncpy_s(memBuffer_.buffer, sizeof(memBuffer_.buffer), "Test data for memory map", 25);
     MemoryMapStream mms(nullptr, "test.bin", memBuffer_, PkgStream::PkgStreamType_MemoryMap);
     PkgBuffer data;
     data.buffer = nullptr;
