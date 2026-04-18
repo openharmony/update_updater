@@ -32,7 +32,6 @@ struct UpdateBlockInfo {
 struct UpdateFdInfo {
     int sourceFd {-1};
     int targetFd {-1};
-    bool usedStashPtn {false};
 
     void Close();
 };
@@ -61,8 +60,10 @@ private:
     virtual int32_t ExtractPatchFile(Uscript::UScriptEnv &env, const UpdateBlockInfo &infos,
         Hpackage::PkgManager::StreamPtr outStream, TransferParams *transferParams);
     bool GetPartitionInfo(const std::string &partition, std::string &partitionPath, size_t &partitionOffset) const;
-    void HandleUpdateSuccess(const UpdateBlockInfo &infos, bool usedStashPtn) const;
+    void HandleUpdateSuccess(const UpdateBlockInfo &infos) const;
     std::string GetStashedPath(const UpdateBlockInfo &infos) const;
+
+    bool usedStashPtn_ {false};
 };
 
 class UScriptInstructionBlockCheck : public Uscript::UScriptInstruction {
