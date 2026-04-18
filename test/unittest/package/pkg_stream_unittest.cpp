@@ -365,7 +365,7 @@ HWTEST_F(MemoryMapStreamTest, MemoryMapStreamReadWithInsufficientBuffer, TestSiz
  
 HWTEST_F(MemoryMapStreamTest, MemoryMapStreamReadSuccess, TestSize.Level1)
 {
-    strncpy(memBuffer_.buffer, "Test data for memory map", 25);
+    strncpy_s(memBuffer_.buffer, sizeof(memBuffer_.buffer), "Test data for memory map", _TRUNCATE);
     MemoryMapStream mms(nullptr, "test.bin", memBuffer_, PkgStream::PkgStreamType_MemoryMap);
     PkgBuffer data(100);
     data.data.resize(100);
