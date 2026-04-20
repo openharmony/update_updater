@@ -167,7 +167,7 @@ public:
 
     void Stop() override;
 
-    void Exit();
+    bool Exit();
 
     int32_t Seek(long int size, int whence) override
     {

@@ -440,22 +440,24 @@ void ShmDataStream::Stop()
     rb_ = nullptr;
 }
 
-void ShmDataStream::Exit()
+bool ShmDataStream::Exit()
 {
     if (rb_ == nullptr) {
         PKG_LOGE("rb_ is nullptr");
-        return;
+        return false;
     }
     sem_destroy(&rb_->semEmpty);
     sem_destroy(&rb_->semFull);
     if (munmap(rb_, sizeof(RingBuffer)) != 0) {
         PKG_LOGE("munmap failed : %s", strerror(errno));
-        return;
+        return false;
     }
     rb_ = nullptr;
     if (shm_unlink(shmId_.c_str()) != 0) {
         PKG_LOGE("shm_unlink failed : %s", strerror(errno));
+        return false;
     }
+    return true;
 }
 #endif
 
