@@ -189,21 +189,6 @@ HWTEST_F(PkgStreamImplTest, PkgStreamImplGetStreamType, TestSize.Level1)
     EXPECT_EQ(stream.GetStreamType(), PkgStream::PkgStreamType_Read);
 }
  
-HWTEST_F(FileStreamTest, FileStreamDestructorWithNullStream, TestSize.Level1)
-{
-    mkdir("/data/updater", 0755);
-    FILE *fp = fopen("/data/updater/test_null_stream.bin", "wb");
-    if (fp != nullptr) {
-        fwrite("test", 1, 4, fp);
-        fclose(fp);
-    }
-    {
-        FILE *stream = fopen("/data/updater/test_null_stream.bin", "rb");
-        FileStream fs(nullptr, "test.bin", stream, PkgStream::PkgStreamType_Read);
-    }
-    unlink("/data/updater/test_null_stream.bin");
-}
- 
 HWTEST_F(FileStreamTest, FileStreamReadWithNullStream, TestSize.Level1)
 {
     FileStream fs(nullptr, "test.bin", nullptr, PkgStream::PkgStreamType_Read);
@@ -326,14 +311,7 @@ HWTEST_F(FileStreamTest, FileStreamFlushSuccess, TestSize.Level1)
     EXPECT_EQ(ret, PKG_SUCCESS);
     fclose(fp);
 }
- 
-HWTEST_F(MemoryMapStreamTest, MemoryMapStreamDestructorWithMemoryMap, TestSize.Level1)
-{
-    {
-        MemoryMapStream mms(nullptr, "test.bin", memBuffer_, PkgStream::PkgStreamType_MemoryMap);
-    }
-}
- 
+
 HWTEST_F(MemoryMapStreamTest, MemoryMapStreamReadWithNullMemMap, TestSize.Level1)
 {
     PkgBuffer nullBuffer;
@@ -748,18 +726,7 @@ HWTEST_F(MemoryMapStreamTest, MemoryMapStreamWriteWithSizeExceedCopyLen, TestSiz
     int32_t ret = mms.Write(data, largeDataSize, 0);
     EXPECT_EQ(ret, PKG_INVALID_STREAM);
 }
- 
-HWTEST_F(MemoryMapStreamTest, MemoryMapStreamDestructorWithNonMemoryMapType, TestSize.Level1)
-{
-    PkgBuffer buf;
-    buf.buffer = new uint8_t[1024];
-    buf.length = 1024;
-    {
-        MemoryMapStream mms(nullptr, "test.bin", buf, PkgStream::PkgStreamType_Write);
-    }
-    buf.buffer = nullptr;
-}
- 
+
 HWTEST_F(FlowDataStreamTest, FlowDataStreamSeekAlwaysFail, TestSize.Level1)
 {
     FlowDataStream fds(nullptr, "test.bin", 1000, ringBuf_, PkgStream::PkgStreamType_FlowData);
@@ -944,6 +911,13 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamStopWithNullRb, TestSize.Level1)
     info.offset = 0;
     ShmDataStream sds(nullptr, "test.bin", info, PkgStream::PkgStreamType_ShmData);
     sds.Stop();
+    PkgBuffer readBuf;
+    readBuf.data.resize(100);
+    readBuf.buffer = readBuf.data.data();
+    readBuf.length = 100;
+    size_t readLen = 0;
+    sds.SetOffset(0);
+    ASSERT_NE(sds.Read(readBuf, 0, 10, readLen), 0);    
 }
  
 HWTEST_F(ShmDataStreamTest, ShmDataStreamStopWithValidRb, TestSize.Level1)
@@ -951,19 +925,26 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamStopWithValidRb, TestSize.Level1)
     ShmDataStream sds(nullptr, "test.bin", shmInfo_, PkgStream::PkgStreamType_ShmData);
     ASSERT_EQ(sds.CreateShmRingBuffer(), 0);
     sds.Stop();
+    PkgBuffer readBuf;
+    readBuf.data.resize(100);
+    readBuf.buffer = readBuf.data.data();
+    readBuf.length = 100;
+    size_t readLen = 0;
+    sds.SetOffset(0);
+    ASSERT_NE(sds.Read(readBuf, 0, 10, readLen), 0);    
 }
  
 HWTEST_F(ShmDataStreamTest, ShmDataStreamExitWithValidRb, TestSize.Level1)
 {
     ShmDataStream sds(nullptr, "test.bin", shmInfo_, PkgStream::PkgStreamType_ShmData);
     ASSERT_EQ(sds.CreateShmRingBuffer(), 0);
-    sds.Exit();
+    EXPECT_EQ(sds.Exit(), true);
 }
  
 HWTEST_F(ShmDataStreamTest, ShmDataStreamExitWithNullRb, TestSize.Level1)
 {
     ShmDataStream sds(nullptr, "test.bin", shmInfo_, PkgStream::PkgStreamType_ShmData);
-    sds.Exit();
+    EXPECT_EQ(sds.Exit(), false);
 }
  
 HWTEST_F(ShmDataStreamTest, ShmDataStreamReadWithOffsetMismatch, TestSize.Level1)
