@@ -931,7 +931,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamStopWithValidRb, TestSize.Level1)
     readBuf.length = 100;
     size_t readLen = 0;
     sds.SetOffset(0);
-    ASSERT_NE(sds.Read(readBuf, 0, 10, readLen), 0);    
+    ASSERT_NE(sds.Read(readBuf, 0, 10, readLen), 0); 
 }
  
 HWTEST_F(ShmDataStreamTest, ShmDataStreamExitWithValidRb, TestSize.Level1)
