@@ -100,7 +100,7 @@ void UpdaterUiFacade::ShowProgress(float value) const
         return;
     }
     static float lastValue = 0.0;
-    if (abs(value - lastValue) > 0.1) { // 0.1 : The progress bar changes by more than 0.01
+    if (abs(value - lastValue) > 0.1) { // 0.1 : The progress bar changes by more than 0.1
         LOG(INFO) << "current progress " << value;
         lastValue = value;
     } else {
