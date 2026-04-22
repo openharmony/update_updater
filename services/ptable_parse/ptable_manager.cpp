@@ -136,23 +136,62 @@ bool PtableManager::IsPartitionChanged(const std::vector<Ptable::PtnInfo> &devic
         LOG(ERROR) << "can't find the " << partitionName << " partition in package ptable!";
         return true;
     }
-    bool ret = false;
-    if (devicePtnInfo[deviceIndex].startAddr != pkgPtnInfo[updateIndex].startAddr) {
+    bool isAddrChanged = false;
+    bool isSizeChanged = false;
+    bool ret = ComparePartitionInfo(devicePtnInfo[deviceIndex], pkgPtnInfo[updateIndex], isAddrChanged, isSizeChanged);
+    if (isAddrChanged) {
         LOG(INFO) << partitionName << " start address is changed:";
         LOG(INFO) << "[" << partitionName << "]: device ptable[" << deviceIndex <<
             "] startAddr = 0x" << std::hex << devicePtnInfo[deviceIndex].startAddr <<
             ", in package ptable[" << std::dec << updateIndex <<
             "] startAddr is 0x" << std::hex << pkgPtnInfo[updateIndex].startAddr;
-        ret = true;
     }
-    if (devicePtnInfo[deviceIndex].partitionSize != pkgPtnInfo[updateIndex].partitionSize) {
+    if (isSizeChanged) {
         LOG(INFO) << partitionName << " partition size is changed:";
         LOG(INFO) << "[" << partitionName << "]: device ptable[" << deviceIndex << "] partitionSize = " <<
             devicePtnInfo[deviceIndex].partitionSize << ", in package ptable[" << updateIndex <<
             "] partitionSize is " << pkgPtnInfo[updateIndex].partitionSize;
-        ret = true;
     }
     return ret;
+}
+
+bool PtableManager::IsPartitionSizeChanged(const std::vector<Ptable::PtnInfo> &devicePtnInfo,
+    const std::vector<Ptable::PtnInfo> &pkgPtnInfo, const std::string &partitionName)
+{
+    if (pkgPtnInfo.empty()) {
+        LOG(INFO) << "No ptable in package. Ptable no changed!";
+        return false;
+    }
+    if (devicePtnInfo.empty()) {
+        LOG(WARNING) << "device ptable is empty";
+        return false;
+    }
+    int32_t deviceIndex = GetPartitionInfoIndexByName(devicePtnInfo, partitionName);
+    if (deviceIndex < 0) {
+        LOG(WARNING) << "can't find the " << partitionName << " partition in device ptable!";
+        return false;
+    }
+    int32_t updateIndex = GetPartitionInfoIndexByName(pkgPtnInfo, partitionName);
+    if (updateIndex < 0) {
+        LOG(WARNING) << "can't find the " << partitionName << " partition in package ptable!";
+        return false;
+    }
+    bool isAddrChanged = false;
+    bool isSizeChanged = false;
+    bool ret = ComparePartitionInfo(devicePtnInfo[deviceIndex], pkgPtnInfo[updateIndex], isAddrChanged, isSizeChanged);
+    return ret ? isSizeChanged : false;
+}
+ 
+bool PtableManager::ComparePartitionInfo(const Ptable::PtnInfo &lhs, const Ptable::PtnInfo &rhs,
+    bool& isAddrChanged, bool& isSizeChanged) const
+{
+    if (lhs.startAddr != rhs.startAddr) {
+        isAddrChanged = true;
+    }
+    if (lhs.partitionSize != rhs.partitionSize) {
+        isSizeChanged = true;
+    }
+    return isAddrChanged || isSizeChanged;
 }
 
 bool PtableManager::IsPtableChanged(const std::vector<Ptable::PtnInfo> &devicePtnInfo,
