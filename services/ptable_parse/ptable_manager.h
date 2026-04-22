@@ -72,6 +72,10 @@ protected:
     bool IsUfsDevice();
     bool IsPartitionChanged(const std::vector<Ptable::PtnInfo> &devicePtnInfo,
         const std::vector<Ptable::PtnInfo> &pkgPtnInfo, const std::string &partitionName);
+    bool IsPartitionSizeChanged(const std::vector<Ptable::PtnInfo> &devicePtnInfo,
+        const std::vector<Ptable::PtnInfo> &pkgPtnInfo, const std::string &partitionName);
+    bool ComparePartitionInfo(const Ptable::PtnInfo &lhs, const Ptable::PtnInfo &rhs,
+        bool& isAddrChanged, bool& isSizeChanged) const;
     bool IsPtableChanged(const std::vector<Ptable::PtnInfo> &devicePtnInfo,
         const std::vector<Ptable::PtnInfo> &pkgPtnInfo);
     int32_t GetPartitionInfoIndexByName(const std::vector<Ptable::PtnInfo> &ptnInfo, const std::string &name);
