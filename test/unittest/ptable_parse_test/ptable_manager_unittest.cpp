@@ -58,6 +58,18 @@ public:
     {
         return IsPartitionChanged(devicePtnInfo, pkgPtnInfo, partitionName);
     }
+
+    bool TestIsPartitionSizeChanged(const std::vector<Ptable::PtnInfo> &devicePtnInfo,
+        const std::vector<Ptable::PtnInfo> &pkgPtnInfo, const std::string &partitionName)
+    {
+        return IsPartitionSizeChanged(devicePtnInfo, pkgPtnInfo, partitionName);
+    }
+
+    bool TestComparePartitionInfo(const Ptable::PtnInfo &lhs, const Ptable::PtnInfo &rhs,
+        bool &isAddrChanged, bool &isSizeChanged)
+    {
+        return ComparePartitionInfo(lhs, rhs, isAddrChanged, isSizeChanged);
+    }
 };
 
 class UTestPtableManager : public ::testing::Test {
@@ -218,5 +230,85 @@ HWTEST_F(UTestPtableManager, TestGetPartionInfoByName, TestSize.Level1)
 HWTEST_F(UTestPtableManager, TestIsPartitionChanged, TestSize.Level1)
 {
     UTestPtableManager {}.TestIsPartitionChanged();
+}
+
+HWTEST_F(UTestPtableManager, TestComparePartitionInfo, TestSize.Level1)
+{
+    PtableManagerTest context {};
+    Ptable::PtnInfo lhs = {100, 200, {0}, 0, "test", "", ""};
+    Ptable::PtnInfo rhs = {100, 200, {0}, 0, "test", "", ""};
+    bool isAddrChanged = false;
+    bool isSizeChanged = false;
+    bool ret = context.TestComparePartitionInfo(lhs, rhs, isAddrChanged, isSizeChanged);
+    ASSERT_EQ(ret, false);
+    ASSERT_EQ(isAddrChanged, false);
+    ASSERT_EQ(isSizeChanged, false);
+
+    rhs.startAddr = 200;
+    isAddrChanged = false;
+    isSizeChanged = false;
+    ret = context.TestComparePartitionInfo(lhs, rhs, isAddrChanged, isSizeChanged);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(isAddrChanged, true);
+    ASSERT_EQ(isSizeChanged, false);
+
+    rhs.startAddr = 100;
+    rhs.partitionSize = 300;
+    isAddrChanged = false;
+    isSizeChanged = false;
+    ret = context.TestComparePartitionInfo(lhs, rhs, isAddrChanged, isSizeChanged);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(isAddrChanged, false);
+    ASSERT_EQ(isSizeChanged, true);
+
+    rhs.startAddr = 200;
+    rhs.partitionSize = 300;
+    isAddrChanged = false;
+    isSizeChanged = false;
+    ret = context.TestComparePartitionInfo(lhs, rhs, isAddrChanged, isSizeChanged);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(isAddrChanged, true);
+    ASSERT_EQ(isSizeChanged, true);
+}
+
+HWTEST_F(UTestPtableManager, TestIsPartitionSizeChanged, TestSize.Level1)
+{
+    PtableManagerTest context {};
+    std::vector<Ptable::PtnInfo> devicePtnInfo;
+    std::vector<Ptable::PtnInfo> pkgPtnInfo;
+    std::string partitionName = "testPartition";
+    bool ret = context.TestIsPartitionSizeChanged(devicePtnInfo, pkgPtnInfo, partitionName);
+    ASSERT_EQ(ret, false);
+
+    Ptable::PtnInfo ptnInfo = {100, 200, {0}, 0, "testPartition", "", ""};
+    pkgPtnInfo.push_back(ptnInfo);
+    ret = context.TestIsPartitionSizeChanged(devicePtnInfo, pkgPtnInfo, partitionName);
+    ASSERT_EQ(ret, false);
+
+    devicePtnInfo.push_back(ptnInfo);
+    ret = context.TestIsPartitionSizeChanged(devicePtnInfo, pkgPtnInfo, partitionName);
+    ASSERT_EQ(ret, false);
+
+    partitionName = "notFound";
+    ret = context.TestIsPartitionSizeChanged(devicePtnInfo, pkgPtnInfo, partitionName);
+    ASSERT_EQ(ret, false);
+
+    Ptable::PtnInfo anotherPtn = {100, 200, {0}, 0, "anotherPartition", "", ""};
+    pkgPtnInfo.clear();
+    pkgPtnInfo.push_back(anotherPtn);
+    partitionName = "testPartition";
+    ret = context.TestIsPartitionSizeChanged(devicePtnInfo, pkgPtnInfo, partitionName);
+    ASSERT_EQ(ret, false);
+
+    pkgPtnInfo.clear();
+    pkgPtnInfo.push_back(ptnInfo);
+    devicePtnInfo[0].partitionSize = 300;
+    ret = context.TestIsPartitionSizeChanged(devicePtnInfo, pkgPtnInfo, partitionName);
+    ASSERT_EQ(ret, true);
+
+    devicePtnInfo[0].partitionSize = 200;
+    devicePtnInfo[0].startAddr = 200;
+    ret = context.TestIsPartitionSizeChanged(devicePtnInfo, pkgPtnInfo, partitionName);
+    ASSERT_EQ(ret, false);
 }
 }
