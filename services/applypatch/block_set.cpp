@@ -42,6 +42,7 @@ BlockSet::BlockSet()
 
 BlockSet::BlockSet(size_t offset)
 {
+    blockSize_ = 0;
     offset_ = offset;
 }
 
@@ -64,6 +65,7 @@ BlockSet::BlockSet(std::vector<BlockPair> &&pairs)
 
 BlockSet::BlockSet(const std::string &blockStr, size_t offset)
 {
+    blockSize_ = 0;
     ParserAndInsert(blockStr);
     offset_ = offset;
 }
