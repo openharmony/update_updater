@@ -427,9 +427,9 @@ bool Ptable::CheckGptHeader(uint8_t *buffer, const uint32_t bufferLen, const uin
         LOG(ERROR) << "invalid parition entry size or max count";
         return false;
     }
-    // GPT header should always be the 0x1 LBA, partition entry should always the 0x2 LBA
-    if (currentLba != 0x1 || partition0 != 0x2) {
-        LOG(ERROR) << "starting LBA mismatch";
+    // GPT header should always be the 0x1 LBA, partition entry may not be 0x2 LBA when ptable changed
+    if (currentLba != 0x1) {
+        LOG(ERROR) << "starting LBA mismatch currentLba " << currentLba << " partition0 " << partition0;
         return false;
     }
     return true;
