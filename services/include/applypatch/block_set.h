@@ -108,7 +108,7 @@ public:
     bool CompareDataFromBlock(int fd, const std::vector<uint8_t> &buffer) const;
 
 protected:
-    size_t blockSize_ {0}};
+    size_t blockSize_ {0};
     std::vector<BlockPair> blocks_;
     size_t offset_ {0};
 private:
