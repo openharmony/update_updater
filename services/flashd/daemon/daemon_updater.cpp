@@ -158,6 +158,10 @@ void DaemonUpdater::DataCommand(const uint8_t *payload, int payloadSize) const
     string serialStrring(reinterpret_cast<const char *>(payload), PAYLOAD_FIX_RESERVER);
     TransferPayload pld = {};
     SerialStruct::ParseFromString(pld, serialStrring);
+    if (pld.uncompressSize + PAYLOAD_FIX_RESERVER > payloadSize) {
+        FLASHD_LOGE("uncompressSize is invaild %d", pld.uncompressSize);
+        return;
+    }
     commander_->DoCommand(payload + PAYLOAD_FIX_RESERVER, pld.uncompressSize);
 }
 
