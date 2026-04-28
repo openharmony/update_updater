@@ -102,5 +102,20 @@ private:
     OHOS::UIView *GetFirstFocusableViewByDir(uint8_t dir);
     static bool isButtonPressed_;
 };
+
+class ImgOnLongPressListener final : public OHOS::UIView::OnTouchListener {
+public:
+    ImgOnLongPressListener(Callback cb, bool isConsumed)
+        : cb_(cb), isConsumed_(isConsumed) {}
+    ~ImgOnLongPressListener() = default;
+    bool OnPress(OHOS::UIView& view, const OHOS::PressEvent &event) override;
+    bool OnRelease(OHOS::UIView& view, const OHOS::ReleaseEvent &event) override;
+    void SetLongPressTime(std::time_t time);
+private:
+    std::time_t pressTime_ = std::time(nullptr);
+    std::time_t longPressTime_ = 0;
+    Callback cb_;
+    bool isConsumed_;
+};
 }
 #endif
