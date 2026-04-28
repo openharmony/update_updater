@@ -17,6 +17,7 @@
 #define UPDATER_UI_EVENT_MANAGER_H
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "component/component_factory.h"

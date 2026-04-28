@@ -33,6 +33,7 @@ public:
     bool IsValidCom(const std::string &id) const override;
     ViewProxy &operator[](const std::string &id) override;
     static bool IsPageInfoValid(const UxSubPageInfo &info);
+    void AddExtraCom(const std::string &comId);
 private:
     SubPage();
     SubPage(const std::shared_ptr<Page> &basePage, const std::string &pageId);

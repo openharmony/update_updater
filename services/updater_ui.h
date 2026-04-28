@@ -23,7 +23,7 @@
 #include "updater_ui_traits.h"
 
 namespace Updater {
-void DoProgress();
+void DoProgress(uint32_t progressTimeMs = 3000); // 3000 : about 10s
 void SDUpdateNoDelay();
 } // namespace Updater
 #endif /* UPDATE_UI_HOS_UPDATER_H */

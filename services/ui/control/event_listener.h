@@ -30,7 +30,8 @@ using KeyCallback = std::function<void(bool)>;
 enum class EventType {
     TOUCHEVENT,
     CLICKEVENT,
-    DRAGEVENT
+    DRAGEVENT,
+    LONGPRESSEVENT
 };
 
 // avoid callback on invisible component

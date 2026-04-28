@@ -50,12 +50,6 @@ void DoProgress()
     constexpr int progressValueStep = static_cast<int>(0.3 * ratio);
     constexpr int maxProgressValue = static_cast<int>(100 * ratio);
     int progressvalueTmp = 0;
-    if (GetFacade().GetMode() != UPDATERMODE_FACTORYRST &&
-        GetFacade().GetMode() != UPDATERMODE_REBOOTFACTORYRST &&
-        GetFacade().GetMode() != UPDATERMODE_ATFACTORYRST &&
-        GetFacade().GetMode() != UPDATERMODE_SECUREERASE) {
-        return;
-    }
     GetFacade().ShowProgress(0);
     while (progressvalueTmp <= maxProgressValue) {
         progressvalueTmp = progressvalueTmp + progressValueStep;

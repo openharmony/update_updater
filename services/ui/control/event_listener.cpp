@@ -246,4 +246,9 @@ void KeyListener::SetButtonPressed(bool isPressed)
 {
     isButtonPressed_ = isPressed;
 }
+
+void ImgOnLongPressListener::SetLongPressTime()
+{
+    longPressTime_ = time;
+}
 }

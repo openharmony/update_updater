@@ -145,4 +145,9 @@ ViewProxy &SubPage::operator[](const std::string &id)
     }
     return (*basePage_)[id];
 }
+
+void SubPage::AddExtraCom(const std::string &comId)
+{
+
+}
 } // namespace Updater

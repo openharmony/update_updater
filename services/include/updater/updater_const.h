@@ -48,6 +48,7 @@ constexpr const char *PREFIX_UFS_NODE = "/dev/block/sd";
 constexpr const char *SDCARD_PACKAGE_SUFFIX = ".zip";
 constexpr const char *POWEROFF = "shutdown";
 constexpr const char *BOOTDEV_TYPE = "/proc/bootdevice/type";
+constexpr const char *MANUAL_UPLOAD_LOG_TIME_FILE = "manual_upload_time";
 constexpr const char *UPLOAD_LOG_TIME_FILE = "upload_time";
 constexpr const char *ERASE_LOG_OEMINFO = "not_erase_log_switch";
 constexpr const char *RESET_MESSAGE_INFO = "reset_enter:331";

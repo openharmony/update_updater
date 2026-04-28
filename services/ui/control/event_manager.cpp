@@ -72,9 +72,9 @@ void EventManager::Add(const ComInfo &viewId, std::unique_ptr<BtnOnDragListener>
         return;
     }
     auto com = pgMgr_[viewId.pageId][viewId.comId].As();
-    btnOnDragListener.push_back(std::move(listener));
+    btnOnDragListener_.push_back(std::move(listener));
     com->SetDraggable(true);
-    com->SetOnDragListener(btnOnDragListener.back().get());
+    com->SetOnDragListener(btnOnDragListener_.back().get());
 }
 
 // key listener is registered at root view, because key event don't has position info and is globally responded

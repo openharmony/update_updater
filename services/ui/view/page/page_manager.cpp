@@ -231,4 +231,9 @@ std::vector<std::string> PageManager::Report()
     return result;
 }
 #endif
+
+bool PageManager::AddExtraCom()
+{
+    
+}
 } // namespace Updater

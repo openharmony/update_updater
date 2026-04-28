@@ -27,7 +27,8 @@ std::vector<CallbackCfg> CallbackManager::callbackCfgs_;
 
 std::unordered_map<std::string, EventType> CallbackManager::evtTypes_ = {
     {"TOUCHEVENT", EventType::TOUCHEVENT},
-    {"CLICKEVENT", EventType::CLICKEVENT}
+    {"CLICKEVENT", EventType::CLICKEVENT},
+    {"LONGPRESSEVENT", EventType::LONGPRESSEVENT}
 };
 
 bool CallbackManager::LoadCallbacks(const JsonNode &node)
