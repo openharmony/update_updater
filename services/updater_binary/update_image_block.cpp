@@ -686,6 +686,10 @@ int32_t UScriptInstructionBlockCheck::Execute(Uscript::UScriptEnv &env, Uscript:
 #else
     devPath = "/data/updater" + partitionName;
 #endif
+    std::string stashedDevPath;
+    if (BuildSafeStashedDevPath(partitionName, stashedDevPath) && Utils::IsFileExist(stashedDevPath)) {
+        devPath = stashedDevPath;
+    }
     LOG(INFO) << "UScriptInstructionBlockCheck::dev path : " << devPath;
     time_t mountTime = 0;
     uint16_t mountCount = 0;
