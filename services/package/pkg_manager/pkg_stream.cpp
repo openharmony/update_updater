@@ -266,8 +266,8 @@ int32_t ShmDataStream::WaitSemWithTimeout(sem_t &sem)
     }
     timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
-    ts.tv_sec += timeoutMs_ / MS_PER_SEC;
-    ts.tv_nsec += (timeoutMs_ % MS_PER_SEC) * NS_PER_MS;
+    ts.tv_sec += static_cast<long>(timeoutMs_ / MS_PER_SEC);
+    ts.tv_nsec += static_cast<long>(timeoutMs_ % MS_PER_SEC) * NS_PER_MS;
     if (ts.tv_nsec >= NS_PER_SEC) {
         ts.tv_sec += ts.tv_nsec / NS_PER_SEC;
         ts.tv_nsec %= NS_PER_SEC;
