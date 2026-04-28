@@ -103,7 +103,7 @@ void UpdaterUiFacade::ShowProgress(float value) const
     if (abs(value - lastValue) > 0.1) { // 0.1 : The progress bar changes by more than 0.1
         LOG(INFO) << "current progress " << value;
         lastValue = value;
-    } else {
+    } else if (lastValue != 0.0) {
         return;
     }
     if (auto it = progressMap_.find(mode_); it != progressMap_.end() && it->second != nullptr) {
