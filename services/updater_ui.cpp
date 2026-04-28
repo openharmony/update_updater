@@ -41,20 +41,21 @@ inline auto &GetFacade()
 }
 }  // namespace
 
-void DoProgress()
+void DoProgress(uint32_t progressTimeMs)
 {
     constexpr int maxSleepMs = 1000 * 1000;
-    constexpr int minSleepMs = 3000;
     constexpr float ratio = 10.0;
-    // if 100 as fullpercent, then 0.3 per step
     constexpr int progressValueStep = static_cast<int>(0.3 * ratio);
     constexpr int maxProgressValue = static_cast<int>(100 * ratio);
+    int totalSteps = maxProgressValue / progressValueStep;
+    int stepSleepUs = (progressTimeMs * 1000) / totalSteps;
+
     int progressvalueTmp = 0;
     GetFacade().ShowProgress(0);
     while (progressvalueTmp <= maxProgressValue) {
         progressvalueTmp = progressvalueTmp + progressValueStep;
         GetFacade().ShowProgress(progressvalueTmp / ratio);
-        Utils::UsSleep(minSleepMs);
+        Utils::UsSleep(stepSleepUs);
         if (progressvalueTmp >= maxProgressValue) {
             Utils::UsSleep(maxSleepMs);
             return;
