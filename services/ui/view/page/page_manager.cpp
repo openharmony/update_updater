@@ -218,6 +218,25 @@ std::string PageManager::GetCurPageId()
     }
     return "";
 }
+
+bool PageManager::AddExtraCom(const std::string &subPageId, const std::vector<std::string> &extraComs)
+{
+    auto it = pageMap_.find(subPageId);
+    if (it == pageMap_.end() || it->second == nullptr) {
+        LOG(ERROR) << "sub page id not found: " << subPageId;
+        return false;
+    }
+    auto *subPage = static_cast<SubPage*>(it->second.get());
+    if (subPage == nullptr) {
+        LOG(ERROR) << "page is not a sub page: " << subPageId;
+        return false;
+    }
+    for (const auto &comId : extraComs) {
+        subPage->AddExtraCom(comId);
+    }
+    return true;
+}
+
 #ifdef UPDATER_UT
 std::vector<std::string> PageManager::Report()
 {
