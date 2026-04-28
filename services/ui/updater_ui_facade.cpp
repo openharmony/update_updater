@@ -100,12 +100,12 @@ void UpdaterUiFacade::ShowProgress(float value) const
         return;
     }
     static float lastValue = 0.0;
-    if (abs(value - lastValue) > 0.1) { // 0.1 : The progress bar changes by more than 0.1
-        LOG(INFO) << "current progress " << value;
-        lastValue = value;
-    } else if (lastValue != 0.0) {
+    // 0.1 : The progress bar changes by less than 0.1
+    if (abs(value - lastValue) <= 0.1 && lastValue != 0.0) {
         return;
     }
+    LOG(INFO) << "current progress " << value;
+    lastValue = value;
     if (auto it = progressMap_.find(mode_); it != progressMap_.end() && it->second != nullptr) {
         g_currentPercent = value;
         it->second->ShowProgress(value);
