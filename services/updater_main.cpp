@@ -942,7 +942,7 @@ __attribute__((weak)) bool PostUpdateSyncProcess([[maybe_unused]] bool isOtaUpda
     return true;
 }
 
-__attribute__((weak)) bool PostUpdateWriteBackProcess()
+__attribute__((weak)) bool PostUpdateWriteBack()
 {
     LOG(INFO) << "not need write back process";
     return true;
@@ -952,7 +952,7 @@ static void PostUpdate(UpdaterParams &upParams, UpdaterStatus &status,
     const std::vector<std::string>& updateList, const std::string& type)
 {
     if (status == UPDATE_SUCCESS) {
-        if (!PostUpdateWriteBackProcess()) {
+        if (!PostUpdateWriteBack()) {
             LOG(ERROR) << "write stashed images to device failed";
             status = UPDATE_ERROR;
         }

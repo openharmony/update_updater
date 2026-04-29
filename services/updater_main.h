@@ -86,6 +86,7 @@ int32_t VerifySpecialPkgs([[maybe_unused]]UpdaterParams &upParams);
 UpdaterStatus CheckAndSetSlot([[maybe_unused]]UpdaterParams &upParams);
 bool PostUpdateSyncProcess([[maybe_unused]] bool isOtaUpdate, [[maybe_unused]] const UpdaterParams &upParams,
     [[maybe_unused]] UpdaterStatus &status);
+bool PostUpdateWriteBack();
 void UpdaterVerifyFailEntry(bool verifyret);
 bool IsSpareBoardBoot(void);
 const char* GetResetMisc();
