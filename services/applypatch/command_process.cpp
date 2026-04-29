@@ -181,8 +181,8 @@ bool LoadTarget(const Command &params, size_t &pos, std::vector<uint8_t> &buffer
     std::string blockLen = params.GetArgumentByPos(pos++);
     size_t srcBlockSize = String2Int<size_t>(blockLen, N_DEC);
     buffer.resize(srcBlockSize * H_BLOCK_SIZE);
-    if (targetBlock.LoadTargetBuffer(params, buffer, srcBlockSize, pos, srcHash) != 0) {
-        LOG(ERROR) << "Failed to load blocks";
+    if (auto ret = targetBlock.LoadTargetBuffer(params, buffer, srcBlockSize, pos, srcHash); ret != 0) {
+        LOG(ERROR) << "Failed to load blocks " << ret;
         result = FAILED;
         return false;
     }
