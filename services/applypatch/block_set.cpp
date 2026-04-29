@@ -319,9 +319,9 @@ int32_t BlockSet::LoadStashBuffer(const Command &cmd, size_t &pos, const std::st
         if (!cmd.IsStreamCmd() || tokens[1].find("-") == std::string::npos) {
             std::vector<uint8_t> stash;
             auto ret = Store::LoadDataFromStore(storeBase, tokens[H_ZERO_NUMBER], stash);
-            if (ret == -1) {
-                LOG(ERROR) << "Failed to load tokens";
-                return -1;
+            if (ret != 0) {
+                LOG(ERROR) << "Failed to load tokens, ret = " << ret;
+                return ret;
             }
             BlockSet locations;
             locations.ParserAndInsert(tokens[1]);
@@ -384,7 +384,7 @@ int32_t BlockSet::LoadTargetBuffer(const Command &cmd, std::vector<uint8_t> &buf
     bool isOverlap = false;
     auto ret = LoadSourceBuffer(cmd, pos, buffer, isOverlap, blockSize);
     if (ret != 1) {
-        LOG(ERROR) << "LoadSourceBuffer failed";
+        LOG(ERROR) << "LoadSourceBuffer failed, ret is " << ret;
         return ret;
     }
     if (cmd.IsStreamCmd()) {
@@ -410,9 +410,11 @@ int32_t BlockSet::LoadTargetBuffer(const Command &cmd, std::vector<uint8_t> &buf
         }
         return 0;
     }
-    if (Store::LoadDataFromStore(storeBase, srcHash, buffer) == 0) {
+    int ret = Store::LoadDataFromStore(storeBase, srcHash, buffer);
+    if (ret == 0) {
         return 0;
     }
+    LOG(ERROR) << "LoadDataFromStore failed, ret is " << ret;
     return -1;
 }
 
