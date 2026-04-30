@@ -410,7 +410,7 @@ int32_t BlockSet::LoadTargetBuffer(const Command &cmd, std::vector<uint8_t> &buf
         }
         return 0;
     }
-    int ret = Store::LoadDataFromStore(storeBase, srcHash, buffer);
+    ret = Store::LoadDataFromStore(storeBase, srcHash, buffer);
     if (ret == 0) {
         return 0;
     }
