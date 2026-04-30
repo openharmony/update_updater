@@ -472,12 +472,14 @@ int32_t PkgManagerImpl::LoadStreamPackage(const std::string &packageHeadPath, co
         PkgStream::PkgStreamType_ShmData) {
         PKG_LOGE("Create input shm stream fail %s", shmInfo.shmId.c_str());
         UPDATER_LAST_WORD(ret, "CreatePkgStream failed", shmInfo.shmId);
+        ClosePkgStream(entryStream);
         return PKG_INVALID_STREAM;
     }
     ShmDataStream *shmDataStream = static_cast<ShmDataStream *>(entryStream);
     if (shmDataStream->InitShmRingBuffer() != 0) {
         PKG_LOGE("init shm stream fail %s", shmInfo.shmId.c_str());
         UPDATER_LAST_WORD(ret, "InitShmRingBuffer failed", shmInfo.shmId);
+        ClosePkgStream(entryStream);
         return PKG_INVALID_STREAM;
     }
     PkgStreamPtr headStream = nullptr;
@@ -485,6 +487,7 @@ int32_t PkgManagerImpl::LoadStreamPackage(const std::string &packageHeadPath, co
     if (ret != PKG_SUCCESS) {
         PKG_LOGE("Create head stream fail %s", packageHeadPath.c_str());
         UPDATER_LAST_WORD(ret, "CreatePkgStream failed", packageHeadPath);
+        ClosePkgStream(entryStream);
         return ret;
     }
     return LoadStreamPackageWithStream(packageHeadPath, fileIds, type, headStream, entryStream);
