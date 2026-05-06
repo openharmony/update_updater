@@ -145,4 +145,20 @@ ViewProxy &SubPage::operator[](const std::string &id)
     }
     return (*basePage_)[id];
 }
+
+void SubPage::AddExtraCom(const std::string &comId)
+{
+    if (!IsValid()) {
+        return;
+    }
+    if (!basePage_->IsValidCom(comId)) {
+        LOG(ERROR) << "invalid com id for subpage: " << comId;
+        return;
+    }
+    if (std::find(comsId_.begin(), comsId_.end(), comId) != comsId_.end()) {
+        LOG(WARNING) << "com id already exists in subpage: " << comId;
+        return;
+    }
+    comsId_.push_back(comId);
+}
 } // namespace Updater

@@ -72,9 +72,26 @@ void EventManager::Add(const ComInfo &viewId, std::unique_ptr<BtnOnDragListener>
         return;
     }
     auto com = pgMgr_[viewId.pageId][viewId.comId].As();
-    btnOnDragListener.push_back(std::move(listener));
+    btnOnDragListener_.push_back(std::move(listener));
     com->SetDraggable(true);
-    com->SetOnDragListener(btnOnDragListener.back().get());
+    com->SetOnDragListener(btnOnDragListener_.back().get());
+}
+
+bool EventManager::Add(const ComInfo &viewId, std::unique_ptr<ImgOnLongPressListener> listener)
+{
+    if (!pgMgr_.IsValidCom(viewId)) {
+        LOG(ERROR) << "not an valid view " << viewId;
+        return false;
+    }
+    if (comIdTimeMap_.find(viewId.comId) != comIdTimeMap_.end()) {
+        time_t time = comIdTimeMap_[viewId.comId];
+        listener->SetLongPressTime(time);
+    }
+    auto com = pgMgr_[viewId.pageId][viewId.comId].As();
+    imgOnLongPressListener_.push_back(std::move(listener));
+    com->SetTouchable(true);
+    com->SetOnTouchListener(imgOnLongPressListener_.back().get());
+    return true;
 }
 
 // key listener is registered at root view, because key event don't has position info and is globally responded
@@ -94,6 +111,9 @@ void EventManager::Add(const ComInfo &viewId, EventType evt, Callback cb)
             break;
         case EventType::DRAGEVENT:
             Add(viewId, std::make_unique<BtnOnDragListener>(cb, true));
+            break;
+        case EventType::LONGPRESSEVENT:
+            Add(viewId, std::make_unique<ImgOnLongPressListener>(cb, true));
             break;
         default:
             LOG(WARNING) << "event type not support";

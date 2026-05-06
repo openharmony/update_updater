@@ -246,4 +246,26 @@ void KeyListener::SetButtonPressed(bool isPressed)
 {
     isButtonPressed_ = isPressed;
 }
+
+void ImgOnLongPressListener::SetLongPressTime(std::time_t time)
+{
+    longPressTime_ = time;
+}
+
+bool ImgOnLongPressListener::OnPress(OHOS::UIView& view, const OHOS::PressEvent &event)
+{
+    pressTime_ = std::time(nullptr);
+    return true;
+}
+
+bool ImgOnLongPressListener::OnRelease(OHOS::UIView& view, const OHOS::ReleaseEvent &event)
+{
+    time_t releaseTime = std::time(nullptr);
+    if (releaseTime - pressTime_ < longPressTime_) {
+        LOG(INFO) << "time not enough longPressTime_ : " << longPressTime_;
+        return false;
+    }
+    CallBackDecorator{cb_}(view, cb_.isAsync);
+    return isConsumed_;
+}
 }

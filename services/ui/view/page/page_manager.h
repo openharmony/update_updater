@@ -40,6 +40,7 @@ public:
     ViewProxy &operator[](const ComInfo &comInfo) const;
     void Reset();
     std::string GetCurPageId();
+    bool AddExtraCom(const std::string &subPageId, const std::vector<std::string> &extraComs);
 #ifdef UPDATER_UT
     std::vector<std::string> Report();
 #endif

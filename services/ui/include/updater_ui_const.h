@@ -31,6 +31,7 @@ constexpr const char *UPDATERMODE_RECOVER = "recover";
 constexpr const char *UPDATERMODE_NIGHTUPDATE = "night_update";
 constexpr const char *UPDATERMODE_USBUPDATE = "usb";
 constexpr const char *UPDATERMODE_SECUREERASE = "secure_erase";
+constexpr const char *UPDATERMODE_UPLOADLOG = "uploadLog";
 
 constexpr float UPDATER_UI_FONT_HEIGHT_RATIO = 1.3; // 1.3 : line height / font size ratio
 } // namespace Updater

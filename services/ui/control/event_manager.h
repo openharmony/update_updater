@@ -17,6 +17,7 @@
 #define UPDATER_UI_EVENT_MANAGER_H
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "component/component_factory.h"
@@ -35,6 +36,7 @@ public:
     void Add(const ComInfo &viewId, std::unique_ptr<LabelOnTouchListener> listener);
     void Add(const ComInfo &viewId, std::unique_ptr<BtnOnEventListener> listener);
     void Add(const ComInfo &viewId, std::unique_ptr<BtnOnDragListener> listener);
+    bool Add(const ComInfo &viewId, std::unique_ptr<ImgOnLongPressListener> listener);
     void Add(const ComInfo &viewId, EventType evt, Callback cb);
     void AddKeyListener();
 private:
@@ -42,7 +44,11 @@ private:
     std::unique_ptr<KeyListener> helper_ {};
     std::vector<std::unique_ptr<OHOS::UIView::OnTouchListener>> labelOnTouchListener_;
     std::vector<std::unique_ptr<OHOS::UIView::OnClickListener>> btnOnClickListener_;
-    std::vector<std::unique_ptr<OHOS::UIView::OnDragListener>> btnOnDragListener;
+    std::vector<std::unique_ptr<OHOS::UIView::OnDragListener>> btnOnDragListener_;
+    std::vector<std::unique_ptr<OHOS::UIView::OnTouchListener>> imgOnLongPressListener_;
+    std::unordered_map<std::string, time_t> comIdTimeMap_ = {
+        {"EupMainIcon_Image", 2}
+    };
 };
 } // namespace Updater
 #endif
