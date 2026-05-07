@@ -162,14 +162,23 @@ int32_t ScriptManagerImpl::RegisterInstruction(ScriptInstructionHelper &helper)
     return USCRIPT_SUCCESS;
 }
 
-Updater::Utils::IsUpdaterMode() ? "/tmp" : Updater::UPDATER_PATH;
+std::string ScriptManagerImpl::GetScriptExtractPath() const
+{
+    if (Updater::Utils::IsUpdaterMode()) {
+        return "/tmp";
+    }
+    if (Updater::Utils::IsAiUpdateBinary()) {
+        return std::string(Updater::SINGULAR_UPDATER_PATH);
+    }
+    return Updater::UPDATER_PATH;
+}
 
 int32_t ScriptManagerImpl::ExtractAndExecuteScript(PkgManager::PkgManagerPtr manager,
     const std::string &scriptName)
 {
     Updater::UPDATER_INIT_RECORD;
     PkgManager::StreamPtr outStream = nullptr;
-    const std::string path = Updater::Utils::IsUpdaterMode() ? "/tmp" : Updater::UPDATER_PATH;
+    const std::string path = GetScriptExtractPath();
     const FileInfo *info = manager->GetFileInfo(scriptName);
     if (info == nullptr) {
         USCRIPT_LOGE("Error to get file info");
