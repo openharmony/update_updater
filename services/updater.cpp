@@ -624,7 +624,7 @@ void ExcuteSubProc(const UpdaterParams &upParams, const std::string &fullPath, i
         }
     }
     const std::string retryPara = upParams.retryCount > 0 ? "retry=1" : "retry=0";
-    const std::string procName = 
+    const std::string procName = (upParams.isSingularUpdate ? "ai_binary" : fullPath);
     int ret = -1;
     if (upParams.updateBin.size() > 0) {
         LOG(INFO) << "Binary Path:" << upParams.updateBin[upParams.pkgLocation].c_str();
@@ -728,7 +728,7 @@ static std::string GetBinaryPathFromBin(PkgManager::PkgManagerPtr pkgManager, Up
 
 static std::string GetBinaryPath(PkgManager::PkgManagerPtr pkgManager, UpdaterParams &upParams)
 {
-    if (upParams.) {
+    if (upParams.isSingularUpdate) {
         return "/bin/updater_binary";
     }
     std::string fullPath = GetWorkPath() + std::string(UPDATER_BINARY);
