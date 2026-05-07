@@ -507,7 +507,7 @@ int ProcessUpdater(bool retry, int pipeFd, const std::string &packagePath, const
         return EXIT_INVALID_ARGS;
     }
 #ifdef UPDATER_USE_PTABLE
-    if (!PackagePtable::GetInstance().WritePtableWithFile()) {
+    if ( && !PackagePtable::GetInstance().WritePtableWithFile()) {
         LOG(ERROR) << "write patble with file fail";
         PkgManager::ReleasePackageInstance(pkgManager);
         UPDATER_LAST_WORD("Error to write ptable with file");

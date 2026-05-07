@@ -80,6 +80,7 @@ struct UpdaterParams {
     std::optional<unsigned int> affinityCpuCores;
     /* little middle big core nums */
     std::vector<unsigned int> cpuTypeCores;
+    bool isSingularUpdate = false;
 };
 
 using CondFunc = std::function<bool(const UpdateMessage &)>;

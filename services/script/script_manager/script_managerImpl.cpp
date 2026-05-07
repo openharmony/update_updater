@@ -162,6 +162,8 @@ int32_t ScriptManagerImpl::RegisterInstruction(ScriptInstructionHelper &helper)
     return USCRIPT_SUCCESS;
 }
 
+Updater::Utils::IsUpdaterMode() ? "/tmp" : Updater::UPDATER_PATH;
+
 int32_t ScriptManagerImpl::ExtractAndExecuteScript(PkgManager::PkgManagerPtr manager,
     const std::string &scriptName)
 {

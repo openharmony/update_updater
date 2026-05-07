@@ -1313,6 +1313,11 @@ void PrintHex(const uint8_t *buffer, size_t length)
     LOG(INFO) << ss.str();
 }
 
+bool IsAiUpdateBinary()
+{
+    
+}
+
 #ifndef __WIN32
 void SetFileAttributes(const std::string& file, uid_t owner, gid_t group, mode_t mode)
 {
