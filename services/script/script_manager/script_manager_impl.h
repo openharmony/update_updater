@@ -44,7 +44,7 @@ private:
     int32_t AddInstruction(const std::string &instrName, const UScriptInstructionPtr instruction);
     UScriptInstruction* FindInstruction(const std::string &instrName);
     UScriptEnv* GetScriptEnv(const std::string &instrName) const;
-    
+    std::string GetScriptExtractPath() const;
 private:
     static const int32_t MAX_THREAD_POOL = 4;
     std::map<std::string, UScriptInstructionPtr> scriptInstructions_;
