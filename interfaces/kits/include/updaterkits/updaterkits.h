@@ -49,6 +49,7 @@ extern bool RebootAndCleanUserData(const std::string &miscFile, const std::strin
 // @param eraseType secure erase type.
 // @return returns true if trigger secure erase success, else returns false.
 extern bool RebootAndSecureErase(const std::string &eraseType);
+extern bool RebootAndSecureErase(const std::string &eraseType, const std::string &cmd);
 
 // Estimate time of secure erase.
 // @param eraseType secure erase type.
