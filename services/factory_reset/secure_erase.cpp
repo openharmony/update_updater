@@ -27,6 +27,7 @@
 #include "securec.h"
 #include "fs_manager/mount.h"
 #include "updater_ui_stub.h"
+#include "updater/updater_const.h"
 #include "utils.h"
 #include "language/language_ui.h"
 #include "secure_erase.h"
@@ -37,6 +38,37 @@ using namespace std;
 constexpr uint64_t OVERWRITE_SZIE = 1024 * 1024 * 1024;
 constexpr uint8_t OVERWRITE_NUM = 0xFF;
 constexpr int FULL_PERCENT_PROGRESS = 100;
+
+static const std::unordered_map<uint32_t, uint32_t> BOOTDEV_TYPE_TO_ERASE_TIME = {
+    {1, Updater::EMMC_ERASE_1T_TIME},
+    {2, Updater::UFS_ERASE_1T_TIME},
+    {4, Updater::SSD_ERASE_1T_TIME},
+    {12, Updater::SSD_ERASE_1T_TIME}, // 12 : boot device is ssd when bit 2 and bit 3 are both 1
+};
+
+static uint32_t GetBootdevType()
+{
+    uint32_t ret = 0;
+    std::ifstream fin(BOOTDEV_TYPE, std::ios::in);
+    if (!fin.is_open()) {
+        LOG(ERROR) << "open bootdev failed";
+        return ret;
+    }
+    fin >> ret;
+    fin.close();
+    LOG(INFO) << "bootdev type is " << ret;
+    return ret;
+}
+
+static uint64_t GetBootDeviceTime()
+{
+    uint32_t type = GetBootdevType();
+    auto it = BOOTDEV_TYPE_TO_ERASE_TIME.find(type);
+    if (it == BOOTDEV_TYPE_TO_ERASE_TIME.end()) {
+        return Updater::UFS_ERASE_1T_TIME;
+    }
+    return it->second;
+}
 
 static uint64_t CaculatePerSpeed(uint64_t offset, uint64_t time)
 {
@@ -70,6 +102,12 @@ void SecureErase::LoadOffsetInRetry(uint64_t offset)
     overwriteOffset_ = offset;
 }
 
+void SecureErase::SetSleepTime()
+{
+    sleepTime_ = GetBootDeviceTime() / 1024; // 1024 : calculate sleep time per 1G
+    return;
+}
+
 void SecureErase::ShowCurrentPercent(float value)
 {
     UPDATER_UI_INSTANCE.ShowProgress(value);
@@ -94,6 +132,39 @@ void SecureErase::ShowRemainingTime(uint64_t remainSeconds)
     UPDATER_UI_INSTANCE.ShowLogRes(remainTimeText);
 }
 
+bool SecureErase::OverwriteSinglePartition(int fd, const PartInfo &partInfo)
+{
+    std::vector<uint8_t> buffer(OVERWRITE_SZIE, OVERWRITE_NUM);
+    while (overwriteOffset_ < partInfo.partSize) {
+        ShowRemainingTime(remainingOverWriteTime_);
+        time_t start = time(nullptr);
+        float value = CalcOverWriteProgress();
+        ShowCurrentPercent(value);
+        uint32_t writeSize = OVERWRITE_SZIE;
+        if (overwriteOffset_ + writeSize > partInfo.partSize) {
+            writeSize = partInfo.partSize - overwriteOffset_;
+        }
+        if (OverWritePartition(fd, writeSize, buffer) != 0) {
+            LOG(ERROR) << "Overwrite error " << partInfo.devPath;
+            UPDATER_LAST_WORD(OVERWRITE_FAILED, "overwrite failed");
+            return false;
+        }
+        time_t end = time(nullptr);
+        double eplapsed = difftime(end, start);
+        uint64_t eplased_uint64 = static_cast<uint64_t>(eplapsed);
+        uint64_t writeTime = CaclculateOverWriteTime(partInfo.partSize - overwriteOffset_, writeSize, eplased_uint64);
+        remainingOverWriteTime_ = (remainingOverWriteTime_ == 0 || writeTime == 0) ? writeTime
+        : (remainingOverWriteTime_ <= writeTime ? remainingOverWriteTime_ - 1 : writeTime);
+        SyncOffsetInMisc(overwriteOffset_);
+    }
+    if (overwrteOffset_ == 0) {
+        LOG(ERROR) << "overwrite failed, offset is 0, path: " << partInfo.devPath;
+        UPDATER_LAST_WORD(OVERWRITE_FAILED, "overwrite failed, offset is 0");
+        return false;
+    }
+    return true;
+}
+
 bool SecureErase::OverWritePartition()
 {
     AddOverWritePartition("/dev/block/by-name/userdata");
@@ -103,43 +174,26 @@ bool SecureErase::OverWritePartition()
         UPDATER_LAST_WORD(OVERWRITE_INVALID_INFOS, "empty partition infos");
         return false;
     }
+    uint64_t totalSize = 0;
     for (const auto &partInfo : overwritePartInfos_) {
-        time_t start = time(nullptr);
-        std::vector<uint8_t> buffer(OVERWRITE_SZIE, OVERWRITE_NUM);
+        totalSize += partInfo.partSize;
+    }
+    remainingOverWriteTime_ = GetEstimatedTime(totalSize);
+    for (const auto &partInfo : overwritePartInfos_) {
         int fd = open(partInfo.devPath.c_str(), O_RDWR | O_LARGEFILE);
         if (fd < 0) {
             LOG(ERROR) << "open failed " << partInfo.devPath;
             UPDATER_LAST_WORD(OVERWRITE_OPEN_FAILED, "open failed");
             return false;
         }
-        while (overwriteOffset_ < partInfo.partSize) {
-            ShowRemainingTime(remainingOverWriteTime_);
-            float value = CalcOverWriteProgress();
-            ShowCurrentPercent(value);
-            uint32_t writeSize = OVERWRITE_SZIE;
-            if (overwriteOffset_ + writeSize > partInfo.partSize) {
-                writeSize = partInfo.partSize - overwriteOffset_;
-            }
-            if (OverWritePartition(fd, writeSize, buffer) != 0) {
-                LOG(ERROR) << "Overwrite error " << partInfo.devPath;
-                fsync(fd);
-                close(fd);
-                UPDATER_LAST_WORD(OVERWRITE_FAILED, "overwrite failed");
-                return false;
-            }
-            time_t end = time(nullptr);
-            double eplapsed = difftime(end, start);
-            uint64_t eplased_uint64 = static_cast<uint64_t>(eplapsed);
-            remainingOverWriteTime_ = CaculateOverWriteTime(partInfo.partSize, overwriteOffset_, eplased_uint64);
-            SyncOffsetInMisc(overwriteOffset_);
-        }
-        fsync(fd);
-        close(fd);
-        if (overwriteOffset_ == 0) {
-            LOG(ERROR) << "Overwrite error, offset is 0 " << partInfo.devPath;
-            UPDATER_LAST_WORD(OVERWRITE_INVALID_OFFSET, "overwrite offset is 0");
+        fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
+        if (!OverwriteSinglePartition(fd, partInfo)) {
+            fsync(fd);
+            fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
             return false;
         }
+        fsync(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
     }
     LOG(INFO) << "Overwrite success";
     return true;
@@ -159,6 +213,16 @@ int SecureErase::OverWritePartition(int fd, const uint32_t writeSize, std::vecto
     }
     overwriteOffset_ += writeSize;
     return 0;
+}
+
+void SecureErase::AddOverWritePartitions(const std::string &factoryResetMode)
+{
+    if (factoryResetMode == "secure_erase") {
+        AddOverWritePartition("/dev/block/by-name/userdata");
+    } else if(factoryResetMode == "disk_erase") {
+        AddOverWritePartition("/dev/block/by-name/userdata");
+        type_ = SecureEraseType::ERASE_DATA_AND_OS;
+    }
 }
 
 void SecureErase::AddOverWritePartition(const std::string &devPath)

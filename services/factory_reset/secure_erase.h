@@ -28,6 +28,11 @@ enum {
     OVERWRITE_INVALID_OFFSET,
 };
 
+enum SecureEraseType {
+    ERASE_DATA = 0,
+    ERASE_DATA_AND_OS,
+};
+
 class SecureErase {
     DISALLOW_COPY_MOVE(SecureErase);
 public:
@@ -39,18 +44,23 @@ public:
     };
     virtual ~SecureErase() = default;
     bool OverWritePartition();
+    void AddOverWritePartitions(const std::string &factoryResetMode);
     void AddOverWritePartition(const std::string &devPath);
     void LoadOffsetInRetry(uint64_t offset);
     float CalcOverWriteProgress();
 private:
     int OverWritePartition(int fd, const uint32_t writeSize, std::vector<uint8_t> &buffer);
+    bool OverwriteSinglePartition(int fd, const PartInfo &partInfo);
     void AddOverWritePartInfo(const PartInfo &partInfo);
     void SyncOffsetInMisc(uint64_t offset);
     void ShowRemainingTime(uint64_t remainSeconds);
     void ShowCurrentPercent(float value);
+    void SetSleepTime();
     uint64_t remainingOverWriteTime_ = 0;
     uint64_t overwriteOffset_ = 0;
     std::vector<PartInfo> overwritePartInfos_ {};
+    SecureEraseType type_ = SecureEraseType::ERASE_DATA;
+    uint64_t sleepTime_ = 0;
 };
 }
 

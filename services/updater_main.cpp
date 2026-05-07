@@ -87,6 +87,7 @@ constexpr struct option OPTIONS[] = {
     { "wipe_data_at_factoryreset_0", no_argument, nullptr, 0 },
     { "subpkg_update", no_argument, nullptr, 0 },
     { "secure_erase", optional_argument, nullptr, 0 },
+    { "disk_erase", optional_argument, nullptr, 0 },
     { nullptr, 0, nullptr, 0 },
 };
 constexpr float VERIFY_PERCENT = 0.05;
@@ -1195,7 +1196,7 @@ UpdaterStatus DoFactoryRstEntry(UpdaterParams &upParams)
             ClearUpdaterParaMisc();
             std::this_thread::sleep_for(std::chrono::milliseconds(UI_SHOW_DURATION));
         }
-    } else if (upParams.factoryResetMode == "secure_erase") {
+    } else if (upParams.factoryResetMode == "secure_erase" || upParams.factoryResetMode == "disk_erase") {
         status = DoSecureErase(upParams);
     }
     return status;
@@ -1230,6 +1231,22 @@ UpdaterStatus DoUpdaterEntry(UpdaterParams &upParams)
         status = DoFactoryRstEntry(upParams);
     }
     return status;
+}
+
+static void InitSecureEraseFunc(char* &optarg, PackageUpdateMode &mode, UpdaterParams &upParams)
+{
+    (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_REBOOTFACTORYRST);
+    SecureErase::GetInstance().AddOverWritePartitions(upParams.factoryResetMode);
+    if (optarg != nullptr) {
+        std::string offsetStr(optarg);
+        uint64_t offset = 0;
+        if (!Utils::ConvertToUnsignedLongLong(offsetStr, offset)) {
+            LOG(ERROR) << "Convert secure erase offset error";
+            offset = 0;
+        }
+        LOG(INFO) << "secure erase offset: " << offset;
+        SecureErase::GetInstance().LoadOffsetInRetry(offset);
+    }
 }
 
 std::unordered_map<std::string, std::function<void ()>> InitOptionsFuncTab(char* &optarg,
@@ -1342,19 +1359,14 @@ std::unordered_map<std::string, std::function<void ()>> InitOptionsFuncTab(char*
         }},
         {"secure_erase", [&]() -> void
         {
-            (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_REBOOTFACTORYRST);
-            if (optarg != nullptr) {
-                std::string offsetStr(optarg);
-                uint64_t offset = 0;
-                if (!Utils::ConvertToUnsignedLongLong(offsetStr, offset)) {
-                    LOG(ERROR) << "Convert secure erase offset error";
-                    offset = 0;
-                }
-                LOG(INFO) << "secure erase offset: " << offset;
-                SecureErase::GetInstance().LoadOffsetInRetry(offset);
-            }
             upParams.factoryResetMode = "secure_erase";
+            InitSecureEraseFunc(optarg, mode, upParams);
         }},
+        {"disk_erase", [&]() -> void
+        {
+            upParams.factoryResetMode = "disk_erase";
+            InitSecureEraseFunc(optarg, mode, upParams);
+        }}
     };
     return optionsFuncTab;
 }
