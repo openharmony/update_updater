@@ -91,6 +91,7 @@ ohos_static_library("libupdaterpackage") {
   deps = [
     "${updater_path}/services/common/ring_buffer:libringbuffer",
     "${updater_path}/services/log:libupdaterlog",
+    "${updater_path}/utils:libutils",
   ]
 
   if (!is_linux && !is_mingw && !is_mac && host_cpu != "arm64") {
