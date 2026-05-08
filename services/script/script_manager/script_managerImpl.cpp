@@ -168,7 +168,7 @@ std::string ScriptManagerImpl::GetScriptExtractPath() const
         return "/tmp";
     }
     if (Updater::Utils::IsAiUpdateBinary()) {
-        return std::string(Updater::SINGULAR_UPDATER_PATH);
+        return std::string(Updater::SINGULAR_UPDATE_PATH);
     }
     return Updater::UPDATER_PATH;
 }
