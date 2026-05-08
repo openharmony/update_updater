@@ -37,7 +37,6 @@ using namespace std;
 
 constexpr uint64_t OVERWRITE_SZIE = 1024 * 1024 * 1024;
 constexpr uint8_t OVERWRITE_NUM = 0xFF;
-constexpr int FULL_PERCENT_PROGRESS = 100;
 
 static const std::unordered_map<uint32_t, uint32_t> BOOTDEV_ERARE_TIME_MAP = {
     {1, Updater::UFS_ERASE_1T_TIME},
