@@ -492,4 +492,9 @@ HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_set_text, TestSize.
     textLabel.SetText("");
     EXPECT_STREQ(textLabel.GetText(), "");
 }
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_set_text, TestSize.Level0)
+{
+    
+}
 }  // namespace
