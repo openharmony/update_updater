@@ -37,6 +37,7 @@ using namespace std;
 
 constexpr uint64_t OVERWRITE_SZIE = 1024 * 1024 * 1024;
 constexpr uint8_t OVERWRITE_NUM = 0xFF;
+constexpr const char *USERDATA_PATH = "/dev/block/by-name/userdata";
 
 static const std::unordered_map<uint32_t, uint32_t> BOOTDEV_ERARE_TIME_MAP = {
     {1, Updater::UFS_ERASE_1T_TIME},
@@ -175,7 +176,6 @@ bool SecureErase::OverwriteSinglePartition(int fd, const PartInfo &partInfo)
 
 bool SecureErase::OverWritePartition()
 {
-    AddOverWritePartition("/dev/block/by-name/userdata");
     UPDATER_UI_INSTANCE.ShowProgressPage();
     if (overwritePartInfos_.empty()) {
         LOG(ERROR) << "no partition to overwrite";
@@ -225,9 +225,9 @@ int SecureErase::OverWritePartition(int fd, const uint32_t writeSize, std::vecto
 void SecureErase::AddOverWritePartitions(const std::string &factoryResetMode)
 {
     if (factoryResetMode == "secure_erase") {
-        AddOverWritePartition("/dev/block/by-name/userdata");
+        AddOverWritePartition(USERDATA_PATH);
     } else if (factoryResetMode == "disk_erase") {
-        AddOverWritePartition("/dev/block/by-name/userdata");
+        AddOverWritePartition(USERDATA_PATH);
         type_ = SecureEraseType::ERASE_DATA_AND_OS;
     }
 }
