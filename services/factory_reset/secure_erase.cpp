@@ -39,9 +39,9 @@ constexpr uint64_t OVERWRITE_SZIE = 1024 * 1024 * 1024;
 constexpr uint8_t OVERWRITE_NUM = 0xFF;
 constexpr int FULL_PERCENT_PROGRESS = 100;
 
-static const std::unordered_map<uint32_t, uint32_t> BOOTDEV_TYPE_TO_ERASE_TIME = {
-    {1, Updater::EMMC_ERASE_1T_TIME},
-    {2, Updater::UFS_ERASE_1T_TIME},
+static const std::unordered_map<uint32_t, uint32_t> BOOTDEV_ERARE_TIME_MAP = {
+    {1, Updater::UFS_ERASE_1T_TIME},
+    {2, Updater::EMMC_ERASE_1T_TIME},
     {4, Updater::SSD_ERASE_1T_TIME},
     {12, Updater::SSD_ERASE_1T_TIME}, // 12 : boot device is ssd when bit 2 and bit 3 are both 1
 };
@@ -63,11 +63,20 @@ static uint32_t GetBootdevType()
 static uint64_t GetBootDeviceTime()
 {
     uint32_t type = GetBootdevType();
-    auto it = BOOTDEV_TYPE_TO_ERASE_TIME.find(type);
-    if (it == BOOTDEV_TYPE_TO_ERASE_TIME.end()) {
+    auto it = BOOTDEV_ERARE_TIME_MAP.find(type);
+    if (it == BOOTDEV_ERARE_TIME_MAP.end()) {
         return Updater::UFS_ERASE_1T_TIME;
     }
     return it->second;
+}
+
+static uint64_t GetEstimatedTime(uint64_t partSize)
+{
+    uint64_t bootDeviceTime = GetBootDeviceTime();
+    double sizeRatio = static_cast<double>(partSize) / Updater::DEFAULT_1T_SIZE;
+    uint64_t estimatedTime = static_cast<uint64_t>(sizeRatio * bootDeviceTime);
+    LOG(INFO) << "secure erase estimatedTime: " << estimatedTime;
+    return estimatedTime;
 }
 
 static uint64_t CaculatePerSpeed(uint64_t offset, uint64_t time)
@@ -152,12 +161,12 @@ bool SecureErase::OverwriteSinglePartition(int fd, const PartInfo &partInfo)
         time_t end = time(nullptr);
         double eplapsed = difftime(end, start);
         uint64_t eplasedUint64 = static_cast<uint64_t>(eplapsed);
-        uint64_t writeTime = CaclculateOverWriteTime(partInfo.partSize - overwriteOffset_, writeSize, eplasedUint64);
+        uint64_t writeTime = CaculateOverWriteTime(partInfo.partSize - overwriteOffset_, writeSize, eplasedUint64);
         remainingOverWriteTime_ = (remainingOverWriteTime_ == 0 || writeTime == 0) ? writeTime
         : (remainingOverWriteTime_ <= writeTime ? remainingOverWriteTime_ - 1 : writeTime);
         SyncOffsetInMisc(overwriteOffset_);
     }
-    if (overwrteOffset_ == 0) {
+    if (overwriteOffset_ == 0) {
         LOG(ERROR) << "overwrite failed, offset is 0, path: " << partInfo.devPath;
         UPDATER_LAST_WORD(OVERWRITE_FAILED, "overwrite failed, offset is 0");
         return false;
