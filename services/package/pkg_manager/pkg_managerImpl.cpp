@@ -411,8 +411,10 @@ const std::string PkgManagerImpl::GetExtraPath(const std::string &path)
         return path;
     } else if (path == UPDATRE_SCRIPT_ZIP) {
         return "/tmp/";
+#ifndef DIFF_PATCH_SDK
     } else if (Updater::Utils::IsAiUpdateBinary()) {
         return string(Updater::SINGULAR_UPDATE_PATH) + "/";
+#endif
     }
 
     return string(Updater::UPDATER_PATH) + "/";
