@@ -91,11 +91,17 @@ ohos_static_library("libupdaterpackage") {
   deps = [
     "${updater_path}/services/common/ring_buffer:libringbuffer",
     "${updater_path}/services/log:libupdaterlog",
-    "${updater_path}/utils:libutils",
   ]
 
-  if (!is_linux && !is_mingw && !is_mac && host_cpu != "arm64") {
-    deps += [ "../rust/hash_signed_data:rust_hash_signed_data" ]
+  defines = [ "OPENSSL_SUPPRESS_DEPRECATED" ]
+
+  if (!is_linux && !is_mingw && !is_mac) {
+    deps += [
+      "../rust/hash_signed_data:rust_hash_signed_data",
+      "${updater_path}/utils:libutils",
+    ]
+  } else {
+    defines += [ "DIFF_PATCH_SDK" ]
   }
 
   external_deps = [
@@ -125,7 +131,6 @@ ohos_static_library("libupdaterpackage") {
       "-Wl,--no-whole-archive",
     ]
   }
-  defines = [ "OPENSSL_SUPPRESS_DEPRECATED" ]
 
   subsystem_name = "updater"
   part_name = "updater"
