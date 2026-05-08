@@ -492,4 +492,173 @@ HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_set_text, TestSize.
     textLabel.SetText("");
     EXPECT_STREQ(textLabel.GetText(), "");
 }
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_default_constructor, TestSize.Level0)
+{
+    TextLabelAdapter textLabel;
+    EXPECT_FALSE(textLabel.IsFocusable());
+}
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_is_valid_edge_cases, TestSize.Level0)
+{
+    EXPECT_TRUE(TextLabelAdapter::IsValid(UxLabelInfo {0, "", "", "#000000ff", "#000000ff"}));
+    EXPECT_FALSE(TextLabelAdapter::IsValid(UxLabelInfo {255, "", "", "#000000ff", "#000000ff"}));
+    EXPECT_TRUE(TextLabelAdapter::IsValid(UxLabelInfo {100, "", "", "#00000000", "#00000000"}));
+}
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_constructor_focusable, TestSize.Level0)
+{
+    UxViewCommonInfo commonInfo {0, 0, 0, 0, "id", "UILabel", false};
+    UxLabelInfo specInfo {100, "focusable label", "center", "#000000ff", "#000000ff", "normal",
+        {"#ffffffff", "#ffffffff", true}, true, "ellipsis"};
+    TextLabelAdapter *textLabelPtr = CreateAdapterProxy<TextLabelAdapter>(commonInfo, specInfo);
+    ASSERT_NE(textLabelPtr, nullptr);
+    TextLabelAdapter &textLabel = *textLabelPtr;
+
+    auto fontColor = StrToColor(specInfo.fontColor);
+    auto bgColor = StrToColor(specInfo.bgColor);
+    EXPECT_TRUE(textLabel.IsFocusable());
+    EXPECT_EQ(textLabel.GetStyle(OHOS::STYLE_TEXT_COLOR), fontColor.full);
+    EXPECT_EQ(textLabel.GetStyle(OHOS::STYLE_BACKGROUND_COLOR), bgColor.full);
+}
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_constructor_non_focusable, TestSize.Level0)
+{
+    UxViewCommonInfo commonInfo {0, 0, 0, 0, "id", "UILabel", false};
+    UxLabelInfo specInfo {100, "non-focus", "center", "#000000ff", "#000000ff", "normal",
+        {"#ff0000ff", "#00ff00ff", false}, false, "ellipsis"};
+    TextLabelAdapter *textLabelPtr = CreateAdapterProxy<TextLabelAdapter>(commonInfo, specInfo);
+    ASSERT_NE(textLabelPtr, nullptr);
+    TextLabelAdapter &textLabel = *textLabelPtr;
+
+    EXPECT_FALSE(textLabel.IsFocusable());
+}
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_constructor_bold_font, TestSize.Level0)
+{
+    UxViewCommonInfo commonInfo {0, 0, 0, 0, "id", "UILabel", false};
+    UxLabelInfo specInfo {100, "bold text", "center", "#000000ff", "#000000ff", "bold",
+        {"#ff0000ff", "#00ff00ff", false}, false, "ellipsis"};
+    TextLabelAdapter *textLabelPtr = CreateAdapterProxy<TextLabelAdapter>(commonInfo, specInfo);
+    ASSERT_NE(textLabelPtr, nullptr);
+    TextLabelAdapter &textLabel = *textLabelPtr;
+
+    EXPECT_STREQ(textLabel.GetText(), "bold text");
+}
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_constructor_marquee, TestSize.Level0)
+{
+    UxViewCommonInfo commonInfo {0, 0, 0, 0, "id", "UILabel", false};
+    UxLabelInfo specInfo {100, "marquee text", "center", "#000000ff", "#000000ff", "normal",
+        {"#ff0000ff", "#00ff00ff", false}, false, "marquee"};
+    TextLabelAdapter *textLabelPtr = CreateAdapterProxy<TextLabelAdapter>(commonInfo, specInfo);
+    ASSERT_NE(textLabelPtr, nullptr);
+    TextLabelAdapter &textLabel = *textLabelPtr;
+
+    EXPECT_EQ(textLabel.GetLineBreakMode(), OHOS::UILabel::LINE_BREAK_MARQUEE);
+}
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_constructor_ellipsis, TestSize.Level0)
+{
+    UxViewCommonInfo commonInfo {0, 0, 0, 0, "id", "UILabel", false};
+    UxLabelInfo specInfo {100, "ellipsis text", "center", "#000000ff", "#000000ff", "normal",
+        {"#ff0000ff", "#00ff00ff", false}, false, "ellipsis"};
+    TextLabelAdapter *textLabelPtr = CreateAdapterProxy<TextLabelAdapter>(commonInfo, specInfo);
+    ASSERT_NE(textLabelPtr, nullptr);
+    TextLabelAdapter &textLabel = *textLabelPtr;
+
+    EXPECT_EQ(textLabel.GetLineBreakMode(), OHOS::UILabel::LINE_BREAK_ELLIPSIS);
+}
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_constructor_default_font, TestSize.Level0)
+{
+    UxViewCommonInfo commonInfo {0, 0, 0, 0, "id", "UILabel", false};
+    UxLabelInfo specInfo {100, "default font", "center", "#000000ff", "#000000ff", "normal",
+        {"#000000ff", "#000000ff", false}, false, "ellipsis"};
+    TextLabelAdapter *textLabelPtr = CreateAdapterProxy<TextLabelAdapter>(commonInfo, specInfo);
+    ASSERT_NE(textLabelPtr, nullptr);
+    TextLabelAdapter &textLabel = *textLabelPtr;
+
+    auto fontColor = StrToColor(specInfo.fontColor);
+    auto bgColor = StrToColor(specInfo.bgColor);
+    EXPECT_EQ(textLabel.GetStyle(OHOS::STYLE_TEXT_COLOR), fontColor.full);
+    EXPECT_EQ(textLabel.GetStyle(OHOS::STYLE_BACKGROUND_COLOR), bgColor.full);
+    EXPECT_EQ(textLabel.GetStyle(OHOS::STYLE_TEXT_OPA), fontColor.alpha);
+    EXPECT_EQ(textLabel.GetStyle(OHOS::STYLE_BACKGROUND_OPA), bgColor.alpha);
+}
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_constructor_with_alpha_color, TestSize.Level0)
+{
+    UxViewCommonInfo commonInfo {0, 0, 0, 0, "id", "UILabel", false};
+    UxLabelInfo specInfo {100, "", "center", "#80FF0000", "#8000FF00", "normal",
+        {"#000000ff", "#000000ff", false}, false, "ellipsis"};
+    TextLabelAdapter *textLabelPtr = CreateAdapterProxy<TextLabelAdapter>(commonInfo, specInfo);
+    ASSERT_NE(textLabelPtr, nullptr);
+    TextLabelAdapter &textLabel = *textLabelPtr;
+
+    auto fontColor = StrToColor(specInfo.fontColor);
+    auto bgColor = StrToColor(specInfo.bgColor);
+    EXPECT_EQ(textLabel.GetStyle(OHOS::STYLE_TEXT_OPA), fontColor.alpha);
+    EXPECT_EQ(textLabel.GetStyle(OHOS::STYLE_BACKGROUND_OPA), bgColor.alpha);
+}
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_is_valid_invalid_bg_color, TestSize.Level0)
+{
+    EXPECT_FALSE(TextLabelAdapter::IsValid(UxLabelInfo {100, "", "", "#000000ff", "#invalid"}));
+    EXPECT_FALSE(TextLabelAdapter::IsValid(UxLabelInfo {100, "", "", "#invalid", "#000000ff"}));
+    EXPECT_FALSE(TextLabelAdapter::IsValid(UxLabelInfo {100, "", "", "", ""}));
+}
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_align_center, TestSize.Level0)
+{
+    UxViewCommonInfo commonInfo {0, 0, 0, 0, "id", "UILabel", false};
+    UxLabelInfo specInfo {100, "center", "center", "#000000ff", "#000000ff", "normal",
+        {"#000000ff", "#000000ff", false}, false, "ellipsis"};
+    TextLabelAdapter *textLabelPtr = CreateAdapterProxy<TextLabelAdapter>(commonInfo, specInfo);
+    ASSERT_NE(textLabelPtr, nullptr);
+    TextLabelAdapter &textLabel = *textLabelPtr;
+
+    EXPECT_EQ(textLabel.GetHorAlign(), OHOS::TEXT_ALIGNMENT_CENTER);
+}
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_align_left, TestSize.Level0)
+{
+    UxViewCommonInfo commonInfo {0, 0, 0, 0, "id", "UILabel", false};
+    UxLabelInfo specInfo {100, "left", "left", "#000000ff", "#000000ff", "normal",
+        {"#000000ff", "#000000ff", false}, false, "ellipsis"};
+    TextLabelAdapter *textLabelPtr = CreateAdapterProxy<TextLabelAdapter>(commonInfo, specInfo);
+    ASSERT_NE(textLabelPtr, nullptr);
+    TextLabelAdapter &textLabel = *textLabelPtr;
+
+    EXPECT_EQ(textLabel.GetHorAlign(), OHOS::TEXT_ALIGNMENT_LEFT);
+}
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_align_right, TestSize.Level0)
+{
+    UxViewCommonInfo commonInfo {0, 0, 0, 0, "id", "UILabel", false};
+    UxLabelInfo specInfo {100, "right", "right", "#000000ff", "#000000ff", "normal",
+        {"#000000ff", "#000000ff", false}, false, "ellipsis"};
+    TextLabelAdapter *textLabelPtr = CreateAdapterProxy<TextLabelAdapter>(commonInfo, specInfo);
+    ASSERT_NE(textLabelPtr, nullptr);
+    TextLabelAdapter &textLabel = *textLabelPtr;
+
+    EXPECT_EQ(textLabel.GetHorAlign(), OHOS::TEXT_ALIGNMENT_RIGHT);
+}
+
+HWTEST_F(UpdaterUiComponentUnitTest, test_text_label_adapter_on_press_event, TestSize.Level0)
+{
+    UxViewCommonInfo commonInfo {0, 0, 100, 50, "id", "UILabel", false};
+    UxLabelInfo specInfo {100, "press test", "center", "#000000ff", "#000000ff", "normal",
+        {"#ff0000ff", "#00ff00ff", false}, false, "ellipsis"};
+    TextLabelAdapter *textLabelPtr = CreateAdapterProxy<TextLabelAdapter>(commonInfo, specInfo);
+    ASSERT_NE(textLabelPtr, nullptr);
+    TextLabelAdapter &textLabel = *textLabelPtr;
+
+    OHOS::RootView::GetInstance()->Add(&textLabel);
+    textLabel.SetVisible(true);
+    OHOS::FocusManager::GetInstance()->ClearFocus();
+    OHOS::PressEvent event {OHOS::Point {50, 25}};
+    textLabel.OnPressEvent(event);
+    OHOS::RootView::GetInstance()->Remove(&textLabel);
+}
 }  // namespace
