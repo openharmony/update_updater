@@ -163,7 +163,7 @@ bool SecureErase::OverwriteSinglePartition(int fd, const PartInfo &partInfo)
         uint64_t eplasedUint64 = static_cast<uint64_t>(eplapsed);
         uint64_t writeTime = CaculateOverWriteTime(partInfo.partSize - overwriteOffset_, writeSize, eplasedUint64);
         remainingOverWriteTime_ = (remainingOverWriteTime_ == 0 || writeTime == 0) ? writeTime
-        : (remainingOverWriteTime_ <= writeTime ? remainingOverWriteTime_ - 1 : writeTime);
+            : (remainingOverWriteTime_ <= writeTime ? remainingOverWriteTime_ - 1 : writeTime);
         SyncOffsetInMisc(overwriteOffset_);
     }
     if (overwriteOffset_ == 0) {
