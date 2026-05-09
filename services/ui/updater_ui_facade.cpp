@@ -202,7 +202,7 @@ void UpdaterUiFacade::ShowSuccessPage() const
 
     const auto &resPage = it->second.resPage;
     const PageBackground *bgCfg = FindPageBackground(it->second.pageBackgrounds, resPage.successPageId);
-    if (bgCfg != nullptr && *bgCfg->backgroundComId.empty() && !bgCfg->backgroundType.empty()) {
+    if (bgCfg != nullptr && !bgCfg->backgroundComId.empty() && !bgCfg->backgroundType.empty()) {
         ComInfo bgId = {resPage.successPageId, bgCfg->backgroundComId};
         auto background = BackgroundStrategy::Factory(bgCfg->backgroundType, bgId, bgCfg->foregroundComIds);
         if (background) {
