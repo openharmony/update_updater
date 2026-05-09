@@ -25,7 +25,7 @@ void BackgroundStrategy::SetForegroundZIndex() const
 {
     for (const auto &comId : foregroundComIds_) {
         ComInfo comInfo = {id_pageId, comId};
-        if (pgMgr_.IsValid(comInfo)) {
+        if (pgMgr_.IsValidCom(comInfo)) {
             pgMgr_[comInfo]->SetZIndex(FOREGROUND_ZINDEX);
         }
     }
@@ -34,7 +34,8 @@ void BackgroundStrategy::SetForegroundZIndex() const
 std::unique_ptr<BackgroundStrategy> BackgroundStrategy::Factory(const std::string &type, const ComInfo &id,
     const std::vector<std::string> &foregroundComIds)
 {
-    using Fun = std::function<std::unique_ptr<BackgroundStrategy>(const ComInfo &, const std::vector<std::string> &)>;
+    using Fun = std::function<std::unique_ptr<BackgroundStrategy>(const ComInfo &,
+        const std::vector<std::string> &)>;
     const static std::unordered_map<std::string, Fun> bgMap {
         { "anim", [] (const ComInfo &id, const std::vector<std::string> &foregroundComIds) {
             return std::make_unique<AnimatorBackground>(id, foregroundComIds); }},
