@@ -42,13 +42,13 @@ public:
     static void TearDownTestCase(void) {}
     void SetUp() override
     {
-        RegisterCmponent();
+        RegisterComponents();
         pageInfos_ = MakeUxPages();
-        ASSERT_TRUE(GetInstance.Init(pageInfos_, MAIN_PAGE_ID));
+        ASSERT_TRUE(GetInstance().Init(pageInfos_, MAIN_PAGE_ID));
     }
     void TearDown() override
     {
-        GetInstance.reset();
+        GetInstance().reset();
         pageInfos_.clear();
     }
 
@@ -61,10 +61,10 @@ private:
 };
 
 template <typename T>
-UxViewInfo CreatViewInfo(UxViewCommonInfo commonInfo, typename T::specificInfoType specinfo)
+UxViewInfo CreateViewInfo(UxViewCommonInfo commonInfo, typename T::SpecificInfoType specinfo)
 {
     UxViewInfo info {commonInfo, ComponentFactory::CreateSpecificInfo(T::COMPONENT_TYPE)};
-    EXPECT_NE(info.specinfo.get(), nullptr);
+    EXPECT_NE(info.specificInfo.get(), nullptr);
     static_cast<specificInfoWrapper<T> *>(info.specificInfo.get())->data = specInfo;
     return info;
 }
@@ -73,14 +73,14 @@ UxPageInfo BackgroundStrategyUnitTest::MakeTestPage()
 {
     UxPageInfo page;
     page.id = "page1";
-    page.baColor = "#000000ff";
-    page.viewInfos.emplace_back(CreatViewInfo<TextLabelAdapter>(UxViewCommonInfo {300, 400, 600, 200,
-        "foreground_lable", "UILabel", true}, UxLabelInfo {50, "foreground_lable", "center", "#ff0000ff",
+    page.bgColor = "#000000ff";
+    page.viewInfos.emplace_back(CreateViewInfo<TextLabelAdapter>(UxViewCommonInfo {300, 400, 600, 200,
+        "foreground_label", "UILabel", true}, UxLabelInfo {50, "foreground_label", "center", "#ff0000ff",
         "#000000ff", "normal", {"#ff0000ff", "#000000ff", false}, false, "ellipsis"}));
-    page.viewInfos.emplace_back(CreatViewInfo<ImgViewAdapter>(UxViewCommonInfo {300, 700, 400, 400,
-        "backround_img", "UIImageView", false}, UxLabelInfo {"/resource/img1", "empty", 100, 0}));
-    page.viewInfos.emplace_back(CreatViewInfo<ImgViewAdapter>(UxViewCommonInfo {100, 100, 200, 200,
-        "anim_bg", "UIImageView", false}, UxLabelInfo {"/resource/anim", "frame", 10, 100}));
+    page.viewInfos.emplace_back(CreateViewInfo<ImgViewAdapter>(UxViewCommonInfo {300, 700, 400, 400,
+        "background_img", "UIImageView", false}, UxImageInfo {"/resource/img1", "empty", 100, 0}));
+    page.viewInfos.emplace_back(CreateViewInfo<ImgViewAdapter>(UxViewCommonInfo {100, 100, 200, 200,
+        "anim_bg", "UIImageView", false}, UxImageInfo {"/resource/anim", "frame", 10, 100}));
     return page;
 }
 
@@ -88,32 +88,32 @@ std::vector<UxPageInfo> BackgroundStrategyUnitTest::MakeUxPages()
 {
     std::vector<UxPageInfo> pages;
     auto page = MakeTestPage();
-    page.emplace_back(std::move(page));
+    pages.emplace_back(std::move(page));
     return pages;
 }
 
-HWTEST_F(BackgroundStrategyUnitTest, test_factory_creat_anim_background, TestSize.Level1)
+HWTEST_F(BackgroundStrategyUnitTest, test_factory_create_anim_background, TestSize.Level1)
 {
-    Cominfo bdId {"page1", "anim_bg"};
-    std::vector<std::string> foregroundIds {"foreground_lable"};
-    auto bgStrategy = BackgroundStrategy::factory("anim", bgId, foregroundIds);
+    Cominfo bgId {"page1", "anim_bg"};
+    std::vector<std::string> foregroundIds {"foreground_label"};
+    auto bgStrategy = BackgroundStrategy::Factory("anim", bgId, foregroundIds);
     ASSERT_NE(bgStrategy, nullptr);
     bgStrategy->Show();
-    auto *ImgAdapter = GetInstance()[bgId].As<ImgViewAdapter>();
-    EXPECT_NE(ImgAdapter, nullptr);
+    auto *imgAdapter = GetInstance()[bgId].As<ImgViewAdapter>();
+    EXPECT_NE(imgAdapter, nullptr);
     GetInstance()[bgId].As<ImgViewAdapter>()->Stop();
 }
 
-HWTEST_F(BackgroundStrategyUnitTest, test_factory_creat_static_background, TestSize.Level1)
+HWTEST_F(BackgroundStrategyUnitTest, test_factory_create_static_background, TestSize.Level1)
 {
-    Cominfo bdId {"page1", "backround_img"};
+    Cominfo bgId {"page1", "backround_img"};
     std::vector<std::string> foregroundIds {"foreground_lable"};
-    auto bgStrategy = BackgroundStrategy::factory("img", bgId, foregroundIds);
+    auto bgStrategy = BackgroundStrategy::Factory("img", bgId, foregroundIds);
     ASSERT_NE(bgStrategy, nullptr);
     EXPECT_NO_FATAL_FAILURE(bgStrategy->Show());
     EXPECT_NO_FATAL_FAILURE(bgStrategy->Hide());
 
-    auto bgStrategyInvalid = BackgroundStrategy::factory("invalid_type", bgId, foregroundIds);
+    auto bgStrategyInvalid = BackgroundStrategy::Factory("invalid_type", bgId, foregroundIds);
     ASSERT_NE(bgStrategyInvalid, nullptr);
     EXPECT_NO_FATAL_FAILURE(bgStrategyInvalid->Show());
     EXPECT_NO_FATAL_FAILURE(bgStrategyInvalid->Hide());
@@ -121,9 +121,9 @@ HWTEST_F(BackgroundStrategyUnitTest, test_factory_creat_static_background, TestS
 
 HWTEST_F(BackgroundStrategyUnitTest, test_animator_background_hide, TestSize.Level1)
 {
-    Cominfo bdId {"page1", "anim_bg"};
+    Cominfo bgId {"page1", "anim_bg"};
     std::vector<std::string> foregroundIds {"foreground_lable"};
-    auto bgStrategy = BackgroundStrategy::factory("anim", bgId, foregroundIds);
+    auto bgStrategy = BackgroundStrategy::Factory("anim", bgId, foregroundIds);
     ASSERT_NE(bgStrategy, nullptr);
     bgStrategy->Show();
     bgStrategy->Hide();
@@ -131,7 +131,7 @@ HWTEST_F(BackgroundStrategyUnitTest, test_animator_background_hide, TestSize.Lev
 
 HWTEST_F(BackgroundStrategyUnitTest, test_animator_background_with_empty_foreground, TestSize.Level1)
 {
-    Cominfo bdId {"page1", "anim_bg"};
+    Cominfo bgId {"page1", "anim_bg"};
     std::vector<std::string> emptyForegroundIds {};
     auto bgStrategy = BackgroundStrategy::factory("anim", bgId, emptyForegroundIds);
     ASSERT_NE(bgStrategy, nullptr);
@@ -139,29 +139,29 @@ HWTEST_F(BackgroundStrategyUnitTest, test_animator_background_with_empty_foregro
     EXPECT_NO_FATAL_FAILURE(bgStrategy->Hide());
 }
 
-HWTEST_F(BackgroundStrategyUnitTest, test_multiple_fpreground_components_zindex, TestSize.Level1)
+HWTEST_F(BackgroundStrategyUnitTest, test_multiple_foreground_components_zindex, TestSize.Level1)
 {
     Cominfo pageId {"page1", ""};
     GetInstance().Reset();
     std::vector<UxPageInfo> pages;
     UxPageInfo page;
     page.id = "page1";
-    page.baColor = "#000000ff";
+    page.bgColor = "#000000ff";
     page.viewInfos.emplace_back(CreatViewInfo<TextLabelAdapter>(UxViewCommonInfo {300, 400, 600, 200,
-        "fg_lable1", "UILabel", true}, UxLabelInfo {50, "lable1", "center", "#ff0000ff",
+        "fg_lable1", "UILabel", true}, UxLabelInfo {50, "label1", "center", "#ff0000ff",
         "#000000ff", "normal", {"#ff0000ff", "#000000ff", false}, false, "ellipsis"}));
     page.viewInfos.emplace_back(CreatViewInfo<TextLabelAdapter>(UxViewCommonInfo {300, 500, 600, 200,
-        "fg_lable2", "UILabel", true}, UxLabelInfo {50, "lable2", "center", "#00ff00ff",
+        "fg_lable2", "UILabel", true}, UxLabelInfo {50, "label2", "center", "#00ff00ff",
         "#000000ff", "normal", {"#00ff00ff", "#000000ff", false}, false, "ellipsis"}));
     page.viewInfos.emplace_back(CreatViewInfo<ImgViewAdapter>(UxViewCommonInfo {300, 700, 400, 400,
-        "bg_img", "UIImageView", false}, UxLabelInfo {"/resource/img1", "empty", 100, 0}));
+        "bg_img", "UIImageView", false}, UxLabelInfo {"/resources/img1", "empty", 100, 0}));
 
     pages.emplace_back(std::move(page));
-    ASSERT_TURE(GetInstance().Int(pages, "page1"));
+    ASSERT_TRUE(GetInstance().Int(pages, "page1"));
 
     Cominfo bgId {"page1", "bg_img"};
-    std::vector<std::string> foregroundIds {"fg_lable1", "fg_lable2"};
-    auto bgStrategy = BackgroundStrategy::factory("img", bgId, foregroundIds);
+    std::vector<std::string> foregroundIds {"fg_label1", "fg_label2"};
+    auto bgStrategy = BackgroundStrategy::Factory("img", bgId, foregroundIds);
     ASSERT_NE(bgStrategy, nullptr);
     EXPECT_NO_FATAL_FAILURE(bgStrategy->Show());
 }
