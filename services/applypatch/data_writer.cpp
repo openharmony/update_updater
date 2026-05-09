@@ -23,6 +23,7 @@
 #include "fs_manager/mount.h"
 #include "log/log.h"
 #include "raw_writer.h"
+#include "uncache.h"
 
 namespace Updater {
 UpdaterEnv *DataWriter::env_ = nullptr;
@@ -42,7 +43,7 @@ int DataWriter::OpenPath(const std::string &path)
         LOG(ERROR) << "realPath is NULL" << " : " << strerror(errno);
         return -1;
     }
-    int fd = open(realPath, O_RDWR | O_LARGEFILE);
+    int fd = open(realPath, O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
     free(realPath);
     if (fd < 0) {
         LOG(ERROR) << "Datawriter: open block device " << path << " failed " << " : " << strerror(errno);

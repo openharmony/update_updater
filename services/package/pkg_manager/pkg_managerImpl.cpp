@@ -41,6 +41,7 @@
 #include "updater/updater_const.h"
 #include "utils.h"
 #include "zip_pkg_parse.h"
+#include "uncache.h"
 
 using namespace std;
 using namespace Updater;
@@ -1222,7 +1223,7 @@ int32_t PkgManagerImpl::VerifyOtaPackage(const std::string &devPath, uint64_t of
         PKG_LOGE("realPath is nullptr, err %s", strerror(errno));
         return PKG_INVALID_PARAM;
     }
-    int fd = open(devRealPath, O_RDONLY | O_LARGEFILE);
+    int fd = open(devRealPath, O_RDONLY | O_LARGEFILE | O_UNCACHE_FLAG);
     if (fd < 0) {
         PKG_LOGE("open %s fail, %s", devRealPath, strerror(errno));
         return PKG_INVALID_FILE;
