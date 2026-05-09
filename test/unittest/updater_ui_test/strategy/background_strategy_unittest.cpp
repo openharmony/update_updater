@@ -48,7 +48,7 @@ public:
     }
     void TearDown() override
     {
-        GetInstance().reset();
+        GetInstance().Reset();
         pageInfos_.clear();
     }
 
