@@ -34,7 +34,7 @@ bool operator == (const PageBackground &lhs, const PageBackground &rhs)
 
 bool operator == (const PageBackgroundCfg &lhs, const PageBackgroundCfg &rhs)
 {
-    return lhs.pageId == rhs.pageId && lhs.background =  rhs.background;
+    return lhs.pageId == rhs.pageId && lhs.background = rhs.background;
 }
 
 bool operator == (const ProgressPage &lhs, const ProgressPage &rhs)
