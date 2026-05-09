@@ -29,6 +29,7 @@
 #include "updater_env.h"
 #include <cstdarg>
 #include <securec.h>
+#include "uncache.h"
 
 using namespace Uscript;
 using namespace Hpackage;
@@ -175,7 +176,7 @@ static int32_t ExecuteTransferCommand(int fd, const std::vector<std::string> &li
 static int32_t DoExecuteUpdateBlock(const UpdateBlockInfo &infos, TransferManagerPtr tm,
     const std::vector<std::string> &lines, const std::string &targetPath, const std::string &dstImage)
 {
-    int fd = open(dstImage.c_str(), O_RDWR | O_LARGEFILE);
+    int fd = open(dstImage.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
     if (fd == -1) {
         LOG(ERROR) << "Failed to open block";
         return Uscript::USCRIPT_ERROR_EXECUTE;

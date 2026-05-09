@@ -30,6 +30,7 @@
 #include "securec.h"
 #include "updater/updater_const.h"
 #include "utils.h"
+#include "uncache.h"
 
 namespace Updater {
 using Updater::Utils::SplitString;
@@ -317,7 +318,7 @@ bool ErasePartition(const std::string &devPath, bool isWriteZero)
         LOG(ERROR) << "realpath failed:" << devPath;
         return false;
     }
-    int fd = open(realPath.c_str(), O_RDWR | O_LARGEFILE);
+    int fd = open(realPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
     if (fd == -1) {
         LOG(ERROR) << "open failed:" << realPath;
         return false;

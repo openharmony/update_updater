@@ -36,6 +36,7 @@
 #include "updater/hardware_fault_retry.h"
 #include "utils.h"
 #include "slot_info/slot_info.h"
+#include "uncache.h"
 
 using namespace Uscript;
 using namespace Hpackage;
@@ -383,8 +384,8 @@ UpdateFdInfo UScriptInstructionBlockUpdate::CreateFdInfo(const UpdateBlockInfo &
     std::string dataDevPath = GetStashedPath(infos);
     // ab or vab
     if (devPath != infos.devPath) {
-        fdInfo.sourceFd = open(infos.devPath.c_str(), O_RDWR | O_LARGEFILE);
-        fdInfo.targetFd = open(devPath.c_str(), O_RDWR | O_LARGEFILE);
+        fdInfo.sourceFd = open(infos.devPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
+        fdInfo.targetFd = open(devPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
         return fdInfo;
     }
 
@@ -396,14 +397,14 @@ UpdateFdInfo UScriptInstructionBlockUpdate::CreateFdInfo(const UpdateBlockInfo &
     }
     // need backup partitions
     if (Utils::IsFileExist(dataDevPath) && !targetPartitionPath.empty()) {
-        fdInfo.sourceFd = open(dataDevPath.c_str(), O_RDWR | O_LARGEFILE);
-        fdInfo.targetFd = open(targetPartitionPath.c_str(), O_RDWR | O_LARGEFILE);
+        fdInfo.sourceFd = open(dataDevPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
+        fdInfo.targetFd = open(targetPartitionPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
         tm->GetTransferParams()->offset = targetPartitionOffset;
         usedStashPtn_ = true;
         return fdInfo;
     }
 
-    fdInfo.sourceFd = open(infos.devPath.c_str(), O_RDWR | O_LARGEFILE);
+    fdInfo.sourceFd = open(infos.devPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
     fdInfo.targetFd = fdInfo.sourceFd;
     return fdInfo;
 }
@@ -624,7 +625,7 @@ bool UScriptInstructionBlockCheck::ExecReadBlockInfo(const std::string &devPath,
     time_t &mountTime, uint16_t &mountCount)
 {
     UPDATER_INIT_RECORD;
-    int fd = open(devPath.c_str(), O_RDWR | O_LARGEFILE);
+    int fd = open(devPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
     if (fd == -1) {
         LOG(ERROR) << "Failed to open file";
         UPDATER_LAST_WORD("Failed to open file", devPath);
@@ -747,7 +748,7 @@ int32_t UScriptInstructionShaCheck::DoBlocksVerify(Uscript::UScriptEnv &env, con
         LOG(ERROR) << "Error to create new store space";
         return USCRIPT_ERROR_EXECUTE;
     }
-    int fd = open(devPath.c_str(), O_RDWR | O_LARGEFILE);
+    int fd = open(devPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
     if (fd == -1) {
         LOG(ERROR) << "Failed to open block";
         return USCRIPT_ERROR_EXECUTE;
@@ -797,7 +798,7 @@ int UScriptInstructionShaCheck::ExecReadShaInfo(Uscript::UScriptEnv &env, const 
 
 void UScriptInstructionShaCheck::PrintAbnormalBlockHash(const std::string &devPath, const std::string &blockPairs)
 {
-    int fd = open(devPath.c_str(), O_RDWR | O_LARGEFILE);
+    int fd = open(devPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
     if (fd == -1) {
         LOG(ERROR) << "Failed to open file " << devPath;
         return;
@@ -844,7 +845,7 @@ std::string UScriptInstructionShaCheck::CalculateBlockSha(const std::string &dev
         return "";
     }
 
-    int fd = open(devPath.c_str(), O_RDWR | O_LARGEFILE);
+    int fd = open(devPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
     if (fd == -1) {
         LOG(ERROR) << "Failed to open file";
         UPDATER_LAST_WORD(USCRIPT_ERROR_EXECUTE, devPath);
