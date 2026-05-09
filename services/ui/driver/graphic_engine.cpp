@@ -47,7 +47,7 @@ void GraphicEngine::Init(uint32_t bkgColor, uint8_t mode, const char *fontPath)
 {
     bkgColor_ = bkgColor;
     colorMode_ = mode;
-    [[maybe_unused]] static bool initOnce = [this, fontPath] () {
+    [[maybe_unused]] bool initOnce = [this, fontPath] () {
         sfDev_ = std::make_unique<SurfaceDev>();
         if (!sfDev_->Init()) {
             LOG(INFO) << "GraphicEngine Init failed!";

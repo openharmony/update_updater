@@ -31,6 +31,12 @@ struct FbBufferObject {
     void *vaddr {};
 };
 
+typedef enum ConnectType {
+    CONNECT = 1,
+ 	DISCONNECT,
+ 	CONNECT_MAX_NUM
+ } CONNECT_TYPE;
+
 class FbdevDriver : public GraphicDrv {
     DISALLOW_COPY_MOVE(FbdevDriver);
     using FbBlankHook = std::function<void(int, bool)>;

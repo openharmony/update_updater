@@ -130,7 +130,7 @@ bool UpdaterUiConfig::Init()
 
 bool UpdaterUiConfig::Init(const JsonNode &node)
 {
-    static bool res = [&node] () {
+    bool res = [&node] () {
         return LoadLangRes(node) && LoadStrategy(node) && LoadCallbacks(node) && LoadFocusCfg(node) && LoadPages(node);
     } ();
     return res;

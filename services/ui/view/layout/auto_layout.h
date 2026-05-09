@@ -26,6 +26,7 @@ public:
     bool SetCompLocation(JsonNode &node);
     void Init();
     bool IsInited();
+    void Reinit();
 private:
     AutoLayout() = default;
     ~AutoLayout() = default;

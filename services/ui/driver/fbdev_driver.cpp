@@ -67,6 +67,12 @@ void FbdevDriver::FBLog() const
     LOG(INFO) << "height=" << vinfo_.height;
 }
 
+__attribute__((weak)) int Connect(int fd, int connectType)
+{
+    LOG(INFO) << "no need connect or disconnect";
+    return 0;
+}
+
 bool FbdevDriver::Init()
 {
     if (devPath_.empty()) {
@@ -78,7 +84,7 @@ bool FbdevDriver::Init()
         LOG(ERROR) << "cannot open fb0";
         return false;
     }
-
+    Connect(fd, CONNECT);
     (void)FbPowerContrl(fd, false);
     (void)FbPowerContrl(fd, true);
 
@@ -166,6 +172,7 @@ void FbdevDriver::ReleaseFb(const struct FbBufferObject *fbo)
     if (fd_ < 0) {
         return;
     }
+    Connect(fd_, DISCONNECT);
     munmap(fbo->vaddr, fbo->size);
     close(fd_);
     fd_ = -1;
