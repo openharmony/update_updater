@@ -59,4 +59,9 @@ bool AutoLayout::IsInited()
 {
     return isInited_;
 }
+
+void AutoLayout::Reinit()
+{
+    isInited_ = false;
+}
 }

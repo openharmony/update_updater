@@ -36,8 +36,15 @@ UpdaterUiFacade &UpdaterUiFacade::GetInstance()
     return instance;
 }
 
+__attribute__((weak)) void InitUeventThread()
+{
+    LOG(INFO) << "no need init uevent thread";
+    return ;
+}
+
 void UpdaterUiFacade::InitEnv() const
 {
+    InitUeventThread();
     UpdaterUiEnv::Init();
     UpdaterEvent::Subscribe(UPDATER_POWER_VOLUME_UP_EVENT, OnKeyUpEvent);
     UpdaterEvent::Subscribe(UPDATER_POWER_VOLUME_DOWN_EVENT, OnKeyDownEvent);
