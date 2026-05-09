@@ -47,6 +47,10 @@ int SecureErase::OverWritePartition(int fd, const uint32_t writeSize, std::vecto
     return 0;
 }
 
+void SecureErase::AddOverWritePartitions(const std::string &factoryResetMode)
+{
+}
+
 void SecureErase::AddOverWritePartition(const std::string &devPath)
 {
 }
