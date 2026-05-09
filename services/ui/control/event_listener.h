@@ -90,6 +90,8 @@ private:
     bool isConsumed_;
 };
 
+bool IsViewSupportKeyEvent(OHOS::UIView *view);
+
 class KeyListener : public OHOS::RootView::OnKeyActListener {
 public:
     KeyListener() = default;

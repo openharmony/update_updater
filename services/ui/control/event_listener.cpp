@@ -165,6 +165,16 @@ bool KeyListener::OnKeyAct(OHOS::UIView &view, const OHOS::KeyEvent &event)
     return consumed;
 }
 
+__attribute__((weak)) bool IsViewSupportKeyEvent(OHOS::UIView *view)
+{
+    // triggering button press event by key supports labelButton and label
+    if ((view->GetViewType() == OHOS::UI_LABEL_BUTTON) || (view->GetViewType() == OHOS::UI_LABEL)) {
+        LOG(ERROR) << "focused view is label button or label";
+        return true;
+    }
+    return false;
+}
+
 bool KeyListener::ProcessPowerKey(OHOS::UIView &view, const OHOS::KeyEvent &event)
 {
 #ifndef UPDATER_UT
@@ -173,9 +183,8 @@ bool KeyListener::ProcessPowerKey(OHOS::UIView &view, const OHOS::KeyEvent &even
         LOG(ERROR) << "focused view is nullptr";
         return false;
     }
-    // triggering button press event by key supports labelButton and label
-    if (!((pView->GetViewType() == OHOS::UI_LABEL_BUTTON) || (pView->GetViewType() == OHOS::UI_LABEL))) {
-        LOG(ERROR) << "focused view is not label button or label";
+    if (!IsViewSupportKeyEvent(pView)) {
+        LOG(ERROR) << "focused view is not label button or label, not support powerkey";
         return false;
     }
     int16_t centerX = pView->GetX() + static_cast<int16_t>(static_cast<uint16_t>(pView->GetWidth()) >> 1u);
