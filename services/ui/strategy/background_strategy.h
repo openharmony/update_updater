@@ -22,10 +22,12 @@
 #include "updater_ui.h"
 
 namespace Updater {
+constexpr int16_t FOREGROUND_ZINDEX = 10; // 10: foreground ComId ZIndex
+
 class BackgroundStrategy {
 public:
     explicit BackgroundStrategy(const ComInfo &id, const std::vector<std::string> &foregroundComIds = {}) : id_ {id},
-        pgMgr_ {PageManager::GetInstance(), foregroundComIds_ (foregroundComIds)} {}
+        pgMgr_ {PageManager::GetInstance()}, foregroundComIds_ {foregroundComIds} {}
     virtual ~BackgroundStrategy() = default;
     virtual void Show() const = 0;
     virtual void Hide() const = 0;
