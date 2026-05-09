@@ -63,7 +63,7 @@ DEFINE_STRUCT_TRAIT(UiStrategyCfg, "strategy",
     (ComInfo, labelUpdId),
     (ProgressPage, progressPage),
     (ResPage, resPage),
-    (std::vector<PageBackgroundCfg>, pageBackgrounds)  
+    (std::vector<PageBackgroundCfg>, pageBackgrounds)
 );
 
 // define struct for load pages' components from page json config, such as menu.json, update.json
