@@ -18,7 +18,7 @@
 #include "strategy/background_strategy.h"
 #include "view/component/component_register.h"
 #include "view/component/img_view_adapter.h"
-#include "view/component/text_lable_adapter.h"
+#include "view/component/text_label_adapter.h"
 #include "view/page/page_manager.h"
 
 using namespace Updater;
