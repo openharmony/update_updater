@@ -1313,6 +1313,18 @@ void PrintHex(const uint8_t *buffer, size_t length)
     LOG(INFO) << ss.str();
 }
 
+bool IsAiUpdateBinary()
+{
+    pid_t pid = getpid();
+    std::string content;
+    std::string cmdPath = "/proc/" + std::to_string(pid) + "/cmdline";
+    if (Updater::Utils::ReadStringFromProcFile(cmdPath, content) &&
+        content.find("ai_binary") != std::string::npos) {
+        return true;
+    }
+    return false;
+}
+
 #ifndef __WIN32
 void SetFileAttributes(const std::string& file, uid_t owner, gid_t group, mode_t mode)
 {

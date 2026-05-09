@@ -22,8 +22,8 @@
  
 namespace Updater {
 using namespace Utils;
-static ProcessIo g_tmpProcessIo {};
-static ProcessIo g_totalProcessIo {};
+thread_local static ProcessIo g_tmpProcessIo {};
+thread_local static ProcessIo g_totalProcessIo {};
  
 std::string GetCollectTotalIo(void)
 {
@@ -80,7 +80,7 @@ void CollectTmpProcessIo(int32_t pid, bool forceCollect)
     if (!ReadStringFromProcFile(cmdPath, content)) {
         return;
     }
-    if (content.find("updater_binary") == std::string::npos) {
+    if (content.find("updater_binary") == std::string::npos && content.find("ai_binary") == std::string::npos) {
         LOG(ERROR) << pid << " is not updater_binary program";
         return;
     }
