@@ -24,7 +24,7 @@ namespace Updater {
 void BackgroundStrategy::SetForegroundZIndex() const
 {
     for (const auto &comId : foregroundComIds_) {
-        ComInfo comInfo = {id_pageId, comId};
+        ComInfo comInfo = {id_.pageId, comId};
         if (pgMgr_.IsValidCom(comInfo)) {
             pgMgr_[comInfo]->SetZIndex(FOREGROUND_ZINDEX);
         }
