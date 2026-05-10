@@ -64,7 +64,7 @@ constexpr int32_t BLOCK_SIZE = 8;
  */
 void GZipFileEntry::GetUpGradeCompInfo(size_t &offset, PkgBuffer &buffer)
 {
-    GZipHeader *header = (GZipHeader *)buffer.buffer;
+    GZipHeader *header = reinterpret_cast<GZipHeader *>(buffer.buffer);
     header->magic = GZIP_MAGIC;
     header->method = Z_DEFLATED;
     header->flags = 0;
@@ -372,7 +372,7 @@ int32_t GZipPkgFile::LoadPackage(std::vector<std::string> &fileNames, VerifyFunc
         return ret;
     }
 
-    GZipHeader *header = (GZipHeader *)buffer.buffer;
+    GZipHeader *header = reinterpret_cast<GZipHeader *>(buffer.buffer);
     // Check magic number
     if (header->magic != GZIP_MAGIC) {
         PKG_LOGE("Invalid gzip file %s", pkgStream_->GetFileName().c_str());
