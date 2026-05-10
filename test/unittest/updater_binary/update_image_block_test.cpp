@@ -103,4 +103,40 @@ HWTEST_F(UpdateImageBlockTest, update_image_block_test_004, TestSize.Level1)
     close(pfd[0]);
     EXPECT_NE(ret, 0);
 }
+
+HWTEST_F(UpdateImageBlockTest, testUpdateFdInfoCloseWithSameFd, TestSize.Level1)
+{
+    UpdateFdInfo fdInfo;
+    int tmpFd = open("/data/test/tmp/test_fd_info_same.bin", O_CREAT | O_RDWR | O_TRUNC, S_IRWXU);
+    ASSERT_GE(tmpFd, 0);
+    fdInfo.sourceFd = tmpFd;
+    fdInfo.targetFd = tmpFd;
+    fdInfo.Close();
+    EXPECT_EQ(fdInfo.sourceFd, -1);
+    EXPECT_EQ(fdInfo.targetFd, -1);
+}
+
+HWTEST_F(UpdateImageBlockTest, testUpdateFdInfoCloseWithDifferentFd, TestSize.Level1)
+{
+    UpdateFdInfo fdInfo;
+    int sourceFd = open("/data/test/tmp/test_fd_info_source.bin", O_CREAT | O_RDWR | O_TRUNC, S_IRWXU);
+    int targetFd = open("/data/test/tmp/test_fd_info_target.bin", O_CREAT | O_RDWR | O_TRUNC, S_IRWXU);
+    ASSERT_GE(sourceFd, 0);
+    ASSERT_GE(targetFd, 0);
+    fdInfo.sourceFd = sourceFd;
+    fdInfo.targetFd = targetFd;
+    fdInfo.Close();
+    EXPECT_EQ(fdInfo.sourceFd, -1);
+    EXPECT_EQ(fdInfo.targetFd, -1);
+}
+
+HWTEST_F(UpdateImageBlockTest, testUpdateFdInfoCloseWithInvalidFd, TestSize.Level1)
+{
+    UpdateFdInfo fdInfo;
+    fdInfo.sourceFd = -1;
+    fdInfo.targetFd = -1;
+    fdInfo.Close();
+    EXPECT_EQ(fdInfo.sourceFd, -1);
+    EXPECT_EQ(fdInfo.targetFd, -1);
+}
 }
