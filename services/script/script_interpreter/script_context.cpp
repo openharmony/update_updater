@@ -185,7 +185,7 @@ UScriptValuePtr UScriptValue::Computer(int32_t action, UScriptValuePtr value)
     }                                                                                     \
 } while (0)
 
-#define INTEGER_MATH_COMPUTER(op, rightValue, retValue) do { \
+#define INTEGER_MATH_COMPUTER(op, rightValue, retValue) do {                              \
     if (rightValue->GetValueType() == UScriptValue::VALUE_TYPE_INTEGER) {                 \
         INTEGER_INTEGER_COMPUTER(op, (rightValue), retValue);                             \
     } else if ((rightValue)->GetValueType() == UScriptValue::VALUE_TYPE_FLOAT) {          \
