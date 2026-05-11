@@ -366,7 +366,7 @@ bool PtableManager::LoadPartitionInfoWithFile()
         imageBuf = nullptr;
         return false;
     }
-
+    pPtable_->SetHotABUpdateFlag(!Utils::IsUpdaterMode() && Utils::IsVabDevice());
     if (!pPtable_->ParsePartitionFromBuffer(imageBuf, imgBufSize)) {
         LOG(ERROR) << "parse ptable buff fail";
         delete [] imageBuf;
