@@ -229,7 +229,7 @@ int32_t UpgradePkgFile::SavePackage(size_t &signOffset)
 
     // Allocate buffer size with max possible size
     size_t buffSize = GetUpgradeSignatureLen() + UPGRADE_RESERVE_LEN;
-    buffSize = ((UPGRADE_FILE_HEADER_LEN > buffSize) ? UPGRADE_FILE_HEADER_LEN : buffSize);
+    buffSize = ((buffSize < UPGRADE_FILE_HEADER_LEN) ? UPGRADE_FILE_HEADER_LEN : buffSize);
     std::vector<uint8_t> buffer(buffSize);
 
     size_t offset = 0;

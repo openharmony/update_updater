@@ -45,7 +45,7 @@ bool DaemonUpdater::CommandDispatch(const uint16_t command, uint8_t *payload, co
         vector<uint8_t> buffer;
         buffer.push_back(command);
         buffer.push_back(Hdc::MSG_FAIL);
-        buffer.insert(buffer.end(), (uint8_t *)echo.c_str(), (uint8_t *)echo.c_str() + echo.size());
+        buffer.insert(buffer.end(), echo.begin(), echo.end());
         SendToAnother(Hdc::CMD_UPDATER_FINISH, buffer.data(), buffer.size());
         FLASHD_LOGE("The devic is locked and operation is not allowed");
         return false;
@@ -91,7 +91,7 @@ bool DaemonUpdater::SendToHost(Flashd::CmdType type, Flashd::UpdaterState state,
         vector<uint8_t> buffer;
         buffer.push_back(static_cast<uint8_t>(type));
         buffer.push_back((state == Flashd::UpdaterState::SUCCESS) ? Hdc::MSG_OK : Hdc::MSG_FAIL);
-        buffer.insert(buffer.end(), (uint8_t *)echo.c_str(), (uint8_t *)echo.c_str() + echo.size());
+        buffer.insert(buffer.end(), echo.begin(), echo.end());
         SendToAnother(Hdc::CMD_UPDATER_FINISH, buffer.data(), buffer.size());
         TaskFinish();
         if (commander_ != nullptr) {
@@ -219,7 +219,7 @@ bool InvalidDaemon::CommandDispatch(const uint16_t command, uint8_t *payload, co
     vector<uint8_t> buffer;
     buffer.push_back(command);
     buffer.push_back(Hdc::MSG_FAIL);
-    buffer.insert(buffer.end(), (uint8_t *)echo.c_str(), (uint8_t *)echo.c_str() + echo.size());
+    buffer.insert(buffer.end(), echo.begin(), echo.end());
     LogMsg(MSG_FAIL, "Operation is not allowed");
     TaskFinish();
     FLASHD_LOGE("The operation is not allowed");

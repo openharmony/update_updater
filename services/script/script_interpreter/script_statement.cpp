@@ -42,7 +42,7 @@ void UScriptStatementResult::UpdateStatementResult(UScriptValuePtr value)
             SetResultType(UScriptStatementResult::STATEMENT_RESULT_TYPE_ERROR);
             SetError(USCRIPT_ERROR_INTERPRET);
             if (value->GetValueType() == UScriptValue::VALUE_TYPE_ERROR) {
-                SetError(((ErrorValue*)value.get())->GetValue());
+                SetError(static_cast<ErrorValue*>(value.get())->GetValue());
             }
             break;
         case UScriptValue::VALUE_TYPE_LIST:

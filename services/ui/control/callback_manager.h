@@ -42,7 +42,7 @@ private:
     static void __attribute((constructor)) RegisterCallback##name()    \
     {                                                                  \
         LOG(INFO) << "register callback " << (#name);                  \
-        CallbackManager::RegisterFunc(#name, Callback{&name, async});  \
+        CallbackManager::RegisterFunc(#name, Callback{&(name), async});  \
     }                                                                  \
     void name(OHOS::UIView &)
 
