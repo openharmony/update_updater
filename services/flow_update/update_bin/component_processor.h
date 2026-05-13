@@ -136,6 +136,7 @@ public:
 protected:
     virtual int GetWritePathAndOffset(const std::string &partitionName, std::string &writePath, uint64_t &offset,
                               uint64_t &partitionSize);
+    virtual void RecordPartitionUpdateStatus(const std::string &name, bool status);
 private:
     virtual int RawImageWriteProcessor(const Hpackage::PkgBuffer &buffer, size_t size, size_t start,
                                bool isFinish, const void* context);
