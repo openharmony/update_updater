@@ -228,11 +228,16 @@ int32_t RawImgProcessor::DoProcess(Uscript::UScriptEnv &env)
 
 int32_t RawImgProcessor::PostProcess(Uscript::UScriptEnv &env)
 {
-    PartitionRecord::GetInstance().RecordPartitionUpdateStatus(name_, true);
+    RecordPartitionUpdateStatus(name_, true);
     DataWriter::ReleaseDataWriter(writer_);
     totalSize_ = 0;
     LOG(INFO) << "UScriptInstructionRawImageWrite finish";
     return USCRIPT_SUCCESS;
+}
+
+void RawImgProcessor::RecordPartitionUpdateStatus(const std::string &name, bool status)
+{
+    PartitionRecord::GetInstance().RecordPartitionUpdateStatus(name, status);
 }
 
 int RawImgProcessor::GetWritePathAndOffset(const std::string &partitionName, std::string &writePath,
