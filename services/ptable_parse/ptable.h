@@ -84,7 +84,7 @@ public:
     bool ReadPartitionFileToBuffer(uint8_t *ptbImgBuffer, uint32_t &imgBufSize, const std::string &ptbPath);
     static void DeletePartitionTmpFile();
 
-    virtual bool WritePartitionBufToFile(uint8_t *ptbImgBuffer, const uint32_t imgBufSize);
+    virtual bool WritePartitionBufToFile(uint8_t *ptbImgBuffer, const uint32_t imgBufSize, const std::string &ptbPath);
     virtual bool ParsePartitionFromBuffer(uint8_t *ptbImgBuffer, const uint32_t imgBufSize) = 0;
     virtual bool LoadPtableFromDevice() = 0;
     virtual bool WritePartitionTable() = 0;
