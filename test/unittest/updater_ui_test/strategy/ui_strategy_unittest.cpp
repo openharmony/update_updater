@@ -26,6 +26,11 @@ bool operator == (const ComInfo &lhs, const ComInfo &rhs)
     return lhs.comId == rhs.comId && lhs.pageId == rhs.pageId;
 }
 
+bool operator == (const ForegroundComId &lhs, const ForegroundComId &rhs)
+{
+    return lhs.comId == rhs.comId && lhs.zIndex == rhs.zIndex;
+}
+
 bool operator == (const PageBackground &lhs, const PageBackground &rhs)
 {
     return lhs.backgroundComId == rhs.backgroundComId && lhs.backgroundType == rhs.backgroundType &&
