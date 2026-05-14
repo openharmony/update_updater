@@ -76,6 +76,7 @@ __attribute__((weak)) void SyncWriteDevPath(int fd, [[maybe_unused]] const std::
 
 void UpdateFdInfo::Close()
 {
+    // same fd
     if (sourceFd == targetFd && sourceFd != -1) {
         close(sourceFd);
         sourceFd = -1;
