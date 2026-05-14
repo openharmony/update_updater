@@ -698,9 +698,14 @@ bool Ptable::WritePartitionBufToFile(uint8_t *ptbImgBuffer, const uint32_t imgBu
         LOG(ERROR) << "Invalid param ";
         return false;
     }
-    std::ofstream ptbFile(ptbPath, std::ios::ate | std::ios::binary);
+    std::string realPath {};
+    if (!Utils::PathToRealPath(ptbPath, realPath)) {
+        LOG(ERROR) << "realpath failed:" << ptbPath;
+        return false;
+    }
+    std::ofstream ptbFile(realPath, std::ios::ate | std::ios::binary);
     if (ptbFile.fail()) {
-        LOG(ERROR) << "Failed to open " << ptbPath << strerror(errno);
+        LOG(ERROR) << "Failed to open " << realPath << strerror(errno);
         return false;
     }
     ptbFile.write(reinterpret_cast<const char*>(ptbImgBuffer), imgBufSize);
@@ -719,9 +724,14 @@ bool Ptable::ReadPartitionFileToBuffer(uint8_t *ptbImgBuffer, uint32_t &imgBufSi
         LOG(ERROR) << "Invalid param ";
         return false;
     }
-    std::ifstream ptbFile(ptbPath, std::ios::in | std::ios::binary);
+    std::string realPath {};
+    if (!Utils::PathToRealPath(ptbPath, realPath)) {
+        LOG(ERROR) << "realpath failed:" << ptbPath;
+        return false;
+    }
+    std::ifstream ptbFile(realPath, std::ios::in | std::ios::binary);
     if (!ptbFile.is_open()) {
-        LOG(ERROR) << "open " << ptbPath << " failed " << strerror(errno);
+        LOG(ERROR) << "open " << realPath << " failed " << strerror(errno);
         return false;
     }
 
