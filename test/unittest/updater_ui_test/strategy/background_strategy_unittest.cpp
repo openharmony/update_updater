@@ -95,7 +95,7 @@ std::vector<UxPageInfo> BackgroundStrategyUnitTest::MakeUxPages()
 HWTEST_F(BackgroundStrategyUnitTest, test_factory_create_anim_background, TestSize.Level1)
 {
     ComInfo bgId {"page1", "anim_bg"};
-    std::vector<std::string> foregroundIds {"foreground_label"};
+    std::vector<ForegroundComId> foregroundIds {{"foreground_label", 10}};
     auto bgStrategy = BackgroundStrategy::Factory("anim", bgId, foregroundIds);
     ASSERT_NE(bgStrategy, nullptr);
     bgStrategy->Show();
@@ -107,7 +107,7 @@ HWTEST_F(BackgroundStrategyUnitTest, test_factory_create_anim_background, TestSi
 HWTEST_F(BackgroundStrategyUnitTest, test_factory_create_static_background, TestSize.Level1)
 {
     ComInfo bgId {"page1", "background_img"};
-    std::vector<std::string> foregroundIds {"foreground_label"};
+    std::vector<ForegroundComId> foregroundIds {{"foreground_label", 10}};
     auto bgStrategy = BackgroundStrategy::Factory("img", bgId, foregroundIds);
     ASSERT_NE(bgStrategy, nullptr);
     EXPECT_NO_FATAL_FAILURE(bgStrategy->Show());
@@ -122,7 +122,7 @@ HWTEST_F(BackgroundStrategyUnitTest, test_factory_create_static_background, Test
 HWTEST_F(BackgroundStrategyUnitTest, test_animator_background_hide, TestSize.Level1)
 {
     ComInfo bgId {"page1", "anim_bg"};
-    std::vector<std::string> foregroundIds {"foreground_label"};
+    std::vector<ForegroundComId> foregroundIds {{"foreground_label", 10}};
     auto bgStrategy = BackgroundStrategy::Factory("anim", bgId, foregroundIds);
     ASSERT_NE(bgStrategy, nullptr);
     bgStrategy->Show();
@@ -132,7 +132,7 @@ HWTEST_F(BackgroundStrategyUnitTest, test_animator_background_hide, TestSize.Lev
 HWTEST_F(BackgroundStrategyUnitTest, test_animator_background_with_empty_foreground_ids, TestSize.Level1)
 {
     ComInfo bgId {"page1", "anim_bg"};
-    std::vector<std::string> emptyForegroundIds {};
+    std::vector<ForegroundComId> emptyForegroundIds {};
     auto bgStrategy = BackgroundStrategy::Factory("anim", bgId, emptyForegroundIds);
     ASSERT_NE(bgStrategy, nullptr);
     EXPECT_NO_FATAL_FAILURE(bgStrategy->Show());
@@ -160,7 +160,7 @@ HWTEST_F(BackgroundStrategyUnitTest, test_multiple_foreground_components_zindex,
     ASSERT_TRUE(GetInstance().Init(pages, "page1"));
 
     ComInfo bgId {"page1", "bg_img"};
-    std::vector<std::string> foregroundIds {"fg_label1", "fg_label2"};
+    std::vector<ForegroundComId> foregroundIds {{"fg_label1", 10}, {"fg_label2", 20}};
     auto bgStrategy = BackgroundStrategy::Factory("img", bgId, foregroundIds);
     ASSERT_NE(bgStrategy, nullptr);
     EXPECT_NO_FATAL_FAILURE(bgStrategy->Show());

@@ -20,30 +20,31 @@
 #include <vector>
 #include "page/page_manager.h"
 #include "updater_ui.h"
+#include "updater_ui_traits.h"
 
 namespace Updater {
-constexpr int16_t FOREGROUND_ZINDEX = 10; // 10: foreground ComId ZIndex
 
 class BackgroundStrategy {
 public:
-    explicit BackgroundStrategy(const ComInfo &id, const std::vector<std::string> &foregroundComIds = {}) : id_ {id},
+    explicit BackgroundStrategy(const ComInfo &id,
+        const std::vector<ForegroundComId> &foregroundComIds = {}) : id_ {id},
         pgMgr_ {PageManager::GetInstance()}, foregroundComIds_ {foregroundComIds} {}
     virtual ~BackgroundStrategy() = default;
     virtual void Show() const = 0;
     virtual void Hide() const = 0;
     static std::unique_ptr<BackgroundStrategy> Factory(const std::string &type, const ComInfo &id,
-        const std::vector<std::string> &foregroundComIds = {});
+        const std::vector<ForegroundComId> &foregroundComIds = {});
 protected:
     void SetForegroundZIndex() const;
     ComInfo id_;
     PageManager &pgMgr_;
-    std::vector<std::string> foregroundComIds_;
+    std::vector<ForegroundComId> foregroundComIds_;
 };
 
 class AnimatorBackground final : public BackgroundStrategy {
 public:
     explicit AnimatorBackground(const ComInfo &id,
-        const std::vector<std::string> &foregroundComIds = {}) : BackgroundStrategy(id, foregroundComIds) { }
+        const std::vector<ForegroundComId> &foregroundComIds = {}) : BackgroundStrategy(id, foregroundComIds) { }
     ~AnimatorBackground() override = default;
     void Show() const override;
     void Hide() const override;
@@ -52,7 +53,7 @@ public:
 class StaticBackground final : public BackgroundStrategy {
 public:
     explicit StaticBackground(const ComInfo &id,
-        const std::vector<std::string> &foregroundComIds = {}) : BackgroundStrategy(id, foregroundComIds) { }
+        const std::vector<ForegroundComId> &foregroundComIds = {}) : BackgroundStrategy(id, foregroundComIds) { }
     ~StaticBackground() override = default;
     void Show() const override;
     void Hide() const override;

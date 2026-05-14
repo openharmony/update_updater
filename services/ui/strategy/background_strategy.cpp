@@ -23,23 +23,23 @@
 namespace Updater {
 void BackgroundStrategy::SetForegroundZIndex() const
 {
-    for (const auto &comId : foregroundComIds_) {
-        ComInfo comInfo = {id_.pageId, comId};
+    for (const auto &fg : foregroundComIds_) {
+        ComInfo comInfo = {id_.pageId, fg.comId};
         if (pgMgr_.IsValidCom(comInfo)) {
-            pgMgr_[comInfo]->SetZIndex(FOREGROUND_ZINDEX);
+            pgMgr_[comInfo]->SetZIndex(fg.zIndex);
         }
     }
 }
 
 std::unique_ptr<BackgroundStrategy> BackgroundStrategy::Factory(const std::string &type, const ComInfo &id,
-    const std::vector<std::string> &foregroundComIds)
+    const std::vector<ForegroundComId> &foregroundComIds)
 {
     using Fun = std::function<std::unique_ptr<BackgroundStrategy>(const ComInfo &,
-        const std::vector<std::string> &)>;
+        const std::vector<ForegroundComId> &)>;
     const static std::unordered_map<std::string, Fun> bgMap {
-        { "anim", [] (const ComInfo &id, const std::vector<std::string> &foregroundComIds) {
+        { "anim", [] (const ComInfo &id, const std::vector<ForegroundComId> &foregroundComIds) {
             return std::make_unique<AnimatorBackground>(id, foregroundComIds); }},
-        { "img", [] (const ComInfo &id, const std::vector<std::string> &foregroundComIds) {
+        { "img", [] (const ComInfo &id, const std::vector<ForegroundComId> &foregroundComIds) {
             return std::make_unique<StaticBackground>(id, foregroundComIds); }},
     };
     if (auto it = bgMap.find(type); it != bgMap.end()) {
