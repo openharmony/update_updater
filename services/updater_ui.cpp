@@ -121,8 +121,14 @@ void SDUpdateNoDelay()
     GetFacade().ShowLogRes(TR(LABEL_UPD_OK_DONE));
     GetFacade().ShowSuccessPage();
     Utils::UsSleep(SUCCESS_DELAY);
+    std::string restData = GetSdResetMisc();
     PostUpdater(true);
-    NotifyReboot("", "Updater sdcard update success reboot");
+    if (!restData.empty()) {
+        Utils::RemoveUpdateInfoFromMisc(TOB_PKG_TAG);
+        NotifyReboot("updater", "Updater wipe data after sdcard update success", restData);
+    } else {
+        NotifyReboot("", "Updater sdcard update success reboot");
+    }
 }
 
 DEFINE_ASYN_CALLBACK(OnLabelSDCardNoDelayEvt)

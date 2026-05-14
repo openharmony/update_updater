@@ -64,6 +64,7 @@ constexpr const char *SDCARD_INTRAL_MODE = "sdcard_intral_update";
 constexpr const char *UPDATRE_SCRIPT_ZIP = "/etc/updater_script.zip";
 constexpr const char *FACTORY_INTERNAL_MODE = "factory_internal_update";
 constexpr const char *USB_UPDATE_FAIL = "usb_update_fail";
+constexpr const char *TOB_PKG_TAG = "tobpkg_in_sdcard";
 
 // sd update ext mode
 constexpr const char *SDCARD_NORMAL_UPDATE = "sdUpdate";
