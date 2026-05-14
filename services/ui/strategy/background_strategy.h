@@ -20,6 +20,7 @@
 #include <vector>
 #include "page/page_manager.h"
 #include "updater_ui.h"
+#include "updater_ui_traits.h"
 
 namespace Updater {
 
