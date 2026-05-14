@@ -698,14 +698,10 @@ bool Ptable::WritePartitionBufToFile(uint8_t *ptbImgBuffer, const uint32_t imgBu
         LOG(ERROR) << "Invalid param ";
         return false;
     }
-    std::string realPath {};
-    if (!Utils::PathToRealPath(ptbPath, realPath)) {
-        LOG(ERROR) << "realpath failed:" << ptbPath;
-        return false;
-    }
-    std::ofstream ptbFile(realPath, std::ios::ate | std::ios::binary);
+    // if the ptbPath does not exist, it is created. If the ptbPath exists, data is appended to it.
+    std::ofstream ptbFile(ptbPath, std::ios::ate | std::ios::binary);
     if (ptbFile.fail()) {
-        LOG(ERROR) << "Failed to open " << realPath << strerror(errno);
+        LOG(ERROR) << "Failed to open " << ptbPath << strerror(errno);
         return false;
     }
     ptbFile.write(reinterpret_cast<const char*>(ptbImgBuffer), imgBufSize);
