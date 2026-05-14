@@ -154,7 +154,7 @@ DEFINE_ASYN_CALLBACK(OnLabelSDUpdateResEvt)
     }
     LOG(INFO) << "sdcard_intral_update write to misc success";
     if (auto res = UpdaterFromSdcard(upParams); res != UPDATE_SUCCESS) {
-        Utils::RemoveUpdateInfoFromMisc("sdcard_update");
+        Utils::RemoveUpdateInfoFromMisc("sdcard_intral_update");
         GetFacade().ShowLogRes(res == UPDATE_CORRUPT ? TR(LOGRES_VERIFY_FAILED) : TR(LOGRES_UPDATE_FAILED));
         GetFacade().ShowFailedPage();
         return;
