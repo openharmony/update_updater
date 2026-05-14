@@ -336,9 +336,8 @@ void PtableManager::InitCompositePtable()
     }
 }
 
-bool PtableManager::LoadPartitionInfoWithFile()
+bool PtableManager::LoadPartitionInfoWithFile(const std::string &ptablePath)
 {
-    const char *ptablePath = Utils::IsUpdaterMode() ? PTABLE_TEMP_PATH : PTABLE_NORMAL_PATH;
     LOG(INFO) << "ptable file: " << ptablePath;
     if (!Utils::IsFileExist(ptablePath)) {
         LOG(ERROR) << "ptable file is not exist, no need write";
@@ -360,7 +359,7 @@ bool PtableManager::LoadPartitionInfoWithFile()
         return false;
     }
 
-    if (!pPtable_->ReadPartitionFileToBuffer(imageBuf, imgBufSize)) {
+    if (!pPtable_->ReadPartitionFileToBuffer(imageBuf, imgBufSize, ptablePath)) {
         LOG(ERROR) << "ptable file read fail";
         delete [] imageBuf;
         imageBuf = nullptr;
@@ -389,7 +388,8 @@ bool PtableManager::WritePtableWithFile()
         return true;
     }
 
-    if (!LoadPartitionInfoWithFile()) {
+    const std::string ptablePath = Utils::IsUpdaterMode() ? PTABLE_TEMP_PATH : PTABLE_NORMAL_PATH;
+    if (!LoadPartitionInfoWithFile(ptablePath)) {
         LOG(ERROR) << "load partition info with file fail";
         Ptable::DeletePartitionTmpFile();
         return true;

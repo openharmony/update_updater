@@ -42,6 +42,9 @@ enum UpdaterInitEvent {
     // factory reset
     FACTORY_RESET_INIT_EVENT,
 
+    // pkgs verify failed
+    UPDATER_PACKAGES_VERIFY_FAILED_EVENT,
+
     UPDATER_INIT_EVENT_BUTT
 };
 

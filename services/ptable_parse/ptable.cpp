@@ -692,16 +692,16 @@ bool Ptable::ChangeGpt(uint8_t *gptBuf, uint64_t gptSize, GptParseInfo gptInfo, 
     return true;
 }
 
-bool Ptable::WritePartitionBufToFile(uint8_t *ptbImgBuffer, const uint32_t imgBufSize)
+bool Ptable::WritePartitionBufToFile(uint8_t *ptbImgBuffer, const uint32_t imgBufSize, const std::string &ptbPath)
 {
     if (ptbImgBuffer == nullptr || imgBufSize == 0) {
         LOG(ERROR) << "Invalid param ";
         return false;
     }
-    const char *ptablePath = Utils::IsUpdaterMode() ? PTABLE_TEMP_PATH : PTABLE_NORMAL_PATH;
-    std::ofstream ptbFile(ptablePath, std::ios::ate | std::ios::binary);
+    // if the ptbPath does not exist, it is created. If the ptbPath exists, data is appended to it.
+    std::ofstream ptbFile(ptbPath, std::ios::ate | std::ios::binary);
     if (ptbFile.fail()) {
-        LOG(ERROR) << "Failed to open " << ptablePath << strerror(errno);
+        LOG(ERROR) << "Failed to open " << ptbPath << strerror(errno);
         return false;
     }
     ptbFile.write(reinterpret_cast<const char*>(ptbImgBuffer), imgBufSize);
@@ -714,16 +714,20 @@ bool Ptable::WritePartitionBufToFile(uint8_t *ptbImgBuffer, const uint32_t imgBu
     return true;
 }
 
-bool Ptable::ReadPartitionFileToBuffer(uint8_t *ptbImgBuffer, uint32_t &imgBufSize)
+bool Ptable::ReadPartitionFileToBuffer(uint8_t *ptbImgBuffer, uint32_t &imgBufSize, const std::string &ptbPath)
 {
     if (ptbImgBuffer == nullptr || imgBufSize == 0) {
         LOG(ERROR) << "Invalid param ";
         return false;
     }
-    const char *ptablePath = Utils::IsUpdaterMode() ? PTABLE_TEMP_PATH : PTABLE_NORMAL_PATH;
-    std::ifstream ptbFile(ptablePath, std::ios::in | std::ios::binary);
+    std::string realPath {};
+    if (!Utils::PathToRealPath(ptbPath, realPath)) {
+        LOG(ERROR) << "realpath failed:" << ptbPath;
+        return false;
+    }
+    std::ifstream ptbFile(realPath, std::ios::in | std::ios::binary);
     if (!ptbFile.is_open()) {
-        LOG(ERROR) << "open " << ptablePath << " failed " << strerror(errno);
+        LOG(ERROR) << "open " << realPath << " failed " << strerror(errno);
         return false;
     }
 
