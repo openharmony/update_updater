@@ -31,10 +31,15 @@ DEFINE_STRUCT_TRAIT(ComInfo, "com",
     (std::string, comId)
 );
 
+DEFINE_STRUCT_TRAIT(ForegroundComId, "",
+    (std::string, comId),
+    (int16_t, zIndex)
+);
+
 DEFINE_STRUCT_TRAIT(PageBackground, "background",
     (std::string, backgroundComId),
     (std::string, backgroundType),
-    (std::vector<std::string>, foregroundComIds)
+    (std::vector<ForegroundComId>, foregroundComIds)
 );
 
 DEFINE_STRUCT_TRAIT(ProgressPage, "",
