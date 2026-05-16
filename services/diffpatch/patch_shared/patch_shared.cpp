@@ -359,8 +359,8 @@ static int32_t ExecuteUpdateBlock(Uscript::UScriptEnv &env, const UpdateBlockInf
     if (ExtractFileByNameFunc(env, fileName, outStream, fileSizeBuffer, fileListSize) != USCRIPT_SUCCESS) {
         return USCRIPT_ERROR_EXECUTE;
     }
-    env.GetPkgManager()->ClosePkgStream(outStream);
     std::string str(reinterpret_cast<char*>(fileSizeBuffer), fileListSize);
+    env.GetPkgManager()->ClosePkgStream(outStream);
     int64_t maxStashSize = 0;
     if (!Utils::ConvertToLongLong(str, maxStashSize)) {
         LOG(ERROR) << "ConvertToLongLong failed";
