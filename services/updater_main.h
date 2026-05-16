@@ -90,6 +90,7 @@ bool PostUpdateWriteBack();
 void UpdaterVerifyFailEntry(bool verifyret);
 bool IsSpareBoardBoot(void);
 const char* GetResetMisc();
+const char* GetSdResetMisc();
 void DeleteOtaPkg([[maybe_unused]] const UpdaterParams &upParams);
 void NotifyAutoReboot(PackageUpdateMode &mode);
 bool NotifySdUpdateReboot(const UpdaterParams &upParams);

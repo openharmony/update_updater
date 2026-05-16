@@ -1435,6 +1435,11 @@ __attribute__((weak)) const char* GetResetMisc()
     return "";
 }
 
+__attribute__((weak)) const char* GetSdResetMisc()
+{
+    return "";
+}
+
 __attribute__((weak)) bool NotifySdUpdateReboot(const UpdaterParams &upParams)
 {
     if (upParams.sdExtMode == SDCARD_UPDATE_FROM_DEV) {
