@@ -302,7 +302,7 @@ bool HdcDaemon::ServerCommand(const uint32_t sessionId, const uint32_t channelId
 
 void HdcDaemon::JdwpNewFileDescriptor(const uint8_t *buf, const int bytesIO)
 {
-    if (bytesIO < 9) {
+    if (bytesIO < 9) { // 9 : fd max index
         return;
     }
     uint32_t pid = *(uint32_t *)(buf + 1);
