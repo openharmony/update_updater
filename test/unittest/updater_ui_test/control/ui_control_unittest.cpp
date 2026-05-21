@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "event_listener.h"
+#include "event_manager.h"
+#include "callback_manager.h"
 #include <linux/input.h>
 #include "dock/input_device.h"
 

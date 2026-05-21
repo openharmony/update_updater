@@ -454,4 +454,8 @@ HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_show_more_page_than_que
     EXPECT_TRUE(CheckResult(GetInstance().Report(), { "page3" }));
     GetInstance().Reset();
 }
+
+HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_show_more_page_than_queue_limit, TestSize.Level1)
+{
+}
 }  // namespace

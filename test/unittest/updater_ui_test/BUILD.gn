@@ -49,6 +49,8 @@ ohos_unittest("ui_unittest") {
   ]
   sources += [
     "${updater_path}/services/ui/control/event_listener.cpp",
+    "${updater_path}/services/ui/control/event_manager.cpp",
+    "${updater_path}/services/ui/control/callback_manager.cpp",
     "${updater_path}/services/ui/driver/keys_input_device.cpp",
     "${updater_path}/services/ui/driver/pointers_input_device.cpp",
     "${updater_path}/services/ui/driver/ui_rotation.cpp",
