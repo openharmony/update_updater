@@ -83,10 +83,7 @@ bool EventManager::Add(const ComInfo &viewId, std::unique_ptr<ImgOnLongPressList
         LOG(ERROR) << "not an valid view " << viewId;
         return false;
     }
-    if (comIdTimeMap_.find(viewId.comId) != comIdTimeMap_.end()) {
-        time_t time = comIdTimeMap_[viewId.comId];
-        listener->SetLongPressTime(time);
-    }
+    listener->SetLongPressTime(2); // 2 : long press 2 seconds
     auto com = pgMgr_[viewId.pageId][viewId.comId].As();
     imgOnLongPressListener_.push_back(std::move(listener));
     com->SetTouchable(true);
