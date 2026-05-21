@@ -302,6 +302,9 @@ bool HdcDaemon::ServerCommand(const uint32_t sessionId, const uint32_t channelId
 
 void HdcDaemon::JdwpNewFileDescriptor(const uint8_t *buf, const int bytesIO)
 {
+    if (bytesIO < 9) {
+        return;
+    }
     uint32_t pid = *(uint32_t *)(buf + 1);
     uint32_t fd = *(uint32_t *)(buf + 5);  // 5 : fd offset
     ((HdcJdwp *)clsJdwp)->SendJdwpNewFD(pid, fd);

@@ -94,6 +94,9 @@ int32_t ScriptInterpreter::LoadScript(Hpackage::PkgManager::StreamPtr pkgStream)
 int32_t ScriptInterpreter::Execute()
 {
     UScriptContextPtr context = std::make_shared<UScriptInterpretContext>(true);
+    if (statements_ == nullptr) {
+        return USCRIPT_INVALID_PARAM;
+    }
     UScriptStatementResult result = statements_->Execute(*this, context);
     INTERPRETER_LOGD(*this, context, "statements_ execute result %s ",
         UScriptStatementResult::ScriptToString(&result).c_str());
