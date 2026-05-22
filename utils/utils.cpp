@@ -69,7 +69,7 @@ void UpdateInfoInMisc(const std::string headInfo, const std::optional<int> messa
 
     (void)memset_s(msg.update, sizeof(msg.update), 0, sizeof(msg.update));
     for (const auto& arg : args) {
-        if (arg.find(headInfo) == std::string::npos) {
+        if (headInfo.find("secure_erase") == std::string::npos && arg.find(headInfo) == std::string::npos) {
             if (strncat_s(msg.update, sizeof(msg.update), arg.c_str(), strlen(arg.c_str()) + 1) != EOK) {
                 LOG(ERROR) << "SetMessageToMisc strncat_s failed";
                 return;
