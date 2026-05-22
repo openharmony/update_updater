@@ -334,10 +334,38 @@ bool RebootAndCleanUserData(const std::string &miscFile, const std::string &cmd)
     return true;
 }
 
+bool RebootAndSecureErase(const std::string &eraseType, const std::string &cmd)
+{
+    if (cmd.empty()) {
+        LOG(ERROR) << "updaterkits: invalid argument. cmd is empty";
+        return false;
+    }
+    std::string eraseCmd = "--secure_erase";
+    if (eraseType == "DATA_AND_OS") {
+        eraseCmd = "--disk_erase";
+    }
+    struct UpdateMessage updateMsg {};
+    std::string secureEraseCmd = eraseCmd + cmd;
+    int ret = snprintf_s(updateMsg.update, sizeof(updateMsg.update), sizeof(updateMsg.update) - 1,
+        secureEraseCmd.c_str());
+    if (ret < 0) {
+        LOG(ERROR) << "updaterkits: copy secure erase cmd message failed";
+        return false;
+    }
+    WriteToMiscAndRebootToUpdater(updateMsg);
+
+    // Never get here.
+    return true;
+}
+
 bool RebootAndSecureErase(const std::string &eraseType)
 {
+    std::string eraseCmd = "--secure_erase\n";
+    if (eraseType == "DATA_AND_OS") {
+        eraseCmd = "--disk_erase\n";
+    }
     struct UpdateMessage msg {};
-    int ret = snprintf_s(msg.update, sizeof(msg.update), sizeof(msg.update) - 1, "--secure_erase\n");
+    int ret = snprintf_s(msg.update, sizeof(msg.update), sizeof(msg.update) - 1, eraseCmd.c_str());
     if (ret < 0) {
         LOG(ERROR) << "updaterkits: copy secure erase cmd message failed";
         return false;
@@ -382,7 +410,7 @@ uint32_t EstimatedEraseTime(const std::string &eraseType)
     uint32_t eraseTime = Updater::EMMC_ERASE_1T_TIME;
     if (bootdevType == 1) {
         eraseTime = Updater::UFS_ERASE_1T_TIME;
-    } else if (bootdevType == 2) { // 2 ： boot device is ssd
+    } else if (bootdevType & (1 << 2)) { // 2 ： boot device is ssd
         eraseTime = Updater::SSD_ERASE_1T_TIME;
     }
     double sizeRatio = static_cast<double>(partSize) / Updater::DEFAULT_1T_SIZE;
