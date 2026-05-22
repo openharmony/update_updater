@@ -55,7 +55,7 @@ constexpr mode_t DEFAULT_DIR_MODE = 0775;
 constexpr long MAX_FILE_LENGTH = 4096;
 
 namespace {
-void UpdateInfoInMisc(const std::string headInfo, const std::optional<int> message, bool isRemove)
+void UpdateInfoInMisc(const std::string headInfo, const std::optional<int64_t> message, bool isRemove)
 {
     if (headInfo.empty()) {
         return;
@@ -69,7 +69,7 @@ void UpdateInfoInMisc(const std::string headInfo, const std::optional<int> messa
 
     (void)memset_s(msg.update, sizeof(msg.update), 0, sizeof(msg.update));
     for (const auto& arg : args) {
-        if (headInfo.find("secure_erase") == std::string::npos && arg.find(headInfo) == std::string::npos) {
+        if (arg.find(headInfo) == std::string::npos) {
             if (strncat_s(msg.update, sizeof(msg.update), arg.c_str(), strlen(arg.c_str()) + 1) != EOK) {
                 LOG(ERROR) << "SetMessageToMisc strncat_s failed";
                 return;
@@ -89,7 +89,7 @@ void UpdateInfoInMisc(const std::string headInfo, const std::optional<int> messa
             return;
         }
     } else {
-        if (snprintf_s(buffer, sizeof(buffer), sizeof(buffer) - 1, "--%s=%d",
+        if (snprintf_s(buffer, sizeof(buffer), sizeof(buffer) - 1, "--%s=%lld",
             headInfo.c_str(), message.value()) == -1) {
             LOG(ERROR) << "SetMessageToMisc snprintf_s failed";
             return;
@@ -966,7 +966,7 @@ void SetCmdToMisc(const std::string &miscCmd)
     }
 }
 
-void AddUpdateInfoToMisc(const std::string headInfo, const std::optional<int> message)
+void AddUpdateInfoToMisc(const std::string headInfo, const std::optional<int64_t> message)
 {
     UpdateInfoInMisc(headInfo, message, false);
 }
