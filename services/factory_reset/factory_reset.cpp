@@ -18,6 +18,7 @@
 #include "log/log.h"
 #include "fs_manager/mount.h"
 #include "scope_guard.h"
+#include "secure_erase.h"
 
 namespace Updater {
 FactoryResetProcess &FactoryResetProcess::GetInstance()
@@ -70,6 +71,9 @@ int FactoryResetProcess::DoFactoryReset(FactoryResetMode mode, const std::string
         return -1;
     }
     LOG(INFO) << "Begin erasing data";
+    if (mode == SECURE_ERASE && !SecureErase::GetInstance().OverWritePartition()) {
+        resetStatus = 1;
+    }
     if (FormatPartition(path, true) != 0) {
         STAGE(UPDATE_STAGE_FAIL) << "Factory FactoryReset";
         ERROR_CODE(CODE_FACTORY_RESET_FAIL);

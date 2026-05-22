@@ -34,12 +34,14 @@ ohos_unittest("factory_reset_unittest") {
     "${updater_path}/services/include/package",
     "${updater_path}/services/factory_reset/",
     "${updater_path}/interfaces/kits/include/",
+    "${updater_path}/services/ptable_parse",
     "${updater_path}/services/common",
   ]
 
   deps = [
     "${updater_path}/services/fs_manager:libfsmanager",
     "${updater_path}/services/log:libupdaterlog",
+    "${updater_path}/test/unittest/fake:libsecure_erase_fake",
     "${updater_path}/utils:libutils",
   ]
 

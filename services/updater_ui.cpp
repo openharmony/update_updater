@@ -16,6 +16,7 @@
 #include <mutex>
 #include <thread>
 #include "control/callback_manager.h"
+
 #include "language/language_ui.h"
 #include "driver/graphic_engine.h"
 #include "log/log.h"
@@ -51,7 +52,8 @@ void DoProgress()
     int progressvalueTmp = 0;
     if (GetFacade().GetMode() != UPDATERMODE_FACTORYRST &&
         GetFacade().GetMode() != UPDATERMODE_REBOOTFACTORYRST &&
-        GetFacade().GetMode() != UPDATERMODE_ATFACTORYRST) {
+        GetFacade().GetMode() != UPDATERMODE_ATFACTORYRST &&
+        GetFacade().GetMode() != UPDATERMODE_SECUREERASE) {
         return;
     }
     GetFacade().ShowProgress(0);
