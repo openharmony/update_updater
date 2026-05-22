@@ -18,6 +18,8 @@
 #include <fcntl.h>
 #include <iostream>
 #include <string>
+#include <linux/fs.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include "log/dump.h"
@@ -143,7 +145,7 @@ int SecureErase::OverWritePartition(int fd, const uint32_t writeSize, std::vecto
 {
     off64_t offset = static_cast<off64_t>(overwriteOffset_);
     int ret = lseek64(fd, offset, SEEK_SET);
-    if (ret < 0) {
+    if (ret == -1) {
         LOG(ERROR) << "lseek64 failed, offset: " << offset << ", error: " << strerror(errno);
         return -1;
     }
@@ -162,13 +164,20 @@ void SecureErase::AddOverWritePartition(const std::string &devPath)
         LOG(ERROR) << "realpath failed " << devPath;
         return;
     }
-    struct stat st {};
     struct PartInfo partInfo {};
-    if (stat(realPath, &st) != 0) {
-        LOG(ERROR) << "stat failed " << realPath;
+    int fd = open(realPath, O_RDONLY | O_LARGEFILE);
+    if (fd < 0) {
+        LOG(ERROR) << "open failed " << realPath;
         return;
     }
-    partInfo.partSize = static_cast<uint64_t>(st.st_size);
+    uint64_t partSize = 0;
+    int ret = ioctl(fd, BLKGETSIZE64, &partSize);
+    close(fd);
+    if (ret < 0) {
+        LOG(ERROR) << "ioctl BLKGETSIZE64 failed " << realPath;
+        return;
+    }
+    partInfo.partSize = partSize;
     partInfo.devPath = realPath;
     AddOverWritePartInfo(partInfo);
 }
