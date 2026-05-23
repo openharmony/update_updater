@@ -1026,7 +1026,7 @@ static UpdaterStatus PreSdcardUpdatePackages(UpdaterParams &upParams)
         LOG(ERROR) << "Battery is not sufficient for install package.";
         return UPDATE_SKIP;
     }
-	UpdaterInit::GetInstance().InvokeEvent(UPDATER_PRE_VERIFY_PACKAGE_EVENT);
+    UpdaterInit::GetInstance().InvokeEvent(UPDATER_PRE_VERIFY_PACKAGE_EVENT);
     if (!PreSdSpecialProcess(upParams)) {
         LOG(ERROR) << "pre sd special process failed";
         return UPDATE_ERROR;
