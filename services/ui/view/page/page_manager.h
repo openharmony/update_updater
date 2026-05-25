@@ -41,6 +41,9 @@ public:
     void Reset();
     std::string GetCurPageId();
     bool AddExtraCom(const std::string &subPageId, const std::vector<std::string> &extraComs);
+    std::vector<std::string> GetPageQueue();
+    bool SetPageQueue(const std::vector<std::string> &pageQueue);
+    bool SetCurPage(const std::string &id);
 #ifdef UPDATER_UT
     std::vector<std::string> Report();
 #endif
