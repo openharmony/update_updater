@@ -30,7 +30,7 @@ class SurfaceDev {
     DISALLOW_COPY_MOVE(SurfaceDev);
 public:
     SurfaceDev() = default;
-    ~SurfaceDev();
+    virtual ~SurfaceDev() = default;
     void Flip(const uint8_t* buf) const;
     void GetScreenSize(uint16_t &w, uint16_t &h, GrSurface &surface) const;
     bool Init();
