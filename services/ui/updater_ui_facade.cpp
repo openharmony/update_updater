@@ -39,7 +39,6 @@ UpdaterUiFacade &UpdaterUiFacade::GetInstance()
 __attribute__((weak)) void InitUeventThread()
 {
     LOG(INFO) << "no need init uevent thread";
-    return ;
 }
 
 void UpdaterUiFacade::InitEnv() const

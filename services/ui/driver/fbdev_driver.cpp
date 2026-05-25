@@ -173,7 +173,9 @@ void FbdevDriver::ReleaseFb(const struct FbBufferObject *fbo)
         return;
     }
     Connect(fd_, DISCONNECT);
-    munmap(fbo->vaddr, fbo->size);
+    if (munmap(fbo->vaddr, finfo_.smem_len)) {
+        LOG(ERROR) << "munmap fb failed" ;
+    }
     close(fd_);
     fd_ = -1;
 }
