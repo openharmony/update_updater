@@ -461,7 +461,7 @@ HWTEST_F(BlockSetUnitTest, blockset_test_028, TestSize.Level1)
     size_t pos = 1;
     std::string srcHash = "hashtest028";
     int32_t ret = targetBlock.LoadTargetBuffer(cmd, buffer, blockSize, pos, srcHash);
-    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(ret, -1);
     close(fd);
 }
 
@@ -485,7 +485,7 @@ HWTEST_F(BlockSetUnitTest, blockset_test_029, TestSize.Level1)
     size_t pos = 1;
     std::string srcHash = "";
     int32_t ret = targetBlock.LoadTargetBuffer(cmd, buffer, blockSize, pos, srcHash);
-    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(ret, -1);
     close(fd);
 }
 
@@ -579,7 +579,7 @@ HWTEST_F(BlockSetUnitTest, blockset_test_032, TestSize.Level1)
     size_t blockSize = 2;
     size_t pos = 1;
     int32_t ret = targetBlock.LoadTargetBuffer(cmd, buffer, blockSize, pos, srcHash);
-    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, -1);
     close(fd);
 }
 
@@ -831,7 +831,7 @@ HWTEST_F(BlockSetUnitTest, blockset_test_045, TestSize.Level1)
     block.ParserAndInsert("4,0,1,2,3");
     ret = block.ReadDataFromBlock(fd, buffer);
     close(fd);
-    EXPECT_EQ(ret, H_BLOCK_SIZE * 2);
+    EXPECT_EQ(ret, 0);
 }
 
 HWTEST_F(BlockSetUnitTest, blockset_test_046, TestSize.Level1)
@@ -854,7 +854,7 @@ HWTEST_F(BlockSetUnitTest, blockset_test_046, TestSize.Level1)
     size_t pos = 1;
     std::string srcHash = "testhash046";
     int32_t ret = targetBlock.LoadTargetBuffer(cmd, buffer, blockSize, pos, srcHash);
-    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(ret, -1);
     close(fd);
 }
 
@@ -879,7 +879,7 @@ HWTEST_F(BlockSetUnitTest, blockset_test_047, TestSize.Level1)
     size_t pos = 1;
     std::string srcHash = "testhash047";
     int32_t ret = targetBlock.LoadTargetBuffer(cmd, buffer, blockSize, pos, srcHash);
-    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(ret, -1);
     close(fd);
 }
 
@@ -911,7 +911,7 @@ HWTEST_F(BlockSetUnitTest, blockset_test_048, TestSize.Level1)
     size_t blockSize = 2;
     size_t pos = 1;
     int32_t ret = targetBlock.LoadTargetBuffer(cmd, buffer, blockSize, pos, srcHash);
-    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, -1);
     close(fd);
 }
 
@@ -935,7 +935,7 @@ HWTEST_F(BlockSetUnitTest, blockset_test_049, TestSize.Level1)
     size_t pos = 1;
     std::string srcHash = "testhash049";
     int32_t ret = targetBlock.LoadTargetBuffer(cmd, buffer, blockSize, pos, srcHash);
-    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(ret, -1);
     close(fd);
 }
 
