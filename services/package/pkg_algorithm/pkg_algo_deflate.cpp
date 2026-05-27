@@ -70,7 +70,7 @@ int32_t PkgAlgoDeflate::PackCalculate(PkgAlgorithmContext &context, const PkgStr
     uint32_t crc = 0;
     size_t srcOffset = context.srcOffset;
     size_t destOffset = context.destOffset;
-    PkgBuffer crcResult((uint8_t *)&crc, sizeof(crc));
+    PkgBuffer crcResult(reinterpret_cast<uint8_t *>(&crc), sizeof(crc));
 
     while ((remainSize > 0) || (zstream.avail_in > 0)) {
         size_t readLen = 0;
@@ -204,8 +204,7 @@ int32_t PkgAlgoDeflate::UnpackCalculate(PkgAlgorithmContext &context, const PkgS
     }
     size_t inflateLen = 0;
     uint32_t crc = 0;
-
-    PkgBuffer crcResult((uint8_t *)&crc, sizeof(crc));
+    PkgBuffer crcResult(reinterpret_cast<uint8_t*>(&crc), sizeof(crc));
     PkgAlgorithmContext unpackContext = context;
     size_t readLen = 0;
     int32_t unpackRet = Z_OK;

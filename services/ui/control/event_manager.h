@@ -46,9 +46,6 @@ private:
     std::vector<std::unique_ptr<OHOS::UIView::OnClickListener>> btnOnClickListener_;
     std::vector<std::unique_ptr<OHOS::UIView::OnDragListener>> btnOnDragListener_;
     std::vector<std::unique_ptr<OHOS::UIView::OnTouchListener>> imgOnLongPressListener_;
-    std::unordered_map<std::string, time_t> comIdTimeMap_ = {
-        {"EupMainIcon_Image", 2}
-    };
 };
 } // namespace Updater
 #endif

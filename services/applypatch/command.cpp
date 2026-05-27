@@ -67,6 +67,9 @@ void Command::SetSrcFileDescriptor(int fd)
 
 int Command::GetSrcFileDescriptor() const
 {
+    if (srcFd_ == nullptr) {
+        return -1;
+    }
     return *srcFd_;
 }
 
@@ -77,6 +80,9 @@ void Command::SetTargetFileDescriptor(int fd)
 
 int Command::GetTargetFileDescriptor() const
 {
+    if (targetFd_ == nullptr) {
+        return -1;
+    }
     return *targetFd_;
 }
     

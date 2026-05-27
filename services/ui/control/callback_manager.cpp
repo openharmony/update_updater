@@ -84,7 +84,7 @@ void CallbackManager::Register(const CallbackCfg &cbCfg)
 
 void CallbackManager::Init(bool hasFocus)
 {
-    [[maybe_unused]] static bool isInited = [hasFocus] () {
+    [[maybe_unused]] bool isInited = [hasFocus] () {
         for (auto &cb : callbackCfgs_) {
             Register(cb);
         }

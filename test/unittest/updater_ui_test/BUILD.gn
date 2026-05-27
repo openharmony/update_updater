@@ -38,6 +38,7 @@ ohos_unittest("ui_unittest") {
     "driver/ui_rotation_unittest.cpp",
     "lang/ui_language_unittest.cpp",
     "strategy/ui_strategy_unittest.cpp",
+    "strategy/background_strategy_unittest.cpp",
     "view/ui_component_unittest.cpp",
     "view/ui_layout_unittest.cpp",
     "view/ui_page_manager_unittest.cpp",
@@ -48,6 +49,8 @@ ohos_unittest("ui_unittest") {
   ]
   sources += [
     "${updater_path}/services/ui/control/event_listener.cpp",
+    "${updater_path}/services/ui/control/event_manager.cpp",
+    "${updater_path}/services/ui/control/callback_manager.cpp",
     "${updater_path}/services/ui/driver/keys_input_device.cpp",
     "${updater_path}/services/ui/driver/pointers_input_device.cpp",
     "${updater_path}/services/ui/driver/ui_rotation.cpp",
@@ -55,6 +58,7 @@ ohos_unittest("ui_unittest") {
     "${updater_path}/services/ui/strategy/ui_strategy.cpp",
     "${updater_path}/services/ui/strategy/logo_strategy.cpp",
     "${updater_path}/services/ui/strategy/progress_strategy.cpp",
+    "${updater_path}/services/ui/strategy/background_strategy.cpp",
     "${updater_path}/services/ui/updater_ui_config.cpp",
     "${updater_path}/services/ui/view/component/box_progress_adapter.cpp",
     "${updater_path}/services/ui/view/component/img_view_adapter.cpp",

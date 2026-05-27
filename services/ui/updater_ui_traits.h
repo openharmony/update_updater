@@ -31,6 +31,17 @@ DEFINE_STRUCT_TRAIT(ComInfo, "com",
     (std::string, comId)
 );
 
+DEFINE_STRUCT_TRAIT(ForegroundComId, "",
+    (std::string, comId),
+    (int16_t, zIndex)
+);
+
+DEFINE_STRUCT_TRAIT(PageBackground, "background",
+    (std::string, backgroundComId),
+    (std::string, backgroundType),
+    (std::vector<ForegroundComId>, foregroundComIds)
+);
+
 DEFINE_STRUCT_TRAIT(ProgressPage, "",
     (std::string, progressPageId),
     (std::string, progressComId),
@@ -45,13 +56,19 @@ DEFINE_STRUCT_TRAIT(ResPage, "",
     (std::string, failPageId)
 );
 
+DEFINE_STRUCT_TRAIT(PageBackgroundCfg, "",
+    (std::string, pageId),
+    (PageBackground, background)
+);
+
 DEFINE_STRUCT_TRAIT(UiStrategyCfg, "strategy",
     (std::string, confirmPageId),
     (ComInfo, labelLogId),
     (ComInfo, labelLogResId),
     (ComInfo, labelUpdId),
     (ProgressPage, progressPage),
-    (ResPage, resPage)
+    (ResPage, resPage),
+    (std::vector<PageBackgroundCfg>, pageBackgrounds)
 );
 
 // define struct for load pages' components from page json config, such as menu.json, update.json

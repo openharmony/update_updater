@@ -237,6 +237,41 @@ bool PageManager::AddExtraCom(const std::string &subPageId, const std::vector<st
     return true;
 }
 
+bool PageManager::SetCurPage(const std::string &id)
+{
+    auto it = pageMap_.find(id);
+    if (it == pageMap_.end()) {
+        LOG(ERROR) << "find page failed, id = " << id;
+        return false;
+    }
+    curPage_ = it->second;
+    return true;
+}
+ 
+std::vector<std::string> PageManager::GetPageQueue()
+{
+    std::vector<std::string> pageQueue {};
+    for (auto page = pageQueue_.begin(); page != pageQueue_.end(); ++page) {
+        auto id = (*page)->GetPageId();
+        pageQueue.push_back(id);
+    }
+ 
+    return pageQueue;
+}
+ 
+bool PageManager::SetPageQueue(const std::vector<std::string> &pageQueue)
+{
+    for (auto id = pageQueue.rbegin(); id != pageQueue.rend(); ++id) {
+        auto page = pageMap_.find(*id);
+        if (page == pageMap_.end()) {
+            LOG(ERROR) << "find page failed, id = " << *id;
+            return false;
+        }
+        EnQueuePage(page->second);
+    }
+    return true;
+}
+
 #ifdef UPDATER_UT
 std::vector<std::string> PageManager::Report()
 {

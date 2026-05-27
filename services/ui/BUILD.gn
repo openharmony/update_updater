@@ -106,6 +106,7 @@ ohos_static_library("libui") {
     "driver/surface_dev.cpp",
     "driver/ui_rotation.cpp",
     "language/language_ui.cpp",
+    "strategy/background_strategy.cpp",
     "strategy/logo_strategy.cpp",
     "strategy/progress_strategy.cpp",
     "strategy/ui_strategy.cpp",

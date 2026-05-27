@@ -142,7 +142,8 @@ int UScriptInstructionRawImageWrite::RawImageWriteProcessor(const PkgBuffer &buf
 
     if (totalSize_ != 0) {
         readSize_ += size;
-        writer->GetUpdaterEnv()->PostMessage("set_progress", std::to_string((float)readSize_ / totalSize_));
+        writer->GetUpdaterEnv()->PostMessage("set_progress",
+            std::to_string(static_cast<float>(readSize_) / totalSize_));
     }
 
     return PKG_SUCCESS;

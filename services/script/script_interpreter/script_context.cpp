@@ -151,7 +151,7 @@ void UScriptInterpretContext::UpdateVariables(const ScriptInterpreter &inter,
         return;
     }
 
-    ReturnValue* values = (ReturnValue*)(value.get());
+    ReturnValue* values = static_cast<ReturnValue*>(value.get());
     for (auto out : values->GetValues()) {
         if (startIndex >= ids.size()) {
             USCRIPT_LOGE("Invalid startIndex %d", startIndex);
@@ -167,72 +167,72 @@ UScriptValuePtr UScriptValue::Computer(int32_t action, UScriptValuePtr value)
     return std::make_shared<ErrorValue>(USCRIPT_ERROR_INTERPRET);
 }
 
-#define INTEGER_INTEGER_COMPUTER(op, rightValue) do {                                     \
+#define INTEGER_INTEGER_COMPUTER(op, rightValue, retValue) do {                           \
     IntegerValue* value = static_cast<IntegerValue *>((rightValue).get());                \
     if (value == nullptr) {                                                               \
         USCRIPT_LOGE("Failed to cast ");                                                  \
     } else {                                                                              \
-        retValue = make_shared<IntegerValue>(this->GetValue() op value->GetValue());      \
+        (retValue) = make_shared<IntegerValue>(this->GetValue() op value->GetValue());    \
     }                                                                                     \
 } while (0)
 
-#define INTEGER_FLOAT_MATH_COMPUTER(op, rightValue) do {                                  \
+#define INTEGER_FLOAT_MATH_COMPUTER(op, rightValue, retValue) do {                        \
     FloatValue* value = static_cast<FloatValue *>((rightValue).get());                    \
     if (value == nullptr) {                                                               \
         USCRIPT_LOGE("Failed to cast ");                                                  \
     } else {                                                                              \
-        retValue = make_shared<FloatValue>(this->GetValue() op value->GetValue());        \
+        (retValue) = make_shared<FloatValue>(this->GetValue() op value->GetValue());      \
     }                                                                                     \
 } while (0)
 
-#define INTEGER_MATH_COMPUTER(op, rightValue) do { \
+#define INTEGER_MATH_COMPUTER(op, rightValue, retValue) do {                              \
     if (rightValue->GetValueType() == UScriptValue::VALUE_TYPE_INTEGER) {                 \
-        INTEGER_INTEGER_COMPUTER(op, (rightValue));                                       \
+        INTEGER_INTEGER_COMPUTER(op, (rightValue), retValue);                             \
     } else if ((rightValue)->GetValueType() == UScriptValue::VALUE_TYPE_FLOAT) {          \
-        INTEGER_FLOAT_MATH_COMPUTER(op, (rightValue));                                    \
+        INTEGER_FLOAT_MATH_COMPUTER(op, (rightValue), retValue);                          \
     }                                                                                     \
 } while (0)
 
-#define INTEGER_FLOAT_LOGIC_COMPUTER(op, rightValue) do {                                 \
+#define INTEGER_FLOAT_LOGIC_COMPUTER(op, rightValue, retValue) do {                       \
     FloatValue* value = static_cast<FloatValue *>((rightValue).get());                    \
     if (value == nullptr) {                                                               \
         USCRIPT_LOGE("Failed to cast ");                                                  \
     } else {                                                                              \
-        retValue = make_shared<IntegerValue>(this->GetValue() op value->GetValue());      \
+        (retValue) = make_shared<IntegerValue>(this->GetValue() op value->GetValue());    \
     }                                                                                     \
 } while (0)
 
-#define INTEGER_LOGIC_COMPUTER(op, rightValue) do {                                       \
+#define INTEGER_LOGIC_COMPUTER(op, rightValue, retValue) do {                             \
     if (rightValue->GetValueType() == UScriptValue::VALUE_TYPE_INTEGER) {                 \
-        INTEGER_INTEGER_COMPUTER(op, (rightValue));                                       \
+        INTEGER_INTEGER_COMPUTER(op, (rightValue), retValue);                             \
     } else if ((rightValue)->GetValueType() == UScriptValue::VALUE_TYPE_FLOAT) {          \
-        INTEGER_FLOAT_LOGIC_COMPUTER(op, (rightValue));                                   \
+        INTEGER_FLOAT_LOGIC_COMPUTER(op, (rightValue), retValue);                         \
     }                                                                                     \
 } while (0)
 
-#define INTEGER_INTEGER_MATH_COMPUTER_DIV(rightValue) do {                                \
-    IntegerValue* value = static_cast<IntegerValue *>((rightValue).get());                  \
+#define INTEGER_INTEGER_MATH_COMPUTER_DIV(rightValue, retValue) do {                      \
+    IntegerValue* value = static_cast<IntegerValue *>((rightValue).get());                \
     if (value == nullptr || value->GetValue() == 0) {                                     \
         USCRIPT_LOGE("Failed to cast ");                                                  \
     } else {                                                                              \
-        retValue = make_shared<IntegerValue>(this->GetValue() / value->GetValue());       \
+        (retValue) = make_shared<IntegerValue>(this->GetValue() / value->GetValue());     \
     }                                                                                     \
 } while (0)
 
-#define INTEGER_FLOAT_MATH_COMPUTER_DIV(rightValue) do {                                  \
+#define INTEGER_FLOAT_MATH_COMPUTER_DIV(rightValue, retValue) do {                        \
     FloatValue* value = static_cast<FloatValue *>((rightValue).get());                    \
     if (value == nullptr || value->GetValue() == 0) {                                     \
         USCRIPT_LOGE("Failed to cast ");                                                  \
     } else {                                                                              \
-        retValue = make_shared<FloatValue>(this->GetValue() / value->GetValue());         \
+        (retValue) = make_shared<FloatValue>(this->GetValue() / value->GetValue());       \
     }                                                                                     \
 } while (0)
 
-#define INTEGER_MATH_COMPUTER_DIV(rightValue) do {                                        \
+#define INTEGER_MATH_COMPUTER_DIV(rightValue, retValue) do {                              \
     if (rightValue->GetValueType() == UScriptValue::VALUE_TYPE_INTEGER) {                 \
-        INTEGER_INTEGER_MATH_COMPUTER_DIV((rightValue));                                  \
+        INTEGER_INTEGER_MATH_COMPUTER_DIV((rightValue), retValue);                        \
     } else if ((rightValue)->GetValueType() == UScriptValue::VALUE_TYPE_FLOAT) {          \
-        INTEGER_FLOAT_MATH_COMPUTER_DIV((rightValue));                                    \
+        INTEGER_FLOAT_MATH_COMPUTER_DIV((rightValue), retValue);                          \
     }                                                                                     \
 } while (0)
 
@@ -246,40 +246,40 @@ UScriptValuePtr IntegerValue::Computer(int32_t action, UScriptValuePtr value)
     }
     switch (action) {
         case UScriptExpression::ADD_OPERATOR:
-            INTEGER_MATH_COMPUTER(+, rightValue);
+            INTEGER_MATH_COMPUTER(+, rightValue, retValue);
             break;
         case UScriptExpression::SUB_OPERATOR:
-            INTEGER_MATH_COMPUTER(-, rightValue);
+            INTEGER_MATH_COMPUTER(-, rightValue, retValue);
             break;
         case UScriptExpression::MUL_OPERATOR:
-            INTEGER_MATH_COMPUTER(*, rightValue);
+            INTEGER_MATH_COMPUTER(*, rightValue, retValue);
             break;
         case UScriptExpression::DIV_OPERATOR:
-            INTEGER_MATH_COMPUTER_DIV(rightValue);
+            INTEGER_MATH_COMPUTER_DIV(rightValue, retValue);
             break;
         case UScriptExpression::GT_OPERATOR:
-            INTEGER_LOGIC_COMPUTER(>, rightValue);
+            INTEGER_LOGIC_COMPUTER(>, rightValue, retValue);
             break;
         case UScriptExpression::GE_OPERATOR:
-            INTEGER_LOGIC_COMPUTER(>=, rightValue);
+            INTEGER_LOGIC_COMPUTER(>=, rightValue, retValue);
             break;
         case UScriptExpression::LT_OPERATOR:
-            INTEGER_LOGIC_COMPUTER(<, rightValue);
+            INTEGER_LOGIC_COMPUTER(<, rightValue, retValue);
             break;
         case UScriptExpression::LE_OPERATOR:
-            INTEGER_LOGIC_COMPUTER(<=, rightValue);
+            INTEGER_LOGIC_COMPUTER(<=, rightValue, retValue);
             break;
         case UScriptExpression::EQ_OPERATOR:
-            INTEGER_LOGIC_COMPUTER(==, rightValue);
+            INTEGER_LOGIC_COMPUTER(==, rightValue, retValue);
             break;
         case UScriptExpression::NE_OPERATOR:
-            INTEGER_LOGIC_COMPUTER(!=, rightValue);
+            INTEGER_LOGIC_COMPUTER(!=, rightValue, retValue);
             break;
         case UScriptExpression::AND_OPERATOR:
-            INTEGER_LOGIC_COMPUTER(&&, rightValue);
+            INTEGER_LOGIC_COMPUTER(&&, rightValue, retValue);
             break;
         case UScriptExpression::OR_OPERATOR:
-            INTEGER_LOGIC_COMPUTER(||, rightValue);
+            INTEGER_LOGIC_COMPUTER(||, rightValue, retValue);
             break;
         default:
             break;
@@ -287,63 +287,63 @@ UScriptValuePtr IntegerValue::Computer(int32_t action, UScriptValuePtr value)
     return retValue;
 }
 
-#define FLOAT_INTEGER_COMPUTER(op, rightValue) do {                                          \
+#define FLOAT_INTEGER_COMPUTER(op, rightValue, retValue) do {                                \
     IntegerValue* value = static_cast<IntegerValue *>((rightValue).get());                   \
     if (value == nullptr) {                                                                  \
         USCRIPT_LOGE("Failed to cast ");                                                     \
     } else {                                                                                 \
-        retValue = make_shared<FloatValue>(this->GetValue() op value->GetValue());           \
+        (retValue) = make_shared<FloatValue>(this->GetValue() op value->GetValue());         \
     }                                                                                        \
 } while (0)
 
-#define FLOAT_FLOAT_MATH_COMPUTER(op, rightValue) do {                                       \
+#define FLOAT_FLOAT_MATH_COMPUTER(op, rightValue, retValue) do {                             \
     FloatValue* value = static_cast<FloatValue *>((rightValue).get());                       \
     if (value == nullptr) {                                                                  \
         USCRIPT_LOGE("Failed to cast ");                                                     \
     } else {                                                                                 \
-        retValue = make_shared<FloatValue>(this->GetValue() op value->GetValue());           \
+        (retValue) = make_shared<FloatValue>(this->GetValue() op value->GetValue());         \
     }                                                                                        \
 } while (0)
 
-#define FLOAT_MATH_COMPUTER(op, rightValue) do {                                             \
+#define FLOAT_MATH_COMPUTER(op, rightValue, retValue) do {                                   \
     if (rightValue->GetValueType() == UScriptValue::VALUE_TYPE_INTEGER) {                    \
-        FLOAT_INTEGER_COMPUTER(op, (rightValue));                                            \
+        FLOAT_INTEGER_COMPUTER(op, (rightValue), retValue);                                  \
     } else if ((rightValue)->GetValueType() == UScriptValue::VALUE_TYPE_FLOAT) {             \
-        FLOAT_FLOAT_LOGIC_COMPUTER(op, (rightValue));                                        \
+        FLOAT_FLOAT_LOGIC_COMPUTER(op, (rightValue), retValue);                              \
     }                                                                                        \
 } while (0)
 
-#define FLOAT_FLOAT_LOGIC_COMPUTER(op, rightValue) do {                                      \
+#define FLOAT_FLOAT_LOGIC_COMPUTER(op, rightValue, retValue) do {                            \
     FloatValue* value = static_cast<FloatValue *>((rightValue).get());                       \
     if (value == nullptr) {                                                                  \
         USCRIPT_LOGE("Failed to cast ");                                                     \
     } else {                                                                                 \
-        retValue = make_shared<IntegerValue>(this->GetValue() op value->GetValue());         \
+        (retValue) = make_shared<IntegerValue>(this->GetValue() op value->GetValue());       \
     }                                                                                        \
 } while (0)
 
-#define FLOAT_LOGIC_COMPUTER(op, rightValue) do {                                            \
+#define FLOAT_LOGIC_COMPUTER(op, rightValue, retValue) do {                                  \
     if (rightValue->GetValueType() == UScriptValue::VALUE_TYPE_INTEGER) {                    \
-        FLOAT_INTEGER_COMPUTER(op, (rightValue));                                            \
+        FLOAT_INTEGER_COMPUTER(op, (rightValue), retValue);                                  \
     } else if ((rightValue)->GetValueType() == UScriptValue::VALUE_TYPE_FLOAT) {             \
-        FLOAT_FLOAT_LOGIC_COMPUTER(op, (rightValue));                                        \
+        FLOAT_FLOAT_LOGIC_COMPUTER(op, (rightValue), retValue);                              \
     }                                                                                        \
 } while (0)
 
-#define FLOAT_INTEGER_MATH_COMPUTER_DIV(rightValue) do {                                     \
-    IntegerValue* value = static_cast<IntegerValue *>((rightValue).get());                     \
+#define FLOAT_INTEGER_MATH_COMPUTER_DIV(rightValue, retValue) do {                           \
+    IntegerValue* value = static_cast<IntegerValue *>((rightValue).get());                   \
     if (value == nullptr || value->GetValue() == 0) {                                        \
         USCRIPT_LOGE("Failed to cast ");                                                     \
     } else {                                                                                 \
-        retValue = make_shared<FloatValue>(this->GetValue() / value->GetValue());            \
+        (retValue) = make_shared<FloatValue>(this->GetValue() / value->GetValue());          \
     }                                                                                        \
 } while (0)
 
-#define FLOAT_MATH_COMPUTER_DIV(rightValue) do {                                             \
+#define FLOAT_MATH_COMPUTER_DIV(rightValue, retValue) do {                                   \
     if (rightValue->GetValueType() == UScriptValue::VALUE_TYPE_INTEGER) {                    \
-        FLOAT_INTEGER_MATH_COMPUTER_DIV((rightValue));                                       \
+        FLOAT_INTEGER_MATH_COMPUTER_DIV((rightValue), retValue);                             \
     } else if ((rightValue)->GetValueType() == UScriptValue::VALUE_TYPE_FLOAT) {             \
-        INTEGER_FLOAT_MATH_COMPUTER_DIV((rightValue));                                       \
+        INTEGER_FLOAT_MATH_COMPUTER_DIV((rightValue), retValue);                             \
     }                                                                                        \
 } while (0)
 
@@ -358,38 +358,38 @@ UScriptValuePtr FloatValue::Computer(int32_t action, UScriptValuePtr value)
     }
     switch (action) {
         case UScriptExpression::ADD_OPERATOR:
-            FLOAT_MATH_COMPUTER(+, rightValue);
+            FLOAT_MATH_COMPUTER(+, rightValue, retValue);
             break;
         case UScriptExpression::SUB_OPERATOR:
-            FLOAT_MATH_COMPUTER(-, rightValue);
+            FLOAT_MATH_COMPUTER(-, rightValue, retValue);
             break;
         case UScriptExpression::MUL_OPERATOR:
-            FLOAT_MATH_COMPUTER(*, rightValue);
+            FLOAT_MATH_COMPUTER(*, rightValue, retValue);
             break;
         case UScriptExpression::DIV_OPERATOR:
-            FLOAT_MATH_COMPUTER_DIV(rightValue);
+            FLOAT_MATH_COMPUTER_DIV(rightValue, retValue);
             break;
         case UScriptExpression::GT_OPERATOR:
-            FLOAT_LOGIC_COMPUTER(>, rightValue);
+            FLOAT_LOGIC_COMPUTER(>, rightValue, retValue);
             break;
         case UScriptExpression::GE_OPERATOR:
-            FLOAT_LOGIC_COMPUTER(>=, rightValue);
+            FLOAT_LOGIC_COMPUTER(>=, rightValue, retValue);
             break;
         case UScriptExpression::LT_OPERATOR:
-            FLOAT_LOGIC_COMPUTER(<, rightValue);
+            FLOAT_LOGIC_COMPUTER(<, rightValue, retValue);
             break;
         case UScriptExpression::LE_OPERATOR:
-            FLOAT_LOGIC_COMPUTER(<=, rightValue);
+            FLOAT_LOGIC_COMPUTER(<=, rightValue, retValue);
             break;
         case UScriptExpression::EQ_OPERATOR:
             return make_shared<IntegerValue>(ComputerEqual(rightValue));
         case UScriptExpression::NE_OPERATOR:
             return make_shared<IntegerValue>(!ComputerEqual(rightValue));
         case UScriptExpression::AND_OPERATOR:
-            FLOAT_LOGIC_COMPUTER(&&, rightValue);
+            FLOAT_LOGIC_COMPUTER(&&, rightValue, retValue);
             break;
         case UScriptExpression::OR_OPERATOR:
-            FLOAT_LOGIC_COMPUTER(||, rightValue);
+            FLOAT_LOGIC_COMPUTER(||, rightValue, retValue);
             break;
         default:
             break;
@@ -400,7 +400,7 @@ UScriptValuePtr FloatValue::Computer(int32_t action, UScriptValuePtr value)
 bool FloatValue::ComputerEqual(const UScriptValuePtr rightValue)
 {
     if (rightValue->GetValueType() == UScriptValue::VALUE_TYPE_INTEGER) {
-        IntegerValue* value = (IntegerValue*)(rightValue.get());
+        IntegerValue* value = static_cast<IntegerValue*>(rightValue.get());
         if (value == nullptr) {
             USCRIPT_LOGE("Failed to cast ");
             return 0;
@@ -411,7 +411,7 @@ bool FloatValue::ComputerEqual(const UScriptValuePtr rightValue)
         diff = abs(diff);
         return diff < 0.0001f;
     } else if (rightValue->GetValueType() == UScriptValue::VALUE_TYPE_FLOAT) {
-        FloatValue* value = (FloatValue*)(rightValue.get());
+        FloatValue* value = static_cast<FloatValue*>(rightValue.get());
         if (value == nullptr) {
             USCRIPT_LOGE("Failed to cast ");
             return 0;
@@ -468,7 +468,7 @@ UScriptValuePtr StringValue::Computer(int32_t action, UScriptValuePtr value)
     std::string str;
     if (action == UScriptExpression::ADD_OPERATOR) {
         if (rightValue->GetValueType() == UScriptValue::VALUE_TYPE_INTEGER) {
-            IntegerValue* integerValue = (IntegerValue*)(rightValue.get());
+            IntegerValue* integerValue = static_cast<IntegerValue*>(rightValue.get());
             if (integerValue == nullptr) {
                 USCRIPT_LOGE("Failed to cast ");
                 return defReturn;
@@ -476,7 +476,7 @@ UScriptValuePtr StringValue::Computer(int32_t action, UScriptValuePtr value)
             str.assign(this->GetValue());
             return make_shared<StringValue>(str + to_string(integerValue->GetValue()));
         } else if (rightValue->GetValueType() == UScriptValue::VALUE_TYPE_FLOAT) {
-            FloatValue* floatValue = (FloatValue*)(rightValue.get());
+            FloatValue* floatValue = static_cast<FloatValue*>(rightValue.get());
             if (floatValue == nullptr) {
                 USCRIPT_LOGE("Failed to cast ");
                 return defReturn;
@@ -484,7 +484,7 @@ UScriptValuePtr StringValue::Computer(int32_t action, UScriptValuePtr value)
             str.assign(this->GetValue());
             return make_shared<StringValue>(str + to_string(floatValue->GetValue()));
         } else {
-            StringValue* stringValue = (StringValue*)(rightValue.get());
+            StringValue* stringValue = static_cast<StringValue*>(rightValue.get());
             if (stringValue == nullptr) {
                 USCRIPT_LOGE("Failed to cast ");
                 return defReturn;
@@ -502,7 +502,7 @@ UScriptValuePtr StringValue::Computer(int32_t action, UScriptValuePtr value)
 
 int32_t StringValue::ComputerLogic(UScriptValuePtr rightValue) const
 {
-    StringValue* value = (StringValue*)(rightValue.get());
+    StringValue* value = static_cast<StringValue*>(rightValue.get());
     if (value == nullptr) {
         USCRIPT_LOGE("Failed to cast ");
         return -1;
@@ -600,7 +600,7 @@ std::string UScriptValue::ScriptToString(UScriptValuePtr value)
 UScriptValuePtr UScriptValue::GetRightCompluteValue(UScriptValuePtr rightValue)
 {
     if (rightValue->GetValueType() == VALUE_TYPE_LIST) {
-        ReturnValue* value = (ReturnValue*)(rightValue.get());
+        ReturnValue* value = static_cast<ReturnValue*>(rightValue.get());
         std::vector<UScriptValuePtr> retValues = value->GetValues();
         if (retValues.size() == 0 || retValues.size() > 1) {
             return nullptr;

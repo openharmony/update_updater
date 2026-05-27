@@ -20,6 +20,7 @@
 #include "misc_info/misc_info.h"
 #include "updater/updater.h"
 #include "updater/updater_const.h"
+#include "updater_init.h"
 #include "utils.h"
 #include "securec.h"
 
@@ -103,6 +104,9 @@ void HardwareFaultRetry::RebootRetry()
     if (!effective_) {
         LOG(WARNING) << "Special scenarios do not take effect, not need retry.";
         return;
+    }
+    if (faultInfo_ == VERIFY_FAILED_REBOOT) {
+        UpdaterInit::GetInstance().InvokeEvent(UPDATER_PACKAGES_VERIFY_FAILED_EVENT);
     }
     if (retryCount_ >= MAX_RETRY_COUNT) {
         LOG(INFO) << "retry more than 3 times, no need retry";

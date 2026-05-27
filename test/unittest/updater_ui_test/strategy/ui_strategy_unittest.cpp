@@ -26,6 +26,22 @@ bool operator == (const ComInfo &lhs, const ComInfo &rhs)
     return lhs.comId == rhs.comId && lhs.pageId == rhs.pageId;
 }
 
+bool operator == (const ForegroundComId &lhs, const ForegroundComId &rhs)
+{
+    return lhs.comId == rhs.comId && lhs.zIndex == rhs.zIndex;
+}
+
+bool operator == (const PageBackground &lhs, const PageBackground &rhs)
+{
+    return lhs.backgroundComId == rhs.backgroundComId && lhs.backgroundType == rhs.backgroundType &&
+        lhs.foregroundComIds == rhs.foregroundComIds;
+}
+
+bool operator == (const PageBackgroundCfg &lhs, const PageBackgroundCfg &rhs)
+{
+    return lhs.pageId == rhs.pageId && lhs.background == rhs.background;
+}
+
 bool operator == (const ProgressPage &lhs, const ProgressPage &rhs)
 {
     return lhs.logoComId == rhs.logoComId && lhs.logoType == rhs.logoType && lhs.progressComId == rhs.progressComId &&
@@ -42,7 +58,8 @@ bool operator == (const UiStrategyCfg &lhs, const UiStrategyCfg &rhs)
 {
     return lhs.confirmPageId == rhs.confirmPageId && lhs.labelLogId == rhs.labelLogId &&
         lhs.labelLogResId == rhs.labelLogResId && lhs.progressPage == rhs.progressPage &&
-        lhs.labelUpdId == rhs.labelUpdId && lhs.resPage == rhs.resPage;
+        lhs.labelUpdId == rhs.labelUpdId && lhs.resPage == rhs.resPage &&
+        lhs.pageBackgrounds == rhs.pageBackgrounds;
 }
 }
 
@@ -66,7 +83,7 @@ HWTEST_F(UpdaterUiStrategyUnitTest, test_load_strategy_for_each_mode, TestSize.L
     EXPECT_TRUE(UiStrategy::LoadStrategy(JsonNode {Fs::path {"/data/updater/ui/strategy/strategy_valid.json"}}));
     UiStrategyCfg defaultCfg { "confirm", {"", ""}, {"", ""}, {"", ""}, ProgressPage {"upd:update",
         "ProgressUpdBoxDark_Progress", "bar", "OHOSIconDark_Image", "img", "PowerLongPressWarning_Image"},
-        ResPage {"upd:updateSuccess", "upd:normalUpdateFailed"}
+        ResPage {"upd:updateSuccess", "upd:normalUpdateFailed"}, {}
     };
     std::unordered_map<std::string, Updater::UiStrategyCfg> expected {};
     auto &sdCardCfg = expected[UPDATERMODE_SDCARD];

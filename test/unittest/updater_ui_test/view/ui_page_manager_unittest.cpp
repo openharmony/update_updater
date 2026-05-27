@@ -454,4 +454,72 @@ HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_show_more_page_than_que
     EXPECT_TRUE(CheckResult(GetInstance().Report(), { "page3" }));
     GetInstance().Reset();
 }
+
+HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_add_extra_com_invalid_subpage_id, TestSize.Level0)
+{
+    ASSERT_EQ(GetInstance().Init(pageInfos_, MAIN_PAGE_ID), true);
+    std::vector<std::string> extraComs = {"label_id_0"};
+    EXPECT_FALSE(GetInstance().AddExtraCom("non_existent_subpage", extraComs));
+    GetInstance().Reset();
+}
+
+HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_add_extra_com_invalid_com_id, TestSize.Level0)
+{
+    ASSERT_EQ(GetInstance().Init(pageInfos_, MAIN_PAGE_ID), true);
+    std::vector<std::string> extraComs = {"invalid_com_id"};
+    EXPECT_TRUE(GetInstance().AddExtraCom("page1:subpage1", extraComs));
+    GetInstance().Reset();
+}
+
+HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_add_extra_com_duplicate_com_id, TestSize.Level0)
+{
+    ASSERT_EQ(GetInstance().Init(pageInfos_, MAIN_PAGE_ID), true);
+    std::vector<std::string> extraComs = {"label_id_0"};
+    EXPECT_TRUE(GetInstance().AddExtraCom("page1:subpage1", extraComs));
+    EXPECT_TRUE(GetInstance().AddExtraCom("page1:subpage1", extraComs));
+    GetInstance().Reset();
+}
+
+HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_add_extra_com_success, TestSize.Level0)
+{
+    ASSERT_EQ(GetInstance().Init(pageInfos_, MAIN_PAGE_ID), true);
+    std::vector<std::string> extraComs = {"image_view"};
+    EXPECT_TRUE(GetInstance().AddExtraCom("page1:subpage1", extraComs));
+    GetInstance().Reset();
+}
+
+HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_add_extra_com_multiple, TestSize.Level0)
+{
+    ASSERT_EQ(GetInstance().Init(pageInfos_, MAIN_PAGE_ID), true);
+    std::vector<std::string> extraComs = {"image_view", "label_id_0"};
+    EXPECT_TRUE(GetInstance().AddExtraCom("page1:subpage1", extraComs));
+    GetInstance().Reset();
+}
+
+HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_add_extra_com_empty_list, TestSize.Level0)
+{
+    ASSERT_EQ(GetInstance().Init(pageInfos_, MAIN_PAGE_ID), true);
+    std::vector<std::string> extraComs = {};
+    EXPECT_TRUE(GetInstance().AddExtraCom("page1:subpage1", extraComs));
+    GetInstance().Reset();
+}
+
+HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_add_extra_com_base_page_not_valid, TestSize.Level0)
+{
+    std::vector<UxPageInfo> invalidPage;
+    invalidPage.emplace_back(UxPageInfo {"page1", "#000000ff", {}, {}});
+    invalidPage[0].viewInfos.emplace_back(
+        CreateViewInfo<TextLabelAdapter>(
+            UxViewCommonInfo {300, 400, 600, 200, "label_id_0", "UILabel", true},
+            UxLabelInfo {50, "this is page1", "center", "#ff0000ff", "#000000ff", "normal",
+                {"#ff0000ff", "#000000ff", false}, false, "ellipsis"}));
+    invalidPage[0].viewInfos.emplace_back(
+        CreateViewInfo<ImgViewAdapter>(
+            UxViewCommonInfo {300, 700, 400, 400, "image_view", "UIImageView", false},
+            UxImageInfo {"/resources/img1", "empty", 100, 0}));
+    invalidPage[0].subpages.emplace_back(UxSubPageInfo {"subpage1", "#000000ff", {"label_id_0", "image_view"}});
+    ASSERT_EQ(GetInstance().Init(invalidPage, "page1"), true);
+    EXPECT_TRUE(GetInstance().AddExtraCom("page1:subpage1", {"invalid_com"}));
+    GetInstance().Reset();
+}
 }  // namespace

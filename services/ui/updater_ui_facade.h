@@ -56,15 +56,19 @@ private:
     std::pair<bool, StrategyMap::const_iterator> CheckMode() const;
     void SetLogoVisible(bool isVisible) const;
     void SetProgressVisible(bool isVisible) const;
+    void SetBackgroundVisible(bool isVisible) const;
     void ShowMsg(const ComInfo &id, const std::string &tag, bool isClear) const;
     void ShowMsg(const ComInfo &id, const std::string &tag) const;
 
     void SetLogoProgress();
+    const PageBackground *FindPageBackground(const std::vector<PageBackgroundCfg> &pageBackgrounds,
+        const std::string &pageId) const;
     const StrategyMap &strategies_;
     PageManager &pgMgr_;
     std::string mode_;
     std::unordered_map<std::string, std::unique_ptr<ProgressStrategy>> progressMap_ {};
     std::unordered_map<std::string, std::unique_ptr<LogoStrategy>> logoMap_ {};
+    std::unordered_map<std::string, std::unique_ptr<BackgroundStrategy>> backgroundMap_ {};
 };
 void OnKeyUpEvent();
 void OnKeyDownEvent();

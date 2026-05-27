@@ -44,7 +44,7 @@ public:
     bool GetPartionInfoByName(const std::string &partitionName, Ptable::PtnInfo &ptnInfo);
     static void RegisterPtable(uint32_t bitIndex, PtableConstructor constructor);
     bool WritePtableWithFile();
-    bool LoadPartitionInfoWithFile();
+    bool LoadPartitionInfoWithFile(const std::string &ptablePath);
 #ifdef UPDATER_UT
     void SetPtable(std::unique_ptr<Ptable> &&ptable)
     {

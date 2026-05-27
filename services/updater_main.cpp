@@ -1026,6 +1026,7 @@ static UpdaterStatus PreSdcardUpdatePackages(UpdaterParams &upParams)
         LOG(ERROR) << "Battery is not sufficient for install package.";
         return UPDATE_SKIP;
     }
+    UpdaterInit::GetInstance().InvokeEvent(UPDATER_PRE_VERIFY_PACKAGE_EVENT);
     if (!PreSdSpecialProcess(upParams)) {
         LOG(ERROR) << "pre sd special process failed";
         return UPDATE_ERROR;
@@ -1253,116 +1254,116 @@ std::unordered_map<std::string, std::function<void ()>> InitOptionsFuncTab(char*
     PackageUpdateMode &mode, UpdaterParams &upParams)
 {
     std::unordered_map<std::string, std::function<void ()>> optionsFuncTab {
-        {"update_bin", [&]() -> void
+        {"update_bin", [&upParams, &optarg, &mode]() -> void
         {
             upParams.updateBin.push_back(optarg);
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_OTA);
             mode = HOTA_UPDATE;
         }},
-        {"update_package", [&]() -> void
+        {"update_package", [&upParams, &optarg, &mode]() -> void
         {
             upParams.updatePackage.push_back(optarg);
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_OTA);
             mode = HOTA_UPDATE;
         }},
-        {"retry_count", [&]() -> void
+        {"retry_count", [&upParams, &optarg]() -> void
         {
             upParams.retryCount = atoi(optarg);
             HardwareFaultRetry::GetInstance().SetRetryCount(upParams.retryCount);
         }},
-        {"panic_count", [&]() -> void
+        {"panic_count", [&upParams, &optarg]() -> void
         {
             upParams.panicCount = atoi(optarg);
         }},
-        {"factory_wipe_data", [&]() -> void
+        {"factory_wipe_data", [&upParams]() -> void
         {
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_REBOOTFACTORYRST);
             upParams.factoryResetMode = "factory_wipe_data";
         }},
-        {"wipe_data_at_factoryreset_0", [&]() -> void
+        {"wipe_data_at_factoryreset_0", [&upParams]() -> void
         {
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_ATFACTORYRST);
             upParams.factoryResetMode = "factory_wipe_data";
         }},
-        {"user_wipe_data", [&]() -> void
+        {"user_wipe_data", [&upParams]() -> void
         {
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_REBOOTFACTORYRST);
             upParams.factoryResetMode = "user_wipe_data";
         }},
-        {"wipe_data_factory_lowlevel", [&]() -> void
+        {"wipe_data_factory_lowlevel", [&upParams]() -> void
         {
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_REBOOTFACTORYRST);
             upParams.factoryResetMode = "user_wipe_data";
         }},
-        {"menu_wipe_data", [&]() -> void
+        {"menu_wipe_data", [&upParams]() -> void
         {
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_REBOOTFACTORYRST);
             upParams.factoryResetMode = "menu_wipe_data";
         }},
-        {"upgraded_pkg_num", [&]() -> void
+        {"upgraded_pkg_num", [&upParams, &optarg]() -> void
         {
             upParams.pkgLocation = static_cast<unsigned int>(atoi(optarg));
         }},
-        {"sdcard_update", [&]() -> void
+        {"sdcard_update", [&upParams]() -> void
         {
             upParams.updateMode = SDCARD_UPDATE;
             upParams.sdExtMode = SDCARD_NORMAL_UPDATE;
         }},
-        {"UPDATE:MAINIMG", [&]() -> void
+        {"UPDATE:MAINIMG", [&upParams]() -> void
         {
             upParams.updateMode = SDCARD_UPDATE;
             upParams.sdExtMode = SDCARD_MAINIMG;
         }},
-        {"factory_sd_update", [&]() -> void
+        {"factory_sd_update", [&upParams]() -> void
         {
             upParams.updateMode = SDCARD_UPDATE;
             upParams.sdExtMode = SDCARD_NORMAL_UPDATE;
         }},
-        {"UPDATE:SD", [&]() -> void
+        {"UPDATE:SD", [&upParams]() -> void
         {
             upParams.updateMode = SDCARD_UPDATE;
             upParams.sdExtMode = SDCARD_NORMAL_UPDATE;
         }},
-        {"UPDATE:SDFROMDEV", [&]() -> void
+        {"UPDATE:SDFROMDEV", [&upParams]() -> void
         {
             upParams.updateMode = SDCARD_UPDATE;
             upParams.sdExtMode = SDCARD_UPDATE_FROM_DEV;
         }},
-        {"force_update_action", [&]() -> void
+        {"force_update_action", [&upParams, &optarg]() -> void
         {
             if (std::string(optarg) == POWEROFF) {
                 upParams.forceUpdate = true;
             }
         }},
-        {"night_update", [&]() -> void
+        {"night_update", [&upParams]() -> void
         {
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_NIGHTUPDATE);
             upParams.forceReboot = true;
         }},
-        {"sdcard_intral_update", [&]() -> void
+        {"sdcard_intral_update", [&upParams]() -> void
         {
             upParams.updateMode = SDCARD_UPDATE;
         }},
-        {"shrink_info", [&]() -> void
+        {"shrink_info", [&upParams, &optarg]() -> void
         {
             upParams.shrinkInfo = std::string(optarg);
         }},
-        {"virtual_shrink_info", [&]() -> void
+        {"virtual_shrink_info", [&upParams, &optarg]() -> void
         {
             upParams.virtualShrinkInfo = std::string(optarg);
         }},
-        {"subpkg_update", [&]() -> void
+        {"subpkg_update", [&upParams, &optarg, &mode]() -> void
         {
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_OTA);
             upParams.updateMode = SUBPKG_UPDATE;
             mode = HOTA_UPDATE;
         }},
-        {"secure_erase", [&]() -> void
+        {"secure_erase", [&upParams, &optarg, &mode]() -> void
         {
             upParams.factoryResetMode = "secure_erase";
             InitSecureEraseFunc(optarg, mode, upParams);
         }},
-        {"disk_erase", [&]() -> void
+        {"disk_erase", [&upParams, &optarg, &mode]() -> void
         {
             upParams.factoryResetMode = "disk_erase";
             InitSecureEraseFunc(optarg, mode, upParams);
@@ -1431,6 +1432,11 @@ static UpdaterStatus StartUpdater(const std::vector<std::string> &args,
 REGISTER_MODE(Updater, "updater.hdc.configfs");
 
 __attribute__((weak)) const char* GetResetMisc()
+{
+    return "";
+}
+
+__attribute__((weak)) const char* GetSdResetMisc()
 {
     return "";
 }

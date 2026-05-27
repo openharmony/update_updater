@@ -39,7 +39,6 @@ UpdaterUiFacade &UpdaterUiFacade::GetInstance()
 __attribute__((weak)) void InitUeventThread()
 {
     LOG(INFO) << "no need init uevent thread";
-    return ;
 }
 
 void UpdaterUiFacade::InitEnv() const
@@ -153,11 +152,23 @@ void UpdaterUiFacade::SetProgressVisible(bool isVisible) const
     LOG(ERROR) << "progress is null, can't show progress";
 }
 
+void UpdaterUiFacade::SetBackgroundVisible(bool isVisible) const
+{
+    if (!CheckMode().first) {
+        return;
+    }
+    if (auto it = backgroundMap_.find(mode_); it != backgroundMap_.end() && it->second != nullptr) {
+        isVisible ? it->second->Show() : it->second->Hide();
+        return;
+    }
+    LOG(ERROR) << "background is null, skip background control";
+}
+
 void UpdaterUiFacade::ShowProgressWarning(bool isShow) const
 {
     if (auto [res, it] = CheckMode(); res) {
         auto &progressPg = it->second.progressPage;
-        pgMgr_[progressPg.progressPageId][progressPg.warningComId]->SetZIndex(10); // 10: Raise the level
+        pgMgr_[progressPg.progressPageId][progressPg.warningComId]->SetZIndex(20); // 20: Raise the level
         pgMgr_[progressPg.progressPageId][progressPg.warningComId]->SetVisible(isShow);
     }
 }
@@ -170,6 +181,7 @@ void UpdaterUiFacade::ShowProgressPage() const
     }
     SetProgressVisible(true);
     SetLogoVisible(true);
+    SetBackgroundVisible(true);
     ShowProgress(0);
     pgMgr_.ShowPage(it->second.progressPage.progressPageId);
     ShowProgressWarning(false);
@@ -184,7 +196,19 @@ void UpdaterUiFacade::ShowSuccessPage() const
     LOG(DEBUG) << "show success page";
     SetProgressVisible(false);
     SetLogoVisible(false);
+    SetBackgroundVisible(false);
     ShowProgressWarning(false);
+
+    const auto &resPage = it->second.resPage;
+    const PageBackground *bgCfg = FindPageBackground(it->second.pageBackgrounds, resPage.successPageId);
+    if (bgCfg != nullptr && !bgCfg->backgroundComId.empty() && !bgCfg->backgroundType.empty()) {
+        ComInfo bgId = {resPage.successPageId, bgCfg->backgroundComId};
+        auto background = BackgroundStrategy::Factory(bgCfg->backgroundType, bgId, bgCfg->foregroundComIds);
+        if (background) {
+            background->Show();
+        }
+    }
+
     pgMgr_.ShowPage(it->second.resPage.successPageId);
 }
 
@@ -266,6 +290,24 @@ void UpdaterUiFacade::SetLogoProgress()
             progressPage.progressPageId, progressPage.logoComId
         });
     }
+
+    const PageBackground *bgCfg = FindPageBackground(it->second.pageBackgrounds, progressPage.progressPageId);
+    if (backgroundMap_.find(mode_) == backgroundMap_.end() && bgCfg != nullptr &&
+        !bgCfg->backgroundComId.empty() && !bgCfg->backgroundType.empty()) {
+        backgroundMap_[mode_] = BackgroundStrategy::Factory(bgCfg->backgroundType,
+            {progressPage.progressPageId, bgCfg->backgroundComId}, bgCfg->foregroundComIds);
+    }
+}
+
+const PageBackground *UpdaterUiFacade::FindPageBackground(const std::vector<PageBackgroundCfg> &pageBackgrounds,
+    const std::string &pageId) const
+{
+    for (const auto &cfg : pageBackgrounds) {
+        if (cfg.pageId == pageId) {
+            return &cfg.background;
+        }
+    }
+    return nullptr;
 }
 
 void UpdaterUiFacade::Sleep(int ms) const
