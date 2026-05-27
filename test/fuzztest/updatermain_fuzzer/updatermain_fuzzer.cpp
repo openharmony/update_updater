@@ -54,14 +54,15 @@ static void ParseParamsFuzzTest()
     WriteUpdaterMessage(commandFile, boot);
     char **argv = new char *[1];
     argv[0] = new char[MAX_ARG_SIZE];
+    ON_SCOPE_EXIT(exitDelete) {
+        delete argv[0];
+        delete []argv;
+    };
     if (strncpy_s(argv[0], MAX_ARG_SIZE, "./main", MAX_ARG_SIZE) != 0) {
         return;
     }
-    int argc = 1;
-    Utils::ParseParams(argc, argv);
+    Utils::ParseParams(1, argv);
     PostUpdater(true);
-    delete argv[0];
-    delete []argv;
 }
 
 static void MianUpdaterFuzzTest()
@@ -94,17 +95,14 @@ static void MianUpdaterFuzzTest()
     }
     char **argv = new char* [1];
     argv[0] = new char[argsSize];
+    ON_SCOPE_EXIT(exitDelete) {
+        delete argv[0];
+        delete []argv;
+    };
     if (strncpy_s(argv[0], argsSize, "./UpdaterMain", argsSize) != 0) {
         return;
     }
-    int argc = 1;
- 
-    int ret = UpdaterMain(argc, argv);
-    if (!ret) {
-        return;
-    }
-    delete argv[0];
-    delete []argv;
+    UpdaterMain(1, argv); // 1 : argc
 }
 
 static void SdCardUpdateFuzzTest()
@@ -136,15 +134,14 @@ static void SdCardUpdateFuzzTest()
     }
     char **argv = new char* [1];
     argv[0] = new char[argsSize];
+    ON_SCOPE_EXIT(exitDelete) {
+        delete argv[0];
+        delete []argv;
+    };
     if (strncpy_s(argv[0], argsSize, "./UpdaterMain", argsSize) != 0) {
         return;
     }
-    int argc = 1;
-    if (UpdaterMain(argc, argv) != 0) {
-        return;
-    }
-    delete argv[0];
-    delete []argv;
+    UpdaterMain(1, argv);
 }
 
 static void InstallUpdaterPackageFuzzTest()
