@@ -61,7 +61,7 @@ static void ParseParamsFuzzTest()
     if (strncpy_s(argv[0], MAX_ARG_SIZE, "./main", MAX_ARG_SIZE) != 0) {
         return;
     }
-    Utils::ParseParams(1, argv);
+    Utils::ParseParams(1, argv); // 1 : argc
     PostUpdater(true);
 }
 
@@ -141,7 +141,7 @@ static void SdCardUpdateFuzzTest()
     if (strncpy_s(argv[0], argsSize, "./UpdaterMain", argsSize) != 0) {
         return;
     }
-    UpdaterMain(1, argv);
+    UpdaterMain(1, argv); // 1 : argc
 }
 
 static void InstallUpdaterPackageFuzzTest()
