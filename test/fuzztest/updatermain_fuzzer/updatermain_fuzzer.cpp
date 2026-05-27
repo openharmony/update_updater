@@ -27,6 +27,7 @@
 #include "updater_main.h"
 #include "misc_info/misc_info.h"
 #include "updater/updater_const.h"
+#include "scope_guard.h"
 #include "securec.h"
 #include "utils.h"
 #include "updater/updater.h"
