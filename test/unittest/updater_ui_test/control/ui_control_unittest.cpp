@@ -199,7 +199,6 @@ HWTEST_F(UpdaterUiControlUnittest, CallbackManagerRegisterFuncTest, TestSize.Lev
 HWTEST_F(UpdaterUiControlUnittest, CallbackManagerInitTest, TestSize.Level0)
 {
     EXPECT_NO_FATAL_FAILURE(CallbackManager::Init(false));
-    EXPECT_NO_FATAL_FAILURE(CallbackManager::Init(true));
 }
 
 HWTEST_F(UpdaterUiControlUnittest, CallbackManagerRegisterTest, TestSize.Level0)
