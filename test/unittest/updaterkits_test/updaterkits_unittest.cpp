@@ -370,4 +370,30 @@ HWTEST_F(UpdaterKitsUnitTest, updater_kits_test22, TestSize.Level1)
     unlink(pkg1.c_str());
     unlink(pkg2.c_str());
 }
+
+HWTEST_F(UpdaterKitsUnitTest, updater_kits_test23, TestSize.Level1)
+{
+    std::string eraseType = "";
+    std::string cmd = "";
+
+    bool ret = RebootAndSecureErase(eraseType, cmd);
+    EXPECT_EQ(ret, false);
+    ret = RebootAndSecureErase(eraseType);
+    EXPECT_EQ(ret, true);
+
+    eraseType = "DATA_AND_OS";
+    cmd = "cmd";
+    ret = RebootAndSecureErase(eraseType, cmd);
+    EXPECT_EQ(ret, true);
+    ret = RebootAndSecureErase(eraseType);
+    EXPECT_EQ(ret, true);
+}
+
+HWTEST_F(UpdaterKitsUnitTest, updater_kits_test24, TestSize.Level1)
+{
+    std::string eraseType = "";
+
+    uint32_t ret = EstimatedEraseTime(eraseType);
+    EXPECT_GE(ret, 0);
+}
 } // namespace UpdaterUt
