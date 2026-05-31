@@ -227,6 +227,10 @@ CommandResult DiffAndMoveCommandFn::Execute(const Command &params)
         pos = H_COPY_CMD_ARGS_START;
     }
 
+    if (SkipInPlaceMove(params, type)) {
+        return SUCCESS;
+    }
+
     BlockSet targetBlock(params.GetTransferParams()->offset);
     std::vector<uint8_t> buffer;
     CommandResult result = FAILED;
@@ -264,6 +268,13 @@ CommandResult DiffAndMoveCommandFn::Execute(const Command &params)
     }
     params.GetTransferParams()->written += targetBlock.TotalBlockSize();
     return SUCCESS;
+}
+
+bool DiffAndMoveCommandFn::SkipInPlaceMove(const Command &params, CommandType type) const
+{
+    return params.GetTransferParams()->canWrite && type == CommandType::MOVE &&
+        params.GetArgumentByPos(H_MOVE_CMD_SRC_START) == params.GetArgumentByPos(H_MOVE_CMD_TGT_START) &&
+        params.GetTransferParams()->inPlaceDiff;
 }
 
 CommandResult FreeCommandFn::Execute(const Command &params)

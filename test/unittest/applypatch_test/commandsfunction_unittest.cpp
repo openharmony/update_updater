@@ -109,4 +109,107 @@ HWTEST_F(CommandFunctionUnitTest, command_function_test_001, TestSize.Level1)
     EXPECT_EQ(cf, nullptr);
     unlink(filePath.c_str());
 }
+
+class DiffAndMoveCommandFnTest : public testing::Test {
+public:
+    static void SetUpTestCase(void)
+    {
+        InitUpdaterLogger("DYNAMIC_LOG_UT", "updater_log.log", "updater_status.log", "error_code.log");
+    };
+};
+
+HWTEST_F(DiffAndMoveCommandFnTest, SkipInPlaceMove_AllConditionsTrue, TestSize.Level1)
+{
+    std::unique_ptr<TransferParams> transferParams = std::make_unique<TransferParams>();
+    transferParams->canWrite = true;
+    transferParams->inPlaceDiff = true;
+    std::shared_ptr<Command> cmd = std::make_shared<Command>(transferParams.get());
+    cmd->Init("move hash 2,0,1 1 2,0,1");
+    DiffAndMoveCommandFn cmdFn;
+    EXPECT_TRUE(cmdFn.SkipInPlaceMove(*cmd, CommandType::MOVE));
+}
+
+HWTEST_F(DiffAndMoveCommandFnTest, SkipInPlaceMove_CanWriteFalse, TestSize.Level1)
+{
+    std::unique_ptr<TransferParams> transferParams = std::make_unique<TransferParams>();
+    transferParams->canWrite = false;
+    transferParams->inPlaceDiff = true;
+    std::shared_ptr<Command> cmd = std::make_shared<Command>(transferParams.get());
+    cmd->Init("move hash 2,0,1 1 2,0,1");
+    DiffAndMoveCommandFn cmdFn;
+    EXPECT_FALSE(cmdFn.SkipInPlaceMove(*cmd, CommandType::IMGDIFF));
+}
+
+HWTEST_F(DiffAndMoveCommandFnTest, SkipInPlaceMove_TypeNotMove, TestSize.Level1)
+{
+    std::unique_ptr<TransferParams> transferParams = std::make_unique<TransferParams>();
+    transferParams->canWrite = true;
+    transferParams->inPlaceDiff = true;
+    std::shared_ptr<Command> cmd = std::make_shared<Command>(transferParams.get());
+    cmd->Init("move hash 2,0,1 1 2,0,1");
+    DiffAndMoveCommandFn cmdFn;
+    EXPECT_FALSE(cmdFn.SkipInPlaceMove(*cmd, CommandType::DIFF));
+}
+
+HWTEST_F(DiffAndMoveCommandFnTest, SkipInPlaceMove_SrcNotEqualTgt, TestSize.Level1)
+{
+    std::unique_ptr<TransferParams> transferParams = std::make_unique<TransferParams>();
+    transferParams->canWrite = true;
+    transferParams->inPlaceDiff = true;
+    std::shared_ptr<Command> cmd = std::make_shared<Command>(transferParams.get());
+    cmd->Init("move hash 2,0,1 1 3,0,1");
+    DiffAndMoveCommandFn cmdFn;
+    EXPECT_FALSE(cmdFn.SkipInPlaceMove(*cmd, CommandType::MOVE));
+}
+
+HWTEST_F(DiffAndMoveCommandFnTest, SkipInPlaceMove_InPlaceDiffFalse, TestSize.Level1)
+{
+    std::unique_ptr<TransferParams> transferParams = std::make_unique<TransferParams>();
+    transferParams->canWrite = true;
+    transferParams->inPlaceDiff = false;
+    std::shared_ptr<Command> cmd = std::make_shared<Command>(transferParams.get());
+    cmd->Init("move hash 2,0,1 1 2,0,1");
+    DiffAndMoveCommandFn cmdFn;
+    EXPECT_FALSE(cmdFn.SkipInPlaceMove(*cmd, CommandType::MOVE));
+}
+
+HWTEST_F(DiffAndMoveCommandFnTest, Execute_ReturnsSuccessWhenSkipInPlaceMove, TestSize.Level1)
+{
+    std::string filePath = "/data/updater/updater/skip_in_place_move_test.bin";
+    std::unique_ptr<TransferParams> transferParams = std::make_unique<TransferParams>();
+    transferParams->canWrite = true;
+    transferParams->inPlaceDiff = true;
+    mode_t dirMode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
+    int fd = open(filePath.c_str(), O_RDWR | O_CREAT, dirMode);
+    ASSERT_GE(fd, 0) << "Failed to open block " << filePath << ", errno: " << errno;
+    std::shared_ptr<Command> cmd = std::make_shared<Command>(transferParams.get());
+    cmd->Init("move hash 2,0,1 1 2,0,1");
+    cmd->SetSrcFileDescriptor(fd);
+    cmd->SetTargetFileDescriptor(fd);
+    DiffAndMoveCommandFn cmdFn;
+    CommandResult ret = cmdFn.Execute(*cmd);
+    EXPECT_EQ(ret, SUCCESS);
+    close(fd);
+    unlink(filePath.c_str());
+}
+
+HWTEST_F(DiffAndMoveCommandFnTest, Execute_ContinuesWhenNotSkipInPlaceMove, TestSize.Level1)
+{
+    std::string filePath = "/data/updater/updater/allCmdUnitTest.bin";
+    std::unique_ptr<TransferParams> transferParams = std::make_unique<TransferParams>();
+    transferParams->canWrite = false;
+    transferParams->inPlaceDiff = true;
+    mode_t dirMode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
+    int fd = open(filePath.c_str(), O_RDWR | O_CREAT, dirMode);
+    ASSERT_GE(fd, 0) << "Failed to open block " << filePath << ", errno: " << errno;
+    std::shared_ptr<Command> cmd = std::make_shared<Command>(transferParams.get());
+    cmd->Init("move hash 2,0,1 1 2,0,1");
+    cmd->SetSrcFileDescriptor(fd);
+    cmd->SetTargetFileDescriptor(fd);
+    DiffAndMoveCommandFn cmdFn;
+    CommandResult ret = cmdFn.Execute(*cmd);
+    EXPECT_EQ(ret, FAILED);
+    close(fd);
+    unlink(filePath.c_str());
+}
 }
