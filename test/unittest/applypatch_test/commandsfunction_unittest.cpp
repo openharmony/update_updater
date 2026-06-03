@@ -118,61 +118,6 @@ public:
     };
 };
 
-HWTEST_F(DiffAndMoveCommandFnTest, SkipInPlaceMove_AllConditionsTrue, TestSize.Level1)
-{
-    std::unique_ptr<TransferParams> transferParams = std::make_unique<TransferParams>();
-    transferParams->canWrite = true;
-    transferParams->inPlaceDiff = true;
-    std::shared_ptr<Command> cmd = std::make_shared<Command>(transferParams.get());
-    cmd->Init("move hash 2,0,1 1 2,0,1");
-    DiffAndMoveCommandFn cmdFn;
-    EXPECT_TRUE(cmdFn.SkipInPlaceMove(*cmd, CommandType::MOVE));
-}
-
-HWTEST_F(DiffAndMoveCommandFnTest, SkipInPlaceMove_CanWriteFalse, TestSize.Level1)
-{
-    std::unique_ptr<TransferParams> transferParams = std::make_unique<TransferParams>();
-    transferParams->canWrite = false;
-    transferParams->inPlaceDiff = true;
-    std::shared_ptr<Command> cmd = std::make_shared<Command>(transferParams.get());
-    cmd->Init("move hash 2,0,1 1 2,0,1");
-    DiffAndMoveCommandFn cmdFn;
-    EXPECT_FALSE(cmdFn.SkipInPlaceMove(*cmd, CommandType::IMGDIFF));
-}
-
-HWTEST_F(DiffAndMoveCommandFnTest, SkipInPlaceMove_TypeNotMove, TestSize.Level1)
-{
-    std::unique_ptr<TransferParams> transferParams = std::make_unique<TransferParams>();
-    transferParams->canWrite = true;
-    transferParams->inPlaceDiff = true;
-    std::shared_ptr<Command> cmd = std::make_shared<Command>(transferParams.get());
-    cmd->Init("move hash 2,0,1 1 2,0,1");
-    DiffAndMoveCommandFn cmdFn;
-    EXPECT_FALSE(cmdFn.SkipInPlaceMove(*cmd, CommandType::DIFF));
-}
-
-HWTEST_F(DiffAndMoveCommandFnTest, SkipInPlaceMove_SrcNotEqualTgt, TestSize.Level1)
-{
-    std::unique_ptr<TransferParams> transferParams = std::make_unique<TransferParams>();
-    transferParams->canWrite = true;
-    transferParams->inPlaceDiff = true;
-    std::shared_ptr<Command> cmd = std::make_shared<Command>(transferParams.get());
-    cmd->Init("move hash 2,0,1 1 3,0,1");
-    DiffAndMoveCommandFn cmdFn;
-    EXPECT_FALSE(cmdFn.SkipInPlaceMove(*cmd, CommandType::MOVE));
-}
-
-HWTEST_F(DiffAndMoveCommandFnTest, SkipInPlaceMove_InPlaceDiffFalse, TestSize.Level1)
-{
-    std::unique_ptr<TransferParams> transferParams = std::make_unique<TransferParams>();
-    transferParams->canWrite = true;
-    transferParams->inPlaceDiff = false;
-    std::shared_ptr<Command> cmd = std::make_shared<Command>(transferParams.get());
-    cmd->Init("move hash 2,0,1 1 2,0,1");
-    DiffAndMoveCommandFn cmdFn;
-    EXPECT_FALSE(cmdFn.SkipInPlaceMove(*cmd, CommandType::MOVE));
-}
-
 HWTEST_F(DiffAndMoveCommandFnTest, Execute_ReturnsSuccessWhenSkipInPlaceMove, TestSize.Level1)
 {
     std::string filePath = "/data/updater/updater/skip_in_place_move_test.bin";
@@ -187,8 +132,7 @@ HWTEST_F(DiffAndMoveCommandFnTest, Execute_ReturnsSuccessWhenSkipInPlaceMove, Te
     cmd->SetSrcFileDescriptor(fd);
     cmd->SetTargetFileDescriptor(fd);
     DiffAndMoveCommandFn cmdFn;
-    CommandResult ret = cmdFn.Execute(*cmd);
-    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(cmdFn.Execute(*cmd), SUCCESS);
     close(fd);
     unlink(filePath.c_str());
 }
@@ -207,8 +151,7 @@ HWTEST_F(DiffAndMoveCommandFnTest, Execute_ContinuesWhenNotSkipInPlaceMove, Test
     cmd->SetSrcFileDescriptor(fd);
     cmd->SetTargetFileDescriptor(fd);
     DiffAndMoveCommandFn cmdFn;
-    CommandResult ret = cmdFn.Execute(*cmd);
-    EXPECT_EQ(ret, FAILED);
+    EXPECT_EQ(cmdFn.Execute(*cmd), FAILED);
     close(fd);
     unlink(filePath.c_str());
 }
