@@ -522,4 +522,52 @@ HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_add_extra_com_base_page
     EXPECT_TRUE(GetInstance().AddExtraCom("page1:subpage1", {"invalid_com"}));
     GetInstance().Reset();
 }
+
+HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_set_current_page, TestSize.Level0)
+{
+    ASSERT_EQ(GetInstance().Init(pageInfos_, MAIN_PAGE_ID), true);
+    EXPECT_EQ(GetInstance().GetCurPageId(), MAIN_PAGE_ID);
+    EXPECT_TRUE(GetInstance().SetCurPage("page2"));
+    EXPECT_EQ(GetInstance().GetCurPageId(), "page2");
+    EXPECT_FALSE(GetInstance().SetCurPage("notexitpageid"));
+}
+ 
+HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_get_page_queue, TestSize.Level1)
+{
+    ASSERT_EQ(GetInstance().Init(pageInfos_, MAIN_PAGE_ID), true);
+    GetInstance().ShowMainPage();
+    GetInstance().ShowPage("page1");
+    GetInstance().ShowPage("page2");
+    GetInstance().ShowPage("page3");
+    auto queue = GetInstance().GetPageQueue();
+    EXPECT_EQ(queue.size(), 2);
+    EXPECT_EQ(queue[0], "page2");
+    EXPECT_EQ(queue[1], "page1");
+}
+ 
+HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_set_page_queue_fail, TestSize.Level1)
+{
+    ASSERT_EQ(GetInstance().Init(pageInfos_, MAIN_PAGE_ID), true);
+    vector<std::string> queue;
+    queue.push_back("page1");
+    queue.push_back("page2");
+    queue.push_back("notexitpageid");
+    EXPECT_FALSE(GetInstance().SetPageQueue(queue));
+}
+ 
+HWTEST_F(UpdaterUiPageManagerUnitTest, test_page_manager_set_page_queue_suc, TestSize.Level1)
+{
+    ASSERT_EQ(GetInstance().Init(pageInfos_, MAIN_PAGE_ID), true);
+    vector<std::string> queue;
+    queue.push_back("page1");
+    queue.push_back("page2");
+    queue.push_back("page3");
+    EXPECT_TRUE(GetInstance().SetPageQueue(queue));
+    GetInstance().GoBack();
+    EXPECT_TRUE(CheckResult(GetInstance().Report(), { "page1" }));
+    GetInstance().GoBack();
+    EXPECT_TRUE(CheckResult(GetInstance().Report(), { "page2" }));
+    GetInstance().GoBack();
+    EXPECT_TRUE(CheckResult(GetInstance().Report(), { "page3" }));
+}
 }  // namespace
