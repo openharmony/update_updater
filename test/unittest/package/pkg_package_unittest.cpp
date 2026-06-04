@@ -31,12 +31,7 @@
 #include "pkg_upgradefile.h"
 #include "pkg_utils.h"
 #include "pkg_zipfile.h"
-#include "pkg_gzipfile.h"
-#include "pkg_lz4file.h"
-#include "pkg_zipfile.h"
 #include "pkg_streamfile.h"
-#include "pkg_upgradefile.h"
-#include "packages_info.h"
 #include "securec.h"
 
 using namespace std;
@@ -56,8 +51,6 @@ constexpr uint32_t TEST_PACKED_SIZE_1K = 1024;
 constexpr uint32_t TEST_PACKED_SIZE_512 = 512;
 constexpr uint32_t TEST_PACKED_SIZE_500 = 500;
 constexpr uint32_t TEST_MODIFIED_TIME = 12345;
-// constexpr uint32_t TEST_OFFSET_100 = 100; // unused
-// constexpr uint32_t TEST_OFFSET_200 = 200; // unused
 constexpr uint32_t TEST_DATA_OFFSET_100 = 100;
 constexpr uint32_t TEST_DATA_OFFSET_200 = 200;
 constexpr uint32_t TEST_HEADER_OFFSET_100 = 100;
@@ -70,7 +63,6 @@ constexpr uint32_t TEST_RESOURCE_TYPE_1 = 1;
 constexpr uint32_t TEST_RESOURCE_TYPE_2 = 3;
 constexpr uint32_t TEST_TYPE_1 = 2;
 constexpr uint32_t TEST_TYPE_2 = 4;
-// constexpr uint32_t TEST_COMP_FLAGS_0 = 0; // unused
 constexpr uint32_t TEST_COMP_FLAGS_1 = 1;
 constexpr uint32_t TEST_UNPACKED_SIZE_1K = 1000;
 constexpr uint32_t TEST_CRC32_VALUE = 0x12345678;
