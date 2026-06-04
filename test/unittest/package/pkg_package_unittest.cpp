@@ -917,17 +917,14 @@ public:
 
     void TestUpgradeFileEntryGetOriginalSizeFoundInChunkInfo()
     {
-        // 使用 UpgradePkgFile 而不是 TestFile，因为 GetOriginalSize 需要 UpgradePkgFile
         std::unique_ptr<UpgradePkgFile> pkgFile = std::make_unique<UpgradePkgFile>(
             pkgManager_, nullptr, nullptr);
         std::unique_ptr<UpgradeFileEntry> entry = std::make_unique<UpgradeFileEntry>(pkgFile.get(), TEST_ENTRY_NODE_ID);
 
         entry->fileInfo_.fileInfo.identity = "test_image";
         entry->fileInfo_.fileInfo.unpackedSize = TEST_FILE_SIZE_2K;
-        // 设置 fileName_ 以便在 imageSizeMap 中查找
         entry->fileName_ = "test_image";
 
-        // 直接设置 UpgradePkgFile 的 chunkInfo_ (测试文件有 #define private public)
         pkgFile->chunkInfo_.imageSizeMap["test_image"] = TEST_FILE_SIZE_2K;
 
         size_t originalSize = entry->GetOriginalSize();
@@ -936,18 +933,15 @@ public:
 
     void TestUpgradeFileEntryGetOriginalSizeNotFoundInChunkInfo()
     {
-        // 使用 UpgradePkgFile 而不是 TestFile，因为 GetOriginalSize 需要 UpgradePkgFile
         std::unique_ptr<UpgradePkgFile> pkgFile = std::make_unique<UpgradePkgFile>(
             pkgManager_, nullptr, nullptr);
         std::unique_ptr<UpgradeFileEntry> entry = std::make_unique<UpgradeFileEntry>(pkgFile.get(), TEST_ENTRY_NODE_ID);
 
         entry->fileInfo_.fileInfo.identity = "test_image";
         entry->fileInfo_.fileInfo.unpackedSize = TEST_FILE_SIZE_1K;
-        // 设置 fileName_ 为不存在于 imageSizeMap 中的值
         entry->fileName_ = "not_found_image";
 
         size_t originalSize = entry->GetOriginalSize();
-        // imageSizeMap 中找不到，返回 unpackedSize
         EXPECT_EQ(originalSize, TEST_FILE_SIZE_1K);
     }
 
