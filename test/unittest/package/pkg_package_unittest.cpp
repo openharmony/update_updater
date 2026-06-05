@@ -2056,7 +2056,7 @@ HWTEST_F(PkgPackageTest, StreamPkgFile_SetUpradeEntryStream_NullEntry, TestSize.
 HWTEST_F(PkgPackageTest, PkgFileImpl_AddSignData_Sha256, TestSize.Level1)
 {
     PkgPackageTest test;
-    test.TestPkgFileImplCheckStateInvalidState();
+    test.TestPkgFileImplAddSignDataSha256();
 }
 
 HWTEST_F(PkgPackageTest, GZipFileEntry_EncodeHeader_NullOutStream, TestSize.Level1)
@@ -2311,6 +2311,12 @@ HWTEST_F(PkgPackageTest, Lz4FileEntry_Unpack_NullStream, TestSize.Level1)
     test.TestLz4FileEntryUnpackNullStream();
 }
 
+HWTEST_F(PkgPackageTest, Lz4FileEntry_Unpack_ValidStream, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestLz4FileEntryUnpackValidStream();
+}
+
 HWTEST_F(PkgPackageTest, GZipFileEntry_DecodeHeader_BufferTooSmall, TestSize.Level1)
 {
     PkgPackageTest test;
@@ -2429,6 +2435,96 @@ HWTEST_F(PkgPackageTest, GZipPkgFile_ClearPkgStream, TestSize.Level1)
 {
     PkgPackageTest test;
     test.TestGZipPkgFileClearPkgStream();
+}
+
+HWTEST_F(PkgPackageTest, GZipFileEntry_EncodeHeader, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestGZipFileEntryEncodeHeader();
+}
+
+HWTEST_F(PkgPackageTest, GZipFileEntry_EnvelopHeader, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestGZipFileEntryEnvelopHeader();
+}
+
+HWTEST_F(PkgPackageTest, GZipFileEntry_GetEntryRange, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestGZipFileEntryGetEntryRange();
+}
+
+HWTEST_F(PkgPackageTest, GZipFileEntry_GetOriginalSize, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestGZipFileEntryGetOriginalSize();
+}
+
+HWTEST_F(PkgPackageTest, GZipFileEntry_Init, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestGZipFileEntryInit();
+}
+
+HWTEST_F(PkgPackageTest, GZipFileEntry_InitWithFileInfo, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestGZipFileEntryInitWithFileInfo();
+}
+
+HWTEST_F(PkgPackageTest, GZipFileEntry_Pack, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestGZipFileEntryPack();
+}
+
+HWTEST_F(PkgPackageTest, GZipFileEntry_Unpack, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestGZipFileEntryUnpack();
+}
+
+HWTEST_F(PkgPackageTest, Lz4FileEntry_EnvelopHeader, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestLz4FileEntryEnvelopHeader();
+}
+
+HWTEST_F(PkgPackageTest, Lz4FileEntry_Unpack_NullParams, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestLz4FileEntryUnpackNullParams();
+}
+
+HWTEST_F(PkgPackageTest, PackagesInfo_SplitString_Basic, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestPackagesInfoSplitStringBasic();
+}
+
+HWTEST_F(PkgPackageTest, PackagesInfo_SplitString_SingleChar, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestPackagesInfoSplitStringSingleChar();
+}
+
+HWTEST_F(PkgPackageTest, PackagesInfo_SplitString_WithNewlines, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestPackagesInfoSplitStringWithNewlines();
+}
+
+HWTEST_F(PkgPackageTest, PackagesInfo_SplitString_LeadingTrailingSpaces, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestPackagesInfoSplitStringLeadingTrailingSpaces();
+}
+
+HWTEST_F(PkgPackageTest, PkgFileImpl_AddSignData_Sha384, TestSize.Level1)
+{
+    PkgPackageTest test;
+    test.TestPkgFileImplAddSignDataSha384();
 }
 
 }
