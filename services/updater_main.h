@@ -28,6 +28,7 @@ enum FactoryResetMode {
     FACTORY_WIPE_DATA,
     MENU_WIPE_DATA,
     CLEAR_SPACE,
+    SECURE_ERASE,
     INVALID_MODE,
 };
 
@@ -49,6 +50,8 @@ UpdaterStatus DoUpdaterEntry(UpdaterParams &upParams);
 UpdaterStatus DoFactoryRstEntry(UpdaterParams &upParams);
 
 UpdaterStatus UpdaterFromSdcard(UpdaterParams &upParams);
+
+UpdaterStatus DoSecureErase(UpdaterParams &upParams);
 
 bool IsBatteryCapacitySufficient();
 

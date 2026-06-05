@@ -93,6 +93,28 @@
                 "successPageId" : "upd:FactoryRstSucc",
                 "failPageId" : "upd:FactoryRstFailed"
             }
+        },
+        "secure_erase" : {
+            "labelLogResId" : {
+                "pageId" : "upd",
+                "comId" : "SecureErasing_Label"
+            },
+            "labelUpdId" : {
+                "pageId" : "upd",
+                "comId" : "RemainingTime_Label"
+             },
+            "progressPage" : {
+                "progressPageId" : "upd:secureErasing",
+                "progressComId" : "UpdBox_Progress",
+                "progressType" : "bar",
+                "logoComId" : "OHOSIcon_Image",
+                "logoType" : "img",
+                "warningComId" : ""
+            },
+            "resPage" : {
+                "successPageId" : "upd:secureEraseSuccess",
+                "failPageId" : "upd:secureEraseFailed"
+             }
         }
     },
     "locale" : {

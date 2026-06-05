@@ -364,7 +364,21 @@
                         "header_files": [],
                         "header_base": "//base/update/updater/services/diffpatch/patch_shared"
                     }
-                }
+                },
+                {
+                    "name": "//base/update/updater/services/factory_reset:libsecure_erase",
+                    "header": {
+                        "header_files": [],
+                        "header_base": "//base/update/updater/services/factory_reset"
+                    }
+                },
+ 	            {
+ 	                "name": "//base/update/updater/services/ui:libui_driver",
+ 	                "header": {
+ 	                    "header_files": [],
+ 	                    "header_base": "//base/update/updater/services/ui"
+ 	                }
+ 	            }
             ],
             "test": [
                 "//base/update/updater:unittest",

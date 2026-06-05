@@ -69,6 +69,34 @@
                 "FactoryRstSuccReboot_Label"
             ],
             "bgColor" : "#f1f3f5ff"
+        },
+        {
+            "id": "secureEraseFailed",
+            "coms": [
+                "FailIcon_Image",
+                "SecureEraseFailedRes_Label",
+                "FailReboot_Button"
+            ],
+            "bgColor" : "#f1f3f5ff"
+        },
+        {
+            "id": "secureEraseSuccess",
+            "coms": [
+                "SuccessIcon_Image",
+                "SecureEraseSuccRes_Label"
+            ],
+            "bgColor" : "#f1f3f5ff"
+        },
+        {
+            "id": "secureErasing",
+            "coms": [
+                "OHOSIcon_Image",
+                "UpdBox_Progress",
+                "SecureErasing_Label",
+                "RemainingTime_Label",
+                "FlashPoint_Image"
+            ],
+            "bgColor" : "#f1f3f5ff"
         }
     ],
     "default": {
@@ -320,6 +348,54 @@
             "filePrefix": "dark_flash_",
             "imgCnt" : 22,
             "updInterval": 10
+        },
+        {
+            "type": "UILabel",
+            "id": "SecureErasing_Label",
+            "text": "",
+            "x": 120,
+            "y": 1037,
+            "w": 480,
+            "h": 43,
+            "fontSize": 32,
+            "bgColor" : "#f1f3f5ff",
+            "fontColor": "#000000e6"
+        },
+        {
+            "type": "UILabel",
+            "id": "RemainingTime_Label",
+            "text": "",
+            "x": 120,
+            "y": 1096,
+            "w": 480,
+            "h": 38,
+            "fontSize": 28,
+            "bgColor" : "#f1f3f5ff",
+            "fontColor": "#00000099"
+        },
+        {
+            "type": "UILabel",
+            "id": "SecureEraseFailedRes_Label",
+            "text": "[LABEL_SECURE_ERASE_FAIL]",
+            "x": 120,
+            "y": 1037,
+            "w": 480,
+            "h": 43,
+            "fontSize": 32,
+            "bgColor" : "#f1f3f5ff",
+            "fontColor": "#000000e6"
+        },
+        {
+            "type": "UILabel",
+            "id": "SecureEraseSuccRes_Label",
+            "text": "[LABEL_SECURE_ERASE_SUCCESS]",
+            "x": 120,
+            "y": 1037,
+            "w": 480,
+            "h": 43,
+            "fontSize": 32,
+            "bgColor" : "#f1f3f5ff",
+            "fontColor": "#000000e6"
         }
     ]
 }

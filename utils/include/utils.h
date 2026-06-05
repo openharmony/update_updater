@@ -43,6 +43,8 @@ constexpr int USER_UPDATE_AUTHORITY = 6666;
 constexpr int GROUP_SYS_AUTHORITY = 1000;
 constexpr int GROUP_UPDATE_AUTHORITY = 6666;
 constexpr int GROUP_ROOT_AUTHORITY = 0;
+constexpr uint32_t ONE_HOUR = 3600;
+constexpr uint32_t ONE_MINUTE = 60;
 constexpr const char* ON_SERVER = "ON_SERVER";
 template<class T>
 T String2Int(const std::string &str, int base = N_HEX)
@@ -69,6 +71,32 @@ T String2Int(const std::string &str, int base = N_HEX)
     }
     return result;
 }
+
+struct Time {
+    uint64_t hour;
+    uint64_t minute;
+    uint64_t second;
+    Time() : hour(0), minute(0), second(0) {}
+    Time(uint64_t totalSeconds)
+    {
+        hour = totalSeconds / ONE_HOUR;
+        minute = (totalSeconds % ONE_HOUR) / ONE_MINUTE;
+        second = (totalSeconds % ONE_HOUR) % ONE_MINUTE;
+    }
+    uint64_t GetHour() const
+    {
+        return hour;
+    }
+    uint64_t GetMinute() const
+    {
+        return minute;
+    }
+    uint64_t GetSecond() const
+    {
+        return second;
+    }
+};
+
 int32_t DeleteFile(const std::string& filename);
 std::vector<std::string> SplitString(const std::string &str, const std::string del = " \t");
 std::string Trim(const std::string &str);
@@ -107,7 +135,7 @@ void SetMessageToMisc(const std::string &miscCmd, const int message, const std::
 std::string GetFaultInfo(void);
 bool CheckFaultInfo(const std::string &faultInfo);
 void SetCmdToMisc(const std::string &miscCmd);
-void AddUpdateInfoToMisc(const std::string headInfo, const std::optional<int> message);
+void AddUpdateInfoToMisc(const std::string headInfo, const std::optional<int64_t> message);
 void RemoveUpdateInfoFromMisc(const std::string &headInfo);
 void SetFaultInfoToMisc(const std::string &faultInfo);
 void GetTagValInStr(const std::string& str, const std::string &tag, std::string &val);

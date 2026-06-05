@@ -40,6 +40,7 @@ static void PrintPrompts()
     cout << "intral_update :  write_updater ota_intral_update /data/updater/updater.zip" << endl;
     cout << "subpkg_update :  write_updater subpkg_update" << endl;
     cout << "notify_update :  write_updater notify_update" << endl;
+    cout << "secure_erase  :  write_updater secure_erase" << endl;
 }
 
 static int ExceptionBin(int argc, char **argv, UpdateMessage &boot)
@@ -158,6 +159,16 @@ static void HandleMiscInfo(int argc, char **argv)
     Utils::CloseLibrary(handle);
 }
 
+static int HandleSecureErase(struct UpdateMessage &boot)
+{
+    if (strncpy_s(boot.update, sizeof(boot.update), "--secure_erase",
+        sizeof(boot.update) - 1) != 0) {
+        cout << "strncpy_s failed!" << endl;
+        return -1;
+    }
+    return 0;
+}
+
 static int HandleCommand(int argc, char** argv, struct UpdateMessage& boot, struct UpdaterPara& para)
 {
     if (strcmp(argv[1], "bin") == 0) {
@@ -197,6 +208,8 @@ static int HandleCommand(int argc, char** argv, struct UpdateMessage& boot, stru
         return WriteUpdaterPara(argc, para) != 0 ? -1 : 0;
     } else if (strcmp(argv[1], "notify_update") == 0) {
         return 0;
+    } else if (strcmp(argv[1], "secure_erase") == 0) {
+        return HandleSecureErase(boot);
     } else {
         cout << "Please input correct command!" << endl;
         return -1;

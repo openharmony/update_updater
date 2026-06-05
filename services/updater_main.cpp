@@ -53,6 +53,7 @@
 #include "factory_reset/factory_reset.h"
 #include "write_state/write_state.h"
 #include "slot_info/slot_info.h"
+#include "factory_reset/secure_erase.h"
 
 namespace Updater {
 using Utils::String2Int;
@@ -85,6 +86,8 @@ constexpr struct option OPTIONS[] = {
     {"wipe_data_factory_lowlevel", no_argument, nullptr, 0},
     { "wipe_data_at_factoryreset_0", no_argument, nullptr, 0 },
     { "subpkg_update", no_argument, nullptr, 0 },
+    { "secure_erase", optional_argument, nullptr, 0 },
+    { "disk_erase", optional_argument, nullptr, 0 },
     { nullptr, 0, nullptr, 0 },
 };
 constexpr float VERIFY_PERCENT = 0.05;
@@ -1106,6 +1109,28 @@ UpdaterStatus StartUpdaterEntry(UpdaterParams &upParams)
     return status;
 }
 
+UpdaterStatus DoSecureErase(UpdaterParams &upParams)
+{
+    UpdaterStatus status = UPDATE_UNKNOWN;
+    UPDATER_UI_INSTANCE.ShowProgressPage();
+    (void) UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_SECUREERASE);
+    LOG(INFO) << "SecureErase FactoryReset begin";
+    status = UPDATE_SUCCESS;
+#if !defined(UPDATER_UT) && defined(UPDATER_UI_SUPPORT)
+    DoProgress();
+#endif
+    if (FactoryReset(SECURE_ERASE, "/data") != 0) {
+        LOG(ERROR) << "FactoryReset secure erase failed";
+        status = UPDATE_ERROR;
+    }
+    if (status == UPDATE_SUCCESS) {
+        LOG(INFO) << "Secure Erase Finish";
+        UPDATER_UI_INSTANCE.ShowProgress(100); // 100 : 100%
+        ClearUpdaterParaMisc();
+    }
+    return status;
+}
+
 UpdaterStatus DoFactoryRstEntry(UpdaterParams &upParams)
 {
     UpdaterStatus status = UPDATE_UNKNOWN;
@@ -1142,6 +1167,8 @@ UpdaterStatus DoFactoryRstEntry(UpdaterParams &upParams)
             ClearUpdaterParaMisc();
             std::this_thread::sleep_for(std::chrono::milliseconds(UI_SHOW_DURATION));
         }
+    } else if (upParams.factoryResetMode == "secure_erase" || upParams.factoryResetMode == "disk_erase") {
+        status = DoSecureErase(upParams);
     }
     return status;
 }
@@ -1175,6 +1202,22 @@ UpdaterStatus DoUpdaterEntry(UpdaterParams &upParams)
         status = DoFactoryRstEntry(upParams);
     }
     return status;
+}
+
+static void InitSecureEraseFunc(char* &optarg, PackageUpdateMode &mode, UpdaterParams &upParams)
+{
+    (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_REBOOTFACTORYRST);
+    SecureErase::GetInstance().AddOverWritePartitions(upParams.factoryResetMode);
+    if (optarg != nullptr) {
+        std::string offsetStr(optarg);
+        uint64_t offset = 0;
+        if (!Utils::ConvertToUnsignedLongLong(offsetStr, offset)) {
+            LOG(ERROR) << "Convert secure erase offset error";
+            offset = 0;
+        }
+        LOG(INFO) << "secure erase offset: " << offset;
+        SecureErase::GetInstance().LoadOffsetInRetry(offset);
+    }
 }
 
 std::unordered_map<std::string, std::function<void ()>> InitOptionsFuncTab(char* &optarg,
@@ -1284,6 +1327,16 @@ std::unordered_map<std::string, std::function<void ()>> InitOptionsFuncTab(char*
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_OTA);
             upParams.updateMode = SUBPKG_UPDATE;
             mode = HOTA_UPDATE;
+        }},
+        {"secure_erase", [&]() -> void
+        {
+            upParams.factoryResetMode = "secure_erase";
+            InitSecureEraseFunc(optarg, mode, upParams);
+        }},
+        {"disk_erase", [&]() -> void
+        {
+            upParams.factoryResetMode = "disk_erase";
+            InitSecureEraseFunc(optarg, mode, upParams);
         }}
     };
     return optionsFuncTab;
@@ -1438,7 +1491,7 @@ int UpdaterMain(int argc, char **argv)
             UPDATER_UI_INSTANCE.ShowLogRes(
                 status == UPDATE_CORRUPT ? TR(LOGRES_VERIFY_FAILED) : TR(LOGRES_UPDATE_FAILED));
             UPDATER_UI_INSTANCE.ShowFailedPage();
-        } else if (upParams.factoryResetMode == "user_wipe_data" ||
+        } else if (upParams.factoryResetMode == "user_wipe_data" || upParams.factoryResetMode == "secure_erase" ||
             upParams.factoryResetMode == "menu_wipe_data" || upParams.factoryResetMode == "factory_wipe_data") {
             UPDATER_UI_INSTANCE.ShowFailedPage();
         } else if (CheckUpdateMode(USB_UPDATE_FAIL)) {

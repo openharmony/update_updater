@@ -44,4 +44,15 @@ extern bool RebootAndInstallSdcardPackage(const std::string &miscFile, const std
 // Reboot system to updater mode and trigger userdata clean up.
 // @return returns true if trigger userdata cleanup success, else returns false.
 extern bool RebootAndCleanUserData(const std::string &miscFile, const std::string &cmd);
+
+// Reboot system to secure erase mode and trigger secure erase.
+// @param eraseType secure erase type.
+// @return returns true if trigger secure erase success, else returns false.
+extern bool RebootAndSecureErase(const std::string &eraseType);
+extern bool RebootAndSecureErase(const std::string &eraseType, const std::string &cmd);
+
+// Estimate time of secure erase.
+// @param eraseType secure erase type.
+// @return returns estimated time of secure erase.
+extern uint32_t EstimatedEraseTime(const std::string &eraseType);
 #endif /* UPDATER_KITS_H */
