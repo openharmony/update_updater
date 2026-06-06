@@ -115,6 +115,9 @@ public:
 
     virtual int32_t AddEntry(const PkgManager::FileInfoPtr file, const PkgStreamPtr inStream)
     {
+        if (inStream == nullptr) {
+            return PKG_INVALID_STREAM;
+        }
         PkgFileImpl::GetPkgInfo();
         PkgFileImpl::AddPkgEntry(inStream->GetFileName());
         return 0;
