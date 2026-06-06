@@ -292,6 +292,10 @@ int32_t ZipFileEntry::EncodeHeader(PkgStreamPtr inStream, size_t startOffset, si
 int32_t ZipFileEntry::PackStream(PkgStreamPtr inStream, size_t startOffset, size_t &encodeLen,
     const PkgAlgorithm::PkgAlgorithmPtr algorithm, const PkgStreamPtr outStream)
 {
+    if (inStream == nullptr || outStream == nullptr || algorithm == nullptr) {
+        PKG_LOGE("Invalid stream or algorithm");
+        return PKG_INVALID_STREAM;
+    }
     // 为header申请一个buff，先处理到内存，后面在写入文件
     std::vector<uint8_t> buff(MAX_FILE_NAME + sizeof(LocalFileHeader) + ZIP_PKG_ALIGNMENT_DEF);
     size_t nameLen = 0;
@@ -443,6 +447,10 @@ int32_t ZipFileEntry::EncodeLocalFileHeader(uint8_t *buffer, size_t bufferLen, b
 int32_t ZipFileEntry::EncodeDataDescriptor(const PkgStreamPtr stream, size_t startOffset,
     uint32_t &encodeLen) const
 {
+    if (stream == nullptr) {
+        PKG_LOGE("Invalid stream");
+        return PKG_INVALID_STREAM;
+    }
     int32_t ret = PKG_SUCCESS;
     size_t offset = startOffset;
     DataDescriptor dataDesc = {};
