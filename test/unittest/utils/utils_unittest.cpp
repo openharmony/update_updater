@@ -312,7 +312,7 @@ HWTEST_F(UtilsUnitTest, readStringFromProcFile_OpenFileFailed_Test, TestSize.Lev
 HWTEST_F(UtilsUnitTest, readStringFromProcFile_FileOversize_Test, TestSize.Level0)
 {
     std::string filePath = "/data/updater/updater/invalid_file";
-    CreateFile(filePath, 1024 * 5);
+    CreateFile(filePath, 1024 * 1024 * 5);
     std::string content;
     EXPECT_FALSE(ReadStringFromProcFile(filePath, content));
     EXPECT_EQ(DeleteFile(filePath), 0);

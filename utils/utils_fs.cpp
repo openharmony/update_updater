@@ -33,7 +33,7 @@
 
 namespace Updater {
 namespace Utils {
-constexpr long MAX_FILE_LENGTH = 4096;
+constexpr long MAX_FILE_LENGTH = 4 * 1024 * 1024;
 
 int MkdirRecursive(const std::string &pathName, mode_t mode)
 {
