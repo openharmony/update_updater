@@ -1325,6 +1325,14 @@ bool IsAiUpdateBinary()
     return false;
 }
 
+std::string GetDiffTempPath()
+{
+    if (IsAiUpdateBinary()) {
+        return SINGULAR_UPDATE_PATH;
+    }
+    return UPDATER_PATH;
+}
+
 #ifndef __WIN32
 void SetFileAttributes(const std::string& file, uid_t owner, gid_t group, mode_t mode)
 {

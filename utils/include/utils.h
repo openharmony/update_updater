@@ -162,6 +162,7 @@ void RecordBatteryLevel();
 // print data hex code, 16bytes per line
 void PrintHex(const uint8_t *buffer, size_t length);
 bool IsAiUpdateBinary();
+std::string GetDiffTempPath();
 
 #ifndef __WIN32
 void SetFileAttributes(const std::string& file, uid_t owner, gid_t group, mode_t mode);

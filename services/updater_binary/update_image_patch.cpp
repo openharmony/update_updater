@@ -146,7 +146,7 @@ int32_t USInstrImagePatch::CreatePatchStream(Uscript::UScriptEnv &env, const Ima
         }
     }
 
-    std::string patchFile = UPDATER_PATH + para.patchFile;
+    std::string patchFile = Utils::GetDiffTempPath() + para.patchFile;
     int32_t ret = env.GetPkgManager()->CreatePkgStream(patchStream,
         patchFile, info->unpackedSize, PkgStream::PkgStreamType_MemoryMap);
     if (ret != PKG_SUCCESS || patchStream == nullptr) {
@@ -168,7 +168,7 @@ int32_t USInstrImagePatch::CreatePatchStream(Uscript::UScriptEnv &env, const Ima
 std::string USInstrImagePatch::GetSourceFile(const ImagePatchPara &para)
 {
     // Back up partitions to prevent power failures during the upgrade.
-    std::string srcFile = UPDATER_PATH + para.partName + ".backup";
+    std::string srcFile = Utils::GetDiffTempPath() + para.partName + ".backup";
 
     if (access(srcFile.c_str(), F_OK) == 0 && GetFileHash(srcFile) != para.srcHash) {
         LOG(INFO) << "using backup file:" << srcFile;

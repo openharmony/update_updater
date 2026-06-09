@@ -154,7 +154,7 @@ int UpdatePartitions::DoNewPartitions(PartitonList &newPartList)
 
 int UpdatePartitions::SetNewPartition(const std::string &filePath, const FileInfo *info, Uscript::UScriptEnv &env)
 {
-    std::string tmpPath = "/data/updater" + filePath;
+    std::string tmpPath = Utils::GetDiffTempPath() + filePath;
     char realPath[PATH_MAX + 1] = {};
     if (realpath(tmpPath.c_str(), realPath) == nullptr) {
         LOG(ERROR) << "Error to create: " << tmpPath;
