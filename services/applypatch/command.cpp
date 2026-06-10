@@ -85,7 +85,7 @@ int Command::GetTargetFileDescriptor() const
     }
     return *targetFd_;
 }
-    
+
 void Command::SetIsStreamCmd(bool isStreamCmd)
 {
     isStreamCmd_ = isStreamCmd;

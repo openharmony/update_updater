@@ -1082,7 +1082,6 @@ int32_t UpgradeFileEntry::DecodeHeader(PkgBuffer &buffer, size_t headerOffset, s
     fileInfo_.compFlags = info->flags;
     fileInfo_.type = info->type;
     fileInfo_.fileInfo.type = info->type;
-
     headerOffset_ = headerOffset;
     dataOffset_ = dataOffset;
     decodeLen = sizeof(UpgradeCompInfo);
