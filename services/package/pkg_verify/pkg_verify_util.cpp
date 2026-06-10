@@ -196,7 +196,6 @@ int32_t PkgVerifyUtil::ParsePackage(const PkgStreamPtr pkgStream, size_t &signat
     size_t &signatureSize, uint16_t &commentTotalLenAll) const
 {
     Updater::UPDATER_INIT_RECORD;
-    ZipPkgParse zipParse;
     PkgSignComment pkgSignComment {};
     int32_t ret = pkgParse_->ParsePkg(pkgStream, pkgSignComment);
     if (ret != PKG_SUCCESS) {

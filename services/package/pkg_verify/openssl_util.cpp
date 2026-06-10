@@ -232,7 +232,6 @@ int32_t CalcSha256Digest(const PkgStreamPtr srcData, const size_t dataLen, std::
         }
         SHA256_Update(&ctx, buffer.buffer, readLen);
         offset += readLen;
-        PKG_LOGI("use new remainLen");
         remainLen -= readLen;
     }
 
