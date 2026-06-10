@@ -169,7 +169,6 @@ std::string USInstrImagePatch::GetSourceFile(const ImagePatchPara &para)
 {
     // Back up partitions to prevent power failures during the upgrade.
     std::string srcFile = Utils::GetDiffTempPath() + para.partName + ".backup";
-
     if (access(srcFile.c_str(), F_OK) == 0 && GetFileHash(srcFile) != para.srcHash) {
         LOG(INFO) << "using backup file:" << srcFile;
         return srcFile;
