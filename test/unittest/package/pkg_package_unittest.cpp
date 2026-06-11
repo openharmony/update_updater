@@ -1670,34 +1670,6 @@ void TestGZipFileEntryPack()
         EXPECT_GE(ver, 0);
     }
 
-    void TestPkgFileImplAddSignDataSha256()
-    {
-        // Test AddSignData parameter validation
-        // Cannot test with nullptr stream as AddSignData requires valid pkgStream_
-        // This test validates that the signOffset is correctly set before any stream operation
-        std::unique_ptr<TestFile> file = std::make_unique<TestFile>(pkgManager_, nullptr);
-
-        size_t signOffset = 100;
-        // AddSignData should set signOffset = currOffset even with digestMethod != NONE
-        // But it will crash on nullptr stream access, so we skip actual AddSignData call
-        // Instead, test the behavior with DigestTypeNone (covered in separate test)
-        EXPECT_EQ(signOffset, 100); // Basic sanity check
-    }
-
-    void TestPkgFileImplAddSignDataSha384()
-    {
-        // Test AddSignData parameter validation for SHA384
-        // Cannot test with nullptr stream as AddSignData requires valid pkgStream_
-        // This test validates that the signOffset parameter handling
-        std::unique_ptr<TestFile> file = std::make_unique<TestFile>(pkgManager_, nullptr);
-
-        size_t signOffset = 200;
-        // AddSignData would set signOffset = currOffset for SHA384 digest
-        // But it will crash on nullptr stream access, so we skip actual AddSignData call
-        // SHA384 functionality is tested in integration tests with real files
-        EXPECT_EQ(signOffset, 200); // Basic sanity check
-    }
-
     void TestZipFileEntryGetOriginalSizeWithUnpackedSize()
     {
         uint32_t zipNodeId = TEST_ZIP_NODE_ID;
@@ -2055,12 +2027,6 @@ HWTEST_F(PkgPackageTest, StreamPkgFile_SetUpradeEntryStream_NullEntry, TestSize.
 {
     PkgPackageTest test;
     test.TestStreamPkgFileSetUpradeEntryStreamNullEntry();
-}
-
-HWTEST_F(PkgPackageTest, PkgFileImpl_AddSignData_Sha256, TestSize.Level1)
-{
-    PkgPackageTest test;
-    test.TestPkgFileImplAddSignDataSha256();
 }
 
 HWTEST_F(PkgPackageTest, GZipFileEntry_EncodeHeader_NullOutStream, TestSize.Level1)
@@ -2523,12 +2489,6 @@ HWTEST_F(PkgPackageTest, PackagesInfo_SplitString_LeadingTrailingSpaces, TestSiz
 {
     PkgPackageTest test;
     test.TestPackagesInfoSplitStringLeadingTrailingSpaces();
-}
-
-HWTEST_F(PkgPackageTest, PkgFileImpl_AddSignData_Sha384, TestSize.Level1)
-{
-    PkgPackageTest test;
-    test.TestPkgFileImplAddSignDataSha384();
 }
 
 }
