@@ -275,8 +275,8 @@ int32_t UScriptInstructionBlockUpdate::ExecuteTransferCommand(const UpdateFdInfo
     const UpdateBlockInfo &infos)
 {
     auto transferParams = tm->GetTransferParams();
-    transferParams->storeBase = std::string("/data/updater") + infos.partitionName + "_tmp";
-    transferParams->retryFile = std::string("/data/updater") + infos.partitionName + "_retry";
+    transferParams->storeBase = GetDiffTempPath() + infos.partitionName + "_tmp";
+    transferParams->retryFile = GetDiffTempPath() + infos.partitionName + "_retry";
     transferParams->devPath = infos.devPath;
     LOG(INFO) << "Store base path is " << transferParams->storeBase;
     int32_t ret = Store::CreateNewSpace(transferParams->storeBase, !transferParams->env->IsRetry());
@@ -347,7 +347,7 @@ int32_t UScriptInstructionBlockUpdate::ExtractDiffPackageAndLoad(const UpdateBlo
         LOG(WARNING) << "Error to get file info";
         return USCRIPT_SUCCESS;
     }
-    std::string diffPackage = std::string("/data/updater") + infos.partitionName;
+    std::string diffPackage = std::string(GetDiffTempPath()) + infos.partitionName;
     int32_t ret = env.GetPkgManager()->CreatePkgStream(outStream,
         diffPackage, info->unpackedSize, PkgStream::PkgStreamType_Write);
     if (outStream == nullptr) {
@@ -392,19 +392,16 @@ UpdateFdInfo UScriptInstructionBlockUpdate::CreateFdInfo(const UpdateBlockInfo &
 
     std::string targetPartitionPath = infos.devPath;
     size_t targetPartitionOffset = 0;
-    if (!GetPartitionInfo(infos.partitionName, targetPartitionPath, targetPartitionOffset)) {
-        LOG(ERROR) << "cannot find device path for partition " << infos.partitionName;
-        return fdInfo;
-    }
-    // need backup partitions
-    if (Utils::IsFileExist(dataDevPath) && !targetPartitionPath.empty()) {
+    if (Utils::IsFileExist(dataDevPath) && GetPartitionInfo(infos.partitionName,
+        targetPartitionPath, targetPartitionOffset) && !targetPartitionPath.empty()) {
+        // need backup partitions
         fdInfo.sourceFd = open(dataDevPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
         fdInfo.targetFd = open(targetPartitionPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
         tm->GetTransferParams()->offset = targetPartitionOffset;
         usedStashPtn_ = true;
         return fdInfo;
     }
-
+    LOG(DEBUG) << "partition " << infos.partitionName;
     fdInfo.sourceFd = open(infos.devPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
     fdInfo.targetFd = fdInfo.sourceFd;
     return fdInfo;
@@ -470,11 +467,11 @@ static int32_t ExtractPatchDatFile(Uscript::UScriptEnv &env, const UpdateBlockIn
         return USCRIPT_ERROR_EXECUTE;
     }
  
-    if ((!Utils::IsDirExist(UPDATER_PATH)) && (Utils::MkdirRecursive(UPDATER_PATH, S_IRWXU) != 0)) {
+    if ((!Utils::IsDirExist(GetDiffTempPath())) && (Utils::MkdirRecursive(GetDiffTempPath(), S_IRWXU) != 0)) {
         LOG(ERROR) << "Failed to make path";
         return USCRIPT_ERROR_EXECUTE;
     }
-    std::string fileName = std::string(UPDATER_PATH) + "/" + infos.patchDataName;
+    std::string fileName = std::string(GetDiffTempPath()) + "/" + infos.patchDataName;
     auto ret = env.GetPkgManager()->CreatePkgStream(outStream, fileName, 0, PkgStream::PkgStreamType_Write);
     if (ret != USCRIPT_SUCCESS || outStream == nullptr) {
         LOG(ERROR) << "Error to create output stream";
@@ -740,8 +737,8 @@ int32_t UScriptInstructionShaCheck::DoBlocksVerify(Uscript::UScriptEnv &env, con
     transferParams->env = &env;
     transferParams->canWrite = false;
     transferParams->devPath = devPath;
-    transferParams->storeBase = std::string("/data/updater") + partitionName + "_tmp";
-    transferParams->retryFile = std::string("/data/updater") + partitionName + "_retry";
+    transferParams->storeBase = GetDiffTempPath() + partitionName + "_tmp";
+    transferParams->retryFile = GetDiffTempPath() + partitionName + "_retry";
 
     LOG(INFO) << "Store base path is " << transferParams->storeBase;
     transferParams->storeCreated = Store::CreateNewSpace(transferParams->storeBase, !transferParams->env->IsRetry());
