@@ -624,7 +624,7 @@ void ExcuteSubProc(const UpdaterParams &upParams, const std::string &fullPath, i
         }
     }
     const std::string retryPara = upParams.retryCount > 0 ? "retry=1" : "retry=0";
-    const std::string procName = (upParams.isSingularUpdate ? "ai_binary" : fullPath);
+    const std::string procName = (upParams.isSingularUpdate ? "ai_binary" : "updater_binary");
     int ret = -1;
     if (upParams.updateBin.size() > 0) {
         LOG(INFO) << "Binary Path:" << upParams.updateBin[upParams.pkgLocation].c_str();
@@ -729,17 +729,17 @@ static std::string GetBinaryPathFromBin(PkgManager::PkgManagerPtr pkgManager, Up
 static std::string GetBinaryPath(PkgManager::PkgManagerPtr pkgManager, UpdaterParams &upParams)
 {
     if (upParams.isSingularUpdate) {
-        return "/bin/updater_binary";
+        return "/bin/updater_binary_lite";
     }
     std::string fullPath = GetWorkPath() + std::string(UPDATER_BINARY);
     (void)Utils::DeleteFile(fullPath);
     std::string packagePath = GetCurrentPackagePath(upParams);
     if (access("/data/updater/rollback", F_OK) == 0) {
-        LOG(INFO) << "There is rollback, use updater_binary in device";
-        fullPath = "/bin/updater_binary";
+        LOG(INFO) << "There is rollback, use updater_binary_lite in device";
+        fullPath = "/bin/updater_binary_lite";
     } else if (ExtractUpdaterBinary(pkgManager, packagePath, UPDATER_BINARY) != 0) {
-        LOG(INFO) << "There is no valid updater_binary in package, use updater_binary in device";
-        fullPath = "/bin/updater_binary";
+        LOG(INFO) << "There is no valid updater_binary in package, use updater_binary_lite in device";
+        fullPath = "/bin/updater_binary_lite";
     }
 
 #ifdef UPDATER_UT
