@@ -175,6 +175,8 @@ private:
 
     int32_t PackStream(PkgStreamPtr inStream, size_t startOffset, size_t &encodeLen,
         const PkgAlgorithm::PkgAlgorithmPtr algorithm, const PkgStreamPtr outStream);
+
+    bool HasDataDesc(std::vector<uint8_t> &buff);
 };
 
 class ZipPkgFile : public PkgFileImpl {

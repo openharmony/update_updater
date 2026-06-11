@@ -292,21 +292,17 @@ int32_t ZipFileEntry::EncodeHeader(PkgStreamPtr inStream, size_t startOffset, si
 int32_t ZipFileEntry::PackStream(PkgStreamPtr inStream, size_t startOffset, size_t &encodeLen,
     const PkgAlgorithm::PkgAlgorithmPtr algorithm, const PkgStreamPtr outStream)
 {
+    if (inStream == nullptr || outStream == nullptr || algorithm == nullptr) {
+        PKG_LOGE("Invalid stream or algorithm");
+        return PKG_INVALID_STREAM;
+    }
     // 为header申请一个buff，先处理到内存，后面在写入文件
     std::vector<uint8_t> buff(MAX_FILE_NAME + sizeof(LocalFileHeader) + ZIP_PKG_ALIGNMENT_DEF);
     size_t nameLen = 0;
-    PkgFileImpl::ConvertStringToBuffer(fileInfo_.fileInfo.identity, {
-        buff.data() + sizeof(LocalFileHeader), buff.capacity()
-    }, nameLen);
-
+    PkgFileImpl::ConvertStringToBuffer(fileInfo_.fileInfo.identity,
+        { buff.data() + sizeof(LocalFileHeader), buff.capacity() }, nameLen);
     size_t headerLen = nameLen + sizeof(LocalFileHeader);
-    bool hasDataDesc = true;
-    if (fileInfo_.method == Z_DEFLATED) {
-#ifndef UPDATER_UT
-        hasDataDesc = false;
-#endif
-    }
-
+    bool hasDataDesc = HasDataDesc(buff);
     fileInfo_.fileInfo.dataOffset = startOffset + headerLen;
     PkgAlgorithmContext context = {
         {0, startOffset + headerLen},
@@ -349,6 +345,17 @@ int32_t ZipFileEntry::PackStream(PkgStreamPtr inStream, size_t startOffset, size
     PKG_LOGI("Pack packedSize:%zu unpackedSize: %zu offset: %zu %zu", fileInfo_.fileInfo.packedSize,
         fileInfo_.fileInfo.unpackedSize, fileInfo_.fileInfo.headerOffset, fileInfo_.fileInfo.dataOffset);
     return PKG_SUCCESS;
+}
+
+bool ZipFileEntry::HasDataDesc(std::vector<uint8_t> &buff)
+{
+    bool hasDataDesc = true;
+    if (fileInfo_.method == Z_DEFLATED) {
+#ifndef UPDATER_UT
+        hasDataDesc = false;
+#endif
+    }
+    return hasDataDesc;
 }
 
 int32_t ZipFileEntry::Pack(PkgStreamPtr inStream, size_t startOffset, size_t &encodeLen)
@@ -443,6 +450,10 @@ int32_t ZipFileEntry::EncodeLocalFileHeader(uint8_t *buffer, size_t bufferLen, b
 int32_t ZipFileEntry::EncodeDataDescriptor(const PkgStreamPtr stream, size_t startOffset,
     uint32_t &encodeLen) const
 {
+    if (stream == nullptr) {
+        PKG_LOGE("Invalid stream");
+        return PKG_INVALID_STREAM;
+    }
     int32_t ret = PKG_SUCCESS;
     size_t offset = startOffset;
     DataDescriptor dataDesc = {};

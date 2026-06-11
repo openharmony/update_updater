@@ -1129,5 +1129,59 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamReadFullyNeedReadLenGreaterThanBlockLen
     sds.Exit();
     shm_unlink(shmInfo.shmId.c_str());
 }
- 
+
+HWTEST_F(ShmDataStreamTest, ShmDataStreamReadFullyWithNullBuffer, TestSize.Level1)
+{
+    ShmDataStream sds(nullptr, "test.bin", shmInfo_, PkgStream::PkgStreamType_ShmData);
+    EXPECT_EQ(sds.CreateShmRingBuffer(), 0);
+    const char *writeData = "test null buffer read";
+    PkgBuffer writeBuf(reinterpret_cast<uint8_t*>(const_cast<char*>(writeData)), strlen(writeData));
+    ASSERT_EQ(sds.Write(writeBuf, strlen(writeData), 0), 0);
+    PkgBuffer readBuf;
+    readBuf.buffer = nullptr;
+    readBuf.length = 0;
+    size_t readLen = 0;
+    int32_t ret = sds.Read(readBuf, 0, 10, readLen);
+    EXPECT_EQ(ret, PKG_INVALID_STREAM);
+    sds.Exit();
+}
+
+HWTEST_F(FileStreamTest, FileStreamGetBufferWithNullFileName, TestSize.Level1)
+{
+    FileStream fs(nullptr, "", nullptr, PkgStream::PkgStreamType_Read);
+    PkgBuffer buffer;
+    int32_t ret = fs.GetBuffer(buffer);
+    EXPECT_EQ(ret, PKG_SUCCESS);
+    EXPECT_EQ(buffer.buffer, nullptr);
+}
+
+HWTEST_F(MemoryMapStreamTest, MemoryMapStreamWriteWithLargeSize, TestSize.Level1)
+{
+    constexpr size_t testMemSize = 2048;
+    memBuffer_.buffer = new uint8_t[testMemSize]{};
+    memBuffer_.length = testMemSize;
+    memcpy_s(memBuffer_.buffer, testMemSize, "Test data for large write", 25);
+    MemoryMapStream mms(nullptr, "test.bin", memBuffer_, PkgStream::PkgStreamType_Write);
+    std::vector<uint8_t> largeData(testMemSize * 3, 'A');
+    PkgBuffer data(largeData.data(), largeData.size());
+    int32_t ret = mms.Write(data, largeData.size(), 0);
+    EXPECT_EQ(ret, PKG_INVALID_STREAM);
+}
+
+HWTEST_F(MemoryMapStreamTest, MemoryMapStreamSeekWithInvalidWhence, TestSize.Level1)
+{
+    MemoryMapStream mms(nullptr, "test.bin", memBuffer_, PkgStream::PkgStreamType_MemoryMap);
+    int32_t ret = mms.Seek(10, 100);
+    EXPECT_EQ(ret, PKG_INVALID_STREAM);
+}
+
+HWTEST_F(ShmDataStreamTest, ShmDataStreamWriteWithNullRingBuf, TestSize.Level1)
+{
+    ShmDataStream sds(nullptr, "test.bin", shmInfo_, PkgStream::PkgStreamType_ShmData);
+    const char *writeData = "write without ringbuf";
+    PkgBuffer data(reinterpret_cast<uint8_t*>(const_cast<char*>(writeData)), strlen(writeData));
+    int32_t ret = sds.Write(data, strlen(writeData), 0);
+    EXPECT_EQ(ret, PKG_INVALID_STREAM);
+}
+
 } // namespace UpdaterUt
