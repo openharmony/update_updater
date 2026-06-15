@@ -15,8 +15,11 @@
 
 #include "base_page.h"
 #include "component/component_factory.h"
+#include "components/root_view.h"
 #include "dock/focus_manager.h"
 #include "log/log.h"
+#include "updater_ui_const.h"
+#include "view_proxy.h"
 
 namespace Updater {
 using namespace OHOS;
@@ -125,6 +128,40 @@ bool BasePage::BuildCom(const UxViewInfo &viewInfo, int &minY)
     if (!comsMap_.emplace(view->GetViewId(), coms_.back().get()).second) {
         LOG(ERROR) << "view id duplicated:" << view->GetViewId();
     }
+    return true;
+}
+
+bool BasePage::ResizePage(const UxPageInfo &pageInfo)
+{
+    root_->SetPosition(0, 0, width_, height_);
+    LOG(INFO) << "page id = " << pageId_ << ", width_, height_ " << width_ <<" "<< height_;
+    return ResizeComs(pageInfo);
+}
+
+bool BasePage::ResizeComs(const UxPageInfo &pageInfo)
+{
+    const auto &infos = pageInfo.viewInfos;
+    for (auto &info : infos) {
+        if (!ResizeCom(info)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool BasePage::ResizeCom(const UxViewInfo &viewinfo)
+{
+    auto commonInfo = viewinfo.commonInfo;
+    auto it = comsMap_.find(commonInfo.id);
+    if (it == comsMap_.end() || it->second == nullptr) {
+        LOG(ERROR) << "find coms failed, id = " << commonInfo.id;
+        return false;
+    }
+    auto view = it->second->As<OHOS::UIView>();
+    view->SetPosition(commonInfo.x, commonInfo.y, commonInfo.w, commonInfo.h);
+    LOG(INFO) << "resize com, id = "<< commonInfo.id;
+    it->second->SetViewInfo(viewinfo);
+    root_->Add(view);
     return true;
 }
 

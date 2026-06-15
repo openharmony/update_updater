@@ -78,6 +78,33 @@ bool PageManager::Init(std::vector<UxPageInfo> &pageInfos, std::string_view entr
     return true;
 }
 
+bool PageManager::ResizeImpl(UxPageInfo &pageInfo, std::string_view entry)
+{
+    auto it = pageMap_.find(pageInfo.id);
+    if (it == pageMap_.end() || it->second == nullptr) {
+        LOG(ERROR) << "find page failed, id = " << pageInfo.id;
+        return false;
+    }
+
+    auto& basePage = static_cast<BasePage&>(*it->second);
+    basePage.width_ = Screen::GetInstance().GetWidth();
+    basePage.height_ = Screen::GetInstance().GetHeight();
+    basePage.ResizePage(pageInfo);
+    OHOS::RootView::GetInstance()->Add(basePage.GetView());
+    return true;
+}
+
+bool PageManager::Resize(std::vector<UxPageInfo> &pageInfos, std::string_view entry)
+{
+    OHOS::RootView::GetInstance()->RemoveAll();
+    for (auto &pageInfo : pageInfos) {
+        if (!ResizeImpl(pageInfo, entry)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool PageManager::BuildSubPages(const std::string &pageId, const std::shared_ptr<Page> &basePage,
     std::vector<UxSubPageInfo> &subPageInfos, std::string_view entry)
 {

@@ -29,6 +29,7 @@ class BasePage : public Page {
     friend class PageManager; // for create dummy page when operator[]
 public:
     [[nodiscard]] bool BuildPage(const UxPageInfo &pageInfo);
+    bool ResizePage(const UxPageInfo &pageInfo);
     std::string GetPageId() override;
     void SetVisible(bool isVisible) override;
     bool IsVisible() const override;
@@ -43,6 +44,8 @@ private:
     void Reset();
     [[nodiscard]] bool BuildComs(const UxPageInfo &pageInfo);
     [[nodiscard]] bool BuildCom(const UxViewInfo &viewInfo, int &minY);
+    bool ResizeComs(const UxPageInfo &pageInfo);
+    bool ResizeCom(const UxViewInfo &viewinfo);
     int16_t width_;
     int16_t height_;
     std::unique_ptr<OHOS::UIViewGroup> root_;

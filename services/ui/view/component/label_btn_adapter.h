@@ -44,10 +44,12 @@ public:
     virtual ~LabelBtnAdapter();
     bool OnPressEvent(const OHOS::PressEvent& event) override;
     void SetText(const std::string &txt);
+    void SetViewInfo(const UxViewInfo &info) override;
     static bool IsValid(const UxLabelBtnInfo &info);
 private:
     void InitFocus(const OHOS::ColorType &txtColor, const OHOS::ColorType &bgColor,
         const OHOS::ColorType &focusedTxtColor, const OHOS::ColorType &focusedBgColor);
+    void SetFontsize(const UxLabelBtnInfo &spec);
     std::unique_ptr<LabelBtnOnFocusListener> focusListener_ {};
 };
 } // namespace Updater

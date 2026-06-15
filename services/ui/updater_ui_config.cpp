@@ -130,7 +130,12 @@ bool UpdaterUiConfig::Init()
 
 bool UpdaterUiConfig::Init(const JsonNode &node)
 {
-    bool res = [&node] () {
+    static bool isInited = false;
+    if (isInited) {
+        return ReLoadPages(node);
+    }
+    static bool res = [&node] () {
+        isInited = true;
         return LoadLangRes(node) && LoadStrategy(node) && LoadCallbacks(node) && LoadFocusCfg(node) && LoadPages(node);
     } ();
     return res;
@@ -168,6 +173,30 @@ bool UpdaterUiConfig::LoadPages(const JsonNode &node)
         return false;
     }
     PrintInfoVec(pageInfos);
+    return true;
+}
+
+bool UpdaterUiConfig::ReLoadPages(const JsonNode &node)
+{
+    PagePath pagePath {};
+    if (!Visit<SETVAL>(node, pagePath)) {
+        LOG(ERROR) << "parse page path error: " << pagePath.dir;
+        return false;
+    }
+
+    if (!CanonicalPagePath(pagePath)) {
+        return false;
+    }
+
+    std::vector<UxPageInfo> pageInfos {};
+    if (!LayoutParser::GetInstance().LoadLayout(pagePath.pages, pageInfos)) {
+        LOG(ERROR) << "load layout error: " << UI_CFG_FILE;
+        return false;
+    }
+    if (!PageManager::GetInstance().Resize(pageInfos, pagePath.entry)) {
+        LOG(ERROR) << "page manager Resize error";
+        return false;
+    }
     return true;
 }
 

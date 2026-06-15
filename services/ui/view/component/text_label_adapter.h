@@ -52,10 +52,12 @@ public:
     virtual ~TextLabelAdapter();
     bool OnPressEvent(const OHOS::PressEvent& event) override;
     void SetText(const std::string &txt);
+    void SetViewInfo(const UxViewInfo &info) override;
     static bool IsValid(const UxLabelInfo &info);
 private:
     void InitFocus(const OHOS::ColorType &fontColor, const OHOS::ColorType &bgColor,
         const OHOS::ColorType &focusedFontColor, const OHOS::ColorType &focusedBgColor);
+    void SetFontsize(const UxLabelInfo &spec);
     std::unique_ptr<TextLabelOnFocusListener> focusListener_ {};
 };
 } // namespace Updater

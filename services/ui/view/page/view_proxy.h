@@ -81,6 +81,14 @@ public:
         }
         return static_cast<T *>(ohosView);
     }
+    void SetViewInfo(const UxViewInfo &info)
+    {
+        if (view_ == nullptr) {
+            LOG(ERROR) << "view is nullptr";
+            return;
+        }
+        view_->SetViewInfo(info);
+    }
 private:
     std::unique_ptr<ComponentInterface> view_ {nullptr};
     std::string errMsg_ {};

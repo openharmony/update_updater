@@ -44,6 +44,7 @@ public:
     std::vector<std::string> GetPageQueue();
     bool SetPageQueue(const std::vector<std::string> &pageQueue);
     bool SetCurPage(const std::string &id);
+    bool Resize(std::vector<UxPageInfo> &pageInfos, std::string_view entry);
 #ifdef UPDATER_UT
     std::vector<std::string> Report();
 #endif
@@ -55,6 +56,7 @@ private:
     bool BuildSubPages(const std::string &pageId, const std::shared_ptr<Page> &basePage,
         std::vector<UxSubPageInfo> &subPageInfos, std::string_view entry);
     bool IsValidPage(const std::shared_ptr<Page> &pg) const;
+    bool ResizeImpl(UxPageInfo &pageInfo, std::string_view entry);
     static constexpr size_t MAX_PAGE_QUEUE_SZ = 4;
     std::deque<std::shared_ptr<Page>> pageQueue_ {};
     std::unordered_map<std::string, std::shared_ptr<Page>> pageMap_ {};

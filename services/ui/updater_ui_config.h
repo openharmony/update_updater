@@ -35,6 +35,7 @@ private:
     static bool LoadLangRes(const JsonNode &node);
     static bool LoadCallbacks(const JsonNode &node);
     static bool LoadFocusCfg(const JsonNode &node);
+    static bool ReLoadPages(const JsonNode &node);
     static bool isFocusEnable_;
 };
 } // namespace Updater
