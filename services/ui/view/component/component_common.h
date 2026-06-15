@@ -89,6 +89,7 @@ public:
     virtual const char *GetComponentType() = 0;
     virtual OHOS::UIView *GetOhosView() = 0;
     virtual void SetViewCommonInfo(const UxViewCommonInfo &common) = 0;
+    virtual void SetViewInfo(const UxViewInfo &info) = 0;
 };
 
 template <typename T>
