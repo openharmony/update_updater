@@ -42,7 +42,7 @@ public:
     explicit BoxProgressAdapter(const UxViewInfo &info);
     virtual ~BoxProgressAdapter() {}
     void SetValue(float value);
-    void SetVisible(bool isVisible);
+    void SetVisible(bool isVisible) override;
     void SetViewInfo(const UxViewInfo &info) override;
     [[nodiscard]] bool InitEp();
     static bool IsValid(const UxBoxProgressInfo &info);
