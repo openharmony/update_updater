@@ -105,10 +105,36 @@ void SetUserdataBlockDeviceSymlink()
     }
 }
 
+void CreateRawUserdataDevice()
+{
+    const char *target = "/dev/block/by-name/raw-userdata";
+    if (access(target, F_OK) == 0) {
+        LOG(ERROR) << target << " exist";
+        return;
+    }
+ 
+    char linkPath[LINK_BUFF_LEN] = {0};
+    const char *sourcePath = "/dev/block/by-name/userdata";
+    ssize_t len = readlink(sourcePath, linkPath, sizeof(linkPath) - 1);
+    if (len <= 0 || len >= LINK_BUFF_LEN) {
+        LOG(ERROR) <<"Failed to readlink " << sourcePath << ", err = " << errno;
+        return;
+    }
+    linkPath[len] = '\0';
+    LOG(INFO) << "Resolved symlink: " << sourcePath << " -> " << linkPath;
+ 
+    if (symlink(linkPath, target) != 0) {
+        LOG(ERROR) <<"Failed to symlink " << linkPath << " to " << target << ", err = " << errno;
+        return;
+    }
+    LOG(INFO) << "Symlink " << linkPath << " -> " << target  << " success";
+}
+
 void LoadFstab(const bool initBlockDevice)
 {
     LoadFstab();
     if (initBlockDevice) {
+        CreateRawUserdataDevice();
         SetUserdataBlockDeviceSymlink();
     }
 }
