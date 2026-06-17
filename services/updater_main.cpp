@@ -1497,6 +1497,23 @@ void RebootAfterUpdateSuccess(const UpdaterParams &upParams, const std::vector<s
         NotifyReboot("", "Updater update success");
 }
 
+bool IsNeedWaitUserReboot(UpdaterParams &upParams)
+{
+    if (upParams.forceReboot) {
+        Utils::UsSleep(5 * DISPLAY_TIME); // 5 : 5s
+        PostUpdater(true);
+        NotifyReboot("", "Updater night update fail");
+        return false;
+    }
+    if (Updater::Utils::CheckUpdateMode(FACTORY_RESET_OTA_TAG)) {
+        Utils::UsSleep(5 * DISPLAY_TIME); // 5 : 5s
+        PostUpdater(true);
+        NotifyReboot("updater", "Updater wipe data after upgrade success", FACTORY_RESET_OTA_MISC);
+        return false;
+    }
+    return true;
+}
+
 int UpdaterMain(int argc, char **argv)
 {
     UpdaterParams upParams {};
@@ -1517,10 +1534,7 @@ int UpdaterMain(int argc, char **argv)
         if (mode == HOTA_UPDATE) {
             UpdaterInit::GetInstance().InvokeEvent(UPDATER_POST_INIT_EVENT);
             UPDATER_UI_INSTANCE.ShowFailedPage();
-            if (upParams.forceReboot) {
-                Utils::UsSleep(5 * DISPLAY_TIME); // 5 : 5s
-                PostUpdater(true);
-                NotifyReboot("", "Updater night update fail");
+            if (!IsNeedWaitUserReboot(upParams)) {
                 return 0;
             }
         } else if (mode == SDCARD_UPDATE) {
