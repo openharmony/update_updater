@@ -387,6 +387,7 @@ UpdateFdInfo UScriptInstructionBlockUpdate::CreateFdInfo(const UpdateBlockInfo &
     if (devPath != infos.devPath) {
         fdInfo.sourceFd = open(infos.devPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
         fdInfo.targetFd = open(devPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
+        tm->GetTransferParams()->inPlaceDiff = false;
         return fdInfo;
     }
 
@@ -398,6 +399,7 @@ UpdateFdInfo UScriptInstructionBlockUpdate::CreateFdInfo(const UpdateBlockInfo &
         fdInfo.sourceFd = open(dataDevPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
         fdInfo.targetFd = open(targetPartitionPath.c_str(), O_RDWR | O_LARGEFILE | O_UNCACHE_FLAG);
         tm->GetTransferParams()->offset = targetPartitionOffset;
+        tm->GetTransferParams()->inPlaceDiff = false;
         usedStashPtn_ = true;
         return fdInfo;
     }
