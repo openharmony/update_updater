@@ -55,6 +55,7 @@ constexpr const char *MANUAL_UPLOAD_LOG_TIME_FILE = "manual_upload_time";
 constexpr const char *UPLOAD_LOG_TIME_FILE = "upload_time";
 constexpr const char *ERASE_LOG_OEMINFO = "not_erase_log_switch";
 constexpr const char *RESET_MESSAGE_INFO = "reset_enter:331";
+constexpr const char *FACTORY_RESET_OTA_MISC = "--user_wipe_data\n--reset_enter:337";
 
 // update mode
 constexpr const char *SDCARD_MODE = "sdcard_update";
@@ -66,6 +67,7 @@ constexpr const char *UPDATRE_SCRIPT_ZIP = "/etc/updater_script.zip";
 constexpr const char *FACTORY_INTERNAL_MODE = "factory_internal_update";
 constexpr const char *USB_UPDATE_FAIL = "usb_update_fail";
 constexpr const char *TOB_PKG_TAG = "tobpkg_in_sdcard";
+constexpr const char *FACTORY_RESET_OTA_TAG = "factory_reset_ota";
 
 // sd update ext mode
 constexpr const char *SDCARD_NORMAL_UPDATE = "sdUpdate";
