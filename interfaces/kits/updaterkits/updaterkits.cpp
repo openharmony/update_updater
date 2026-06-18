@@ -366,7 +366,7 @@ bool RebootAndSecureErase(const std::string &eraseType, const std::string &cmd)
     struct UpdateMessage updateMsg {};
     std::string secureEraseCmd = eraseCmd + cmd;
     int ret = snprintf_s(updateMsg.update, sizeof(updateMsg.update), sizeof(updateMsg.update) - 1,
-        secureEraseCmd.c_str());
+        "%s", secureEraseCmd.c_str());
     if (ret < 0) {
         LOG(ERROR) << "updaterkits: copy secure erase cmd message failed";
         return false;
