@@ -104,9 +104,4 @@ void SurfaceDev::GetScreenSize(uint16_t &w, uint16_t &h, GrSurface &surface) con
     h = surface.height;
     LOG(INFO) << "weight=" << w << " " << "height=" << h;
 }
-
-SurfaceDev::~SurfaceDev()
-{
-    LOG(INFO) << "SurfaceDev end";
-}
 } // namespace Updater
