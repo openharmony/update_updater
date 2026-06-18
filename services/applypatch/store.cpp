@@ -140,7 +140,6 @@ int32_t Store::WriteDataToStore(const std::string &dirPath, const std::string &f
 int32_t Store::LoadDataFromStore(const std::string &dirPath, const std::string &fileName,
     std::vector<uint8_t> &buffer)
 {
-    LOG(DEBUG) << "Store base is " << dirPath << "/" << fileName;
     std::string path = dirPath;
     if (!fileName.empty()) {
         path = path + "/" + fileName;
