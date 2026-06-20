@@ -185,7 +185,6 @@ static void WriteInodeToFile(const std::string &inode)
     }
     std::string dirPath = UPDATER_INODE_PATH;
     struct stat dirStat {};
-    Utils::RemoveDir(dirPath); // first to delete
     if (stat(dirPath.c_str(), &dirStat) != 0) { // then remake dir
         Utils::MkdirRecursive(dirPath.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
     }
@@ -224,6 +223,7 @@ static void UpdateOptExpand(std::string& updateOpt)
     if (GetParameter("const.hdi_power.swap_file_path", "", paramVal, sizeof(paramVal) - 1) > 0) {
         pathVec.emplace_back(paramVal);
     }
+    Utils::RemoveDir(UPDATER_INODE_PATH); // first to delete
     for (const auto &path : pathVec) {
         std::string inode = GetFileInode(path);
         updateOpt += "," + inode;
