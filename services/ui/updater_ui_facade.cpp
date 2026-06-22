@@ -109,7 +109,7 @@ void UpdaterUiFacade::ShowCurPage()
         ShowProgressWarning(false);
         return;
     }
-    pgMgr_.ShowPage(PageManager::GetInstance().GetCurPageId());
+    pgMgr_.ShowCurPage();
 }
 
 void UpdaterUiFacade::ShowProgress(float value) const
