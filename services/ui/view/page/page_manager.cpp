@@ -291,10 +291,11 @@ bool PageManager::SetCurPage(const std::string &id)
     curPage_ = it->second;
     return true;
 }
- 
+
 std::vector<std::string> PageManager::GetPageQueue()
 {
-    std::vector<std::string> pageQueue {};
+    std::vector<std::string> pageQueue;
+    pageQueue.reserve(pageQueue_.size());
     for (auto page = pageQueue_.begin(); page != pageQueue_.end(); ++page) {
         auto id = (*page)->GetPageId();
         pageQueue.push_back(id);
