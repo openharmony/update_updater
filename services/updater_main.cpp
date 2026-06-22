@@ -309,9 +309,9 @@ __attribute__((weak)) void NotifyPreCheck(UpdaterStatus &status, UpdaterParams &
     return;
 }
 
-__attribute__((weak)) bool PreSdSpecialProcess(UpdaterParams &upParams)
+__attribute__((weak)) bool PreSpecialProcess(UpdaterParams &upParams)
 {
-    LOG(INFO) << "start PreSdSpecialProcess";
+    LOG(INFO) << "start PreSpecialProcess";
     if (SetUpdateSlotParam(upParams, true) != UPDATE_SUCCESS) {
         LOG(ERROR) << "SetUpdateSlotParam failed";
         return false;
@@ -319,7 +319,7 @@ __attribute__((weak)) bool PreSdSpecialProcess(UpdaterParams &upParams)
     return true;
 }
 
-__attribute__((weak)) void PostSdSpecialProcess([[maybe_unused]] UpdaterStatus &status)
+__attribute__((weak)) void PostSpecialProcess([[maybe_unused]] UpdaterStatus &status)
 {
     return;
 }
@@ -1027,7 +1027,7 @@ static UpdaterStatus PreSdcardUpdatePackages(UpdaterParams &upParams)
         return UPDATE_SKIP;
     }
     UpdaterInit::GetInstance().InvokeEvent(UPDATER_PRE_VERIFY_PACKAGE_EVENT);
-    if (!PreSdSpecialProcess(upParams)) {
+    if (!PreSpecialProcess(upParams)) {
         LOG(ERROR) << "pre sd special process failed";
         return UPDATE_ERROR;
     }
@@ -1051,7 +1051,7 @@ static void PostSdcardUpdatePackages(UpdaterParams &upParams, UpdaterStatus &sta
     (void)PostUpdateSyncProcess(false, upParams, status);
     ClearUpdateSlotParam();
     ClearUpdateSuffixParam();
-    PostSdSpecialProcess(status);
+    PostSpecialProcess(status);
     if (Utils::CheckUpdateMode(Updater::SDCARD_INTRAL_MODE)) {
         PostUpdatePackages(upParams, status);
     } else if (status == UPDATE_SUCCESS) {
