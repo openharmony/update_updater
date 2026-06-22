@@ -188,6 +188,11 @@ bool PageManager::ShowPage(const std::string &id)
     return true;
 }
 
+void PageManager::ShowCurPage()
+{
+    ShowPage(GetCurPageId());
+}
+
 void PageManager::ShowMainPage()
 {
     if (!IsValidPage(mainPage_)) {
