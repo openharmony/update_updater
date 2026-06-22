@@ -133,6 +133,10 @@ bool BasePage::BuildCom(const UxViewInfo &viewInfo, int &minY)
 
 bool BasePage::ResizePage(const UxPageInfo &pageInfo)
 {
+    if (root_ == nullptr) {
+        LOG(ERROR) << "root_ is nullptr!";
+        return false;
+    }
     root_->SetPosition(0, 0, width_, height_);
     LOG(INFO) << "page id = " << pageId_ << ", width_, height_ " << width_ <<" "<< height_;
     return ResizeComs(pageInfo);
@@ -158,9 +162,17 @@ bool BasePage::ResizeCom(const UxViewInfo &viewinfo)
         return false;
     }
     auto view = it->second->As<OHOS::UIView>();
+    if (view == nullptr) {
+        LOG(ERROR) << "uiview is nullptr!";
+        return false;
+    }
     view->SetPosition(commonInfo.x, commonInfo.y, commonInfo.w, commonInfo.h);
-    LOG(INFO) << "resize com, id = "<< commonInfo.id;
+    LOG(DEBUG) << "resize com, id = "<< commonInfo.id;
     it->second->SetViewInfo(viewinfo);
+    if (root_ == nullptr) {
+        LOG(ERROR) << "root_ is nullptr!";
+        return false;
+    }
     root_->Add(view);
     return true;
 }
