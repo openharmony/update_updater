@@ -36,6 +36,7 @@ public:
     void GoBack();
     bool IsValidCom(const ComInfo &pageComId) const;
     Page &operator[](const std::string &id) const;
+    void ShowCurPage();
     void ShowMainPage();
     ViewProxy &operator[](const ComInfo &comInfo) const;
     void Reset();
