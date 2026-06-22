@@ -107,8 +107,9 @@ bool PageManager::Resize(std::vector<UxPageInfo> &pageInfos, std::string_view en
     if (OHOS::RootView::GetInstance() == nullptr) {
         LOG(ERROR) << "rootview is nullptr!";
         return false;
-    }  
+    }   
     OHOS::RootView::GetInstance()->RemoveAll();
+
     for (auto &pageInfo : pageInfos) {
         if (!ResizeImpl(pageInfo, entry)) {
             return false;
