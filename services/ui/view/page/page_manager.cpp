@@ -46,6 +46,10 @@ bool PageManager::InitImpl(UxPageInfo &pageInfo, std::string_view entry)
         return false;
     }
     basePage->SetVisible(false);
+    if (OHOS::RootView::GetInstance() == nullptr) {
+        LOG(ERROR) << "rootview is nullptr!";
+        return false;
+    }
     OHOS::RootView::GetInstance()->Add(basePage->GetView());
     if (!pageMap_.emplace(pageInfo.id, basePage).second) {
         LOG(ERROR) << "base page id duplicated:" << pageInfo.id;
@@ -90,12 +94,20 @@ bool PageManager::ResizeImpl(UxPageInfo &pageInfo, std::string_view entry)
     basePage.width_ = Screen::GetInstance().GetWidth();
     basePage.height_ = Screen::GetInstance().GetHeight();
     basePage.ResizePage(pageInfo);
+    if (OHOS::RootView::GetInstance() == nullptr) {
+        LOG(ERROR) << "rootview is nullptr!";
+        return false;
+    }
     OHOS::RootView::GetInstance()->Add(basePage.GetView());
     return true;
 }
 
 bool PageManager::Resize(std::vector<UxPageInfo> &pageInfos, std::string_view entry)
 {
+    if (OHOS::RootView::GetInstance() == nullptr) {
+        LOG(ERROR) << "rootview is nullptr!";
+        return false;
+    }  
     OHOS::RootView::GetInstance()->RemoveAll();
     for (auto &pageInfo : pageInfos) {
         if (!ResizeImpl(pageInfo, entry)) {
