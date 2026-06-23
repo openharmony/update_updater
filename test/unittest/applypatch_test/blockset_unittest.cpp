@@ -289,7 +289,6 @@ HWTEST_F(BlockSetUnitTest, blockset_test_015, TestSize.Level1)
     std::string hexDigest;
     int32_t ret = block.VerifySha256(buffer, 1, sha256Hash, hexDigest);
     EXPECT_EQ(ret, 0);
-    std::string hexDigest;
     ret = block.VerifySha256(buffer, 1, "wronghash", hexDigest);
     EXPECT_EQ(ret, -1);
 }
@@ -426,7 +425,6 @@ HWTEST_F(BlockSetUnitTest, blockset_test_026, TestSize.Level1)
     memset_s(digest, SHA256_DIGEST_LENGTH, 0xAB, SHA256_DIGEST_LENGTH);
     std::string hexDigest = Utils::ConvertSha256Hex(digest, SHA256_DIGEST_LENGTH);
     EXPECT_EQ(hexDigest.size(), SHA256_DIGEST_LENGTH * 2);
-    std::string hexDigest;
     int32_t ret = BlockSet::VerifySha256(buffer, 1, hexDigest, hexDigest);
     EXPECT_EQ(ret, -1);
 }
