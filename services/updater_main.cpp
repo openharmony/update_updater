@@ -1431,7 +1431,7 @@ static UpdaterStatus StartUpdater(const std::vector<std::string> &args,
 // add updater mode
 REGISTER_MODE(Updater, "updater.hdc.configfs");
 
-__attribute__((weak)) const char* GetResetMisc()
+__attribute__((weak)) const char* GetResetMisc(const std::vector<std::string> &args)
 {
     return "";
 }
@@ -1483,7 +1483,7 @@ void RebootAfterUpdateSuccess(const UpdaterParams &upParams, const std::vector<s
         LOG(INFO) << "Need reboot to updater again.";
         NotifyReboot("updater", "Updater update dev node after upgrade success when ptable change", extData);
     }
-    std::string resetData = GetResetMisc();
+    std::string resetData = GetResetMisc(args);
     if (!resetData.empty()) {
         NotifyReboot("updater", "Updater wipe data after upgrade success", resetData);
         return;
@@ -1499,16 +1499,17 @@ void RebootAfterUpdateSuccess(const UpdaterParams &upParams, const std::vector<s
 
 bool IsNeedWaitUserReboot(UpdaterParams &upParams)
 {
-    if (upParams.forceReboot) {
-        Utils::UsSleep(5 * DISPLAY_TIME); // 5 : 5s
-        PostUpdater(true);
-        NotifyReboot("", "Updater night update fail");
-        return false;
-    }
     if (Updater::Utils::CheckUpdateMode(FACTORY_RESET_OTA_TAG)) {
         Utils::UsSleep(5 * DISPLAY_TIME); // 5 : 5s
         PostUpdater(true);
         NotifyReboot("updater", "Updater wipe data after upgrade success", FACTORY_RESET_OTA_MISC);
+        return false;
+    }
+    UPDATER_UI_INSTANCE.ShowFailedPage();
+    if (upParams.forceReboot) {
+        Utils::UsSleep(5 * DISPLAY_TIME); // 5 : 5s
+        PostUpdater(true);
+        NotifyReboot("", "Updater night update fail");
         return false;
     }
     return true;
@@ -1533,7 +1534,6 @@ int UpdaterMain(int argc, char **argv)
     if (status != UPDATE_SUCCESS && status != UPDATE_SKIP) {
         if (mode == HOTA_UPDATE) {
             UpdaterInit::GetInstance().InvokeEvent(UPDATER_POST_INIT_EVENT);
-            UPDATER_UI_INSTANCE.ShowFailedPage();
             if (!IsNeedWaitUserReboot(upParams)) {
                 return 0;
             }
