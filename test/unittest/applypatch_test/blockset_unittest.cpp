@@ -66,7 +66,8 @@ HWTEST_F(BlockSetUnitTest, blockset_test_001, TestSize.Level1)
     buffer.resize(H_BLOCK_SIZE);
     std::fill(buffer.begin(), buffer.end(), 0);
     string sha256 = "fdfasdf";
-    auto ret = block.VerifySha256(buffer, block.TotalBlockSize(), sha256);
+    std::string hexDigest;
+    auto ret = block.VerifySha256(buffer, block.TotalBlockSize(), sha256, hexDigest);
     EXPECT_EQ(ret, -1);
 }
 
@@ -285,9 +286,11 @@ HWTEST_F(BlockSetUnitTest, blockset_test_015, TestSize.Level1)
         snprintf_s(hashStr + i * 2, 3, 3, "%02x", digest[i]);
     }
     std::string sha256Hash(hashStr);
-    int32_t ret = block.VerifySha256(buffer, 1, sha256Hash);
+    std::string hexDigest;
+    int32_t ret = block.VerifySha256(buffer, 1, sha256Hash, hexDigest);
     EXPECT_EQ(ret, 0);
-    ret = block.VerifySha256(buffer, 1, "wronghash");
+    std::string hexDigest;
+    ret = block.VerifySha256(buffer, 1, "wronghash", hexDigest);
     EXPECT_EQ(ret, -1);
 }
 
@@ -423,7 +426,8 @@ HWTEST_F(BlockSetUnitTest, blockset_test_026, TestSize.Level1)
     memset_s(digest, SHA256_DIGEST_LENGTH, 0xAB, SHA256_DIGEST_LENGTH);
     std::string hexDigest = Utils::ConvertSha256Hex(digest, SHA256_DIGEST_LENGTH);
     EXPECT_EQ(hexDigest.size(), SHA256_DIGEST_LENGTH * 2);
-    int32_t ret = BlockSet::VerifySha256(buffer, 1, hexDigest);
+    std::string hexDigest;
+    int32_t ret = BlockSet::VerifySha256(buffer, 1, hexDigest, hexDigest);
     EXPECT_EQ(ret, -1);
 }
 
