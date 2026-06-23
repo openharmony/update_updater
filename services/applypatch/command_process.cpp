@@ -105,7 +105,8 @@ int32_t NewCommandFn::StreamExecute(const Command &params)
         LOG(ERROR) << "Read data from block error, tgtBuffer size: " << tgtBuffer.size();
         return -1;
     }
-    if (bs.VerifySha256(tgtBuffer, bs.TotalBlockSize(), tgtHash) == 0) {
+    std::string hexDigest;
+    if (bs.VerifySha256(tgtBuffer, bs.TotalBlockSize(), tgtHash, hexDigest) == 0) {
         LOG(ERROR) << "Will write same sha256 blocks to target, no need to write";
         return -1;
     }
@@ -172,7 +173,8 @@ bool LoadTarget(const Command &params, size_t &pos, std::vector<uint8_t> &buffer
             result = FAILED;
             return false;
         }
-        if (targetBlock.VerifySha256(tgtBuffer, targetBlock.TotalBlockSize(), tgtHash) == 0) {
+        std::string hexDigest;
+        if (targetBlock.VerifySha256(tgtBuffer, targetBlock.TotalBlockSize(), tgtHash, hexDigest) == 0) {
             result = SUCCESS;
             return false;
         }
@@ -314,7 +316,8 @@ CommandResult StashCommandFn::Execute(const Command &params)
         LOG(ERROR) << "Error to load block data";
         return FAILED;
     }
-    int32_t res = srcBlk.VerifySha256(buffer, srcBlockSize, shaStr);
+    std::string hexDigest;
+    int32_t res = srcBlk.VerifySha256(buffer, srcBlockSize, shaStr, hexDigest);
     if (res != 0 && !params.GetTransferParams()->canWrite) {
         res = BlockVerify(params, buffer, srcBlockSize, shaStr, pos);
     }

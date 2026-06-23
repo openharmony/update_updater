@@ -45,6 +45,7 @@ public:
     static void RegisterPtable(uint32_t bitIndex, PtableConstructor constructor);
     bool WritePtableWithFile();
     bool LoadPartitionInfoWithFile(const std::string &ptablePath);
+    bool WritePtableLunOffset(uint32_t lunIndex, uint64_t offset);
 #ifdef UPDATER_UT
     void SetPtable(std::unique_ptr<Ptable> &&ptable)
     {

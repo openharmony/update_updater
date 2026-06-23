@@ -36,6 +36,9 @@ public:
     bool SyncABLunPtableDevice(const int sourceSlot) override;
     bool GetABLunPartitionInfo(const int sourceSlot, std::string &srcNode,
         std::string &tgtNode, uint32_t &offset) override;
+    uint32_t GetDefaultImageSize() override;
+    bool WritePtableLunOffset(uint32_t lunIndex, uint64_t offset) override;
+    uint32_t GetGptEntryCrc(const HeaderCheckInputs &inputs, uint64_t offset, uint32_t crcLen) override;
 #ifndef UPDATER_UT
 protected:
 #else
@@ -72,6 +75,7 @@ private:
 #else
 public:
 #endif
+    bool MatchSuffix(std::string &suffix, const UfsPartitionDataInfo &ufsPtnInfo);
     bool EditABPartition(uint8_t *gptImage, const uint32_t blockSize, const int sourceSlot);
     void GetTgtPartitionName(std::string &name, const int sourceSlot);
     bool ModifyBufferPartitionName(uint8_t *buffer, const uint32_t bufferSize, const int sourceSlot);
