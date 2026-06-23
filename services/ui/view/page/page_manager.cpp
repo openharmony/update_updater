@@ -46,6 +46,10 @@ bool PageManager::InitImpl(UxPageInfo &pageInfo, std::string_view entry)
         return false;
     }
     basePage->SetVisible(false);
+    if (OHOS::RootView::GetInstance() == nullptr) {
+        LOG(ERROR) << "rootview is nullptr!";
+        return false;
+    }
     OHOS::RootView::GetInstance()->Add(basePage->GetView());
     if (!pageMap_.emplace(pageInfo.id, basePage).second) {
         LOG(ERROR) << "base page id duplicated:" << pageInfo.id;
@@ -75,6 +79,42 @@ bool PageManager::Init(std::vector<UxPageInfo> &pageInfos, std::string_view entr
     }
     CANCEL_SCOPE_EXIT_GUARD(reset);
     curPage_ = mainPage_;
+    return true;
+}
+
+bool PageManager::ResizeImpl(UxPageInfo &pageInfo, std::string_view entry)
+{
+    auto it = pageMap_.find(pageInfo.id);
+    if (it == pageMap_.end() || it->second == nullptr) {
+        LOG(ERROR) << "find page failed, id = " << pageInfo.id;
+        return false;
+    }
+
+    auto& basePage = static_cast<BasePage&>(*it->second);
+    basePage.width_ = Screen::GetInstance().GetWidth();
+    basePage.height_ = Screen::GetInstance().GetHeight();
+    basePage.ResizePage(pageInfo);
+    if (OHOS::RootView::GetInstance() == nullptr) {
+        LOG(ERROR) << "rootview is nullptr!";
+        return false;
+    }
+    OHOS::RootView::GetInstance()->Add(basePage.GetView());
+    return true;
+}
+
+bool PageManager::Resize(std::vector<UxPageInfo> &pageInfos, std::string_view entry)
+{
+    if (OHOS::RootView::GetInstance() == nullptr) {
+        LOG(ERROR) << "rootview is nullptr!";
+        return false;
+    }
+    OHOS::RootView::GetInstance()->RemoveAll();
+    
+    for (auto &pageInfo : pageInfos) {
+        if (!ResizeImpl(pageInfo, entry)) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -147,6 +187,11 @@ bool PageManager::ShowPage(const std::string &id)
     curPage_ = it->second;
     curPage_->SetVisible(true);
     return true;
+}
+
+void PageManager::ShowCurPage()
+{
+    ShowPage(GetCurPageId());
 }
 
 void PageManager::ShowMainPage()
@@ -247,10 +292,11 @@ bool PageManager::SetCurPage(const std::string &id)
     curPage_ = it->second;
     return true;
 }
- 
+
 std::vector<std::string> PageManager::GetPageQueue()
 {
-    std::vector<std::string> pageQueue {};
+    std::vector<std::string> pageQueue;
+    pageQueue.reserve(pageQueue_.size());
     for (auto page = pageQueue_.begin(); page != pageQueue_.end(); ++page) {
         auto id = (*page)->GetPageId();
         pageQueue.push_back(id);

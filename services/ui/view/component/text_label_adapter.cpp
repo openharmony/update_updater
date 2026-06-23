@@ -75,8 +75,7 @@ TextLabelAdapter::TextLabelAdapter(const UxViewInfo &info)
     SetViewCommonInfo(info.commonInfo);
     this->SetAlign(GetAlign(spec.align), OHOS::TEXT_ALIGNMENT_CENTER);
     this->SetText(TranslateText(spec.text).c_str());
-    this->SetFont((spec.style == "bold") ? BOLD_FONT_FILENAME : DEFAULT_FONT_FILENAME, spec.fontSize);
-    this->SetStyle(OHOS::STYLE_LINE_HEIGHT, UPDATER_UI_FONT_HEIGHT_RATIO * spec.fontSize);
+    SetFontsize(spec);
     auto fontColor = StrToColor(spec.fontColor);
     this->SetStyle(OHOS::STYLE_TEXT_COLOR, fontColor.full);
     this->SetStyle(OHOS::STYLE_TEXT_OPA, fontColor.alpha);
@@ -97,6 +96,18 @@ TextLabelAdapter::TextLabelAdapter(const UxViewInfo &info)
         this->SetLineBreakMode(OHOS::UILabel::LINE_BREAK_MARQUEE);
         this->SetRollSpeed(80); // 80: label roll speed
     }
+}
+
+void TextLabelAdapter::SetViewInfo(const UxViewInfo &info)
+{
+    const UxLabelInfo &spec = AsSpecific(info.specificInfo);
+    SetFontsize(spec);
+}
+
+void TextLabelAdapter::SetFontsize(const UxLabelInfo &spec)
+{
+    this->SetFont((spec.style == "bold") ? BOLD_FONT_FILENAME : DEFAULT_FONT_FILENAME, spec.fontSize);
+    this->SetStyle(OHOS::STYLE_LINE_HEIGHT, UPDATER_UI_FONT_HEIGHT_RATIO * spec.fontSize);
 }
 
 bool TextLabelAdapter::IsValid(const UxLabelInfo &info)

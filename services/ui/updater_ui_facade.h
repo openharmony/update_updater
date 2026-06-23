@@ -40,6 +40,7 @@ public:
     void ClearText() const;
     void ClearLog() const;
 
+    void ShowCurPage();
     void ShowProgress(float value) const;
     void ShowProgressPage() const;
     void ShowSuccessPage() const;

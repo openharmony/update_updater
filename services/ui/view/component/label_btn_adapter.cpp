@@ -74,8 +74,7 @@ LabelBtnAdapter::LabelBtnAdapter(const UxViewInfo &info)
     const UxLabelBtnInfo &spec = AsSpecific(info.specificInfo);
     SetViewCommonInfo(info.commonInfo);
     this->SetText(TranslateText(spec.text).c_str());
-    this->SetFont(DEFAULT_FONT_FILENAME, spec.fontSize);
-    this->SetLabelStyle(OHOS::STYLE_LINE_HEIGHT, UPDATER_UI_FONT_HEIGHT_RATIO * spec.fontSize);
+    SetFontsize(spec);
     auto txtColor = StrToColor(spec.txtColor);
     this->SetLabelStyle(OHOS::STYLE_TEXT_COLOR, txtColor.full);
     this->SetLabelStyle(OHOS::STYLE_TEXT_OPA, txtColor.alpha);
@@ -90,6 +89,18 @@ LabelBtnAdapter::LabelBtnAdapter(const UxViewInfo &info)
         this->SetFocusable(false);
         this->SetTouchable(false);
     }
+}
+
+void LabelBtnAdapter::SetViewInfo(const UxViewInfo &info)
+{
+    const UxLabelBtnInfo &spec = AsSpecific(info.specificInfo);
+    SetFontsize(spec);
+}
+
+void LabelBtnAdapter::SetFontsize(const UxLabelBtnInfo &spec)
+{
+    this->SetFont(DEFAULT_FONT_FILENAME, spec.fontSize);
+    this->SetLabelStyle(OHOS::STYLE_LINE_HEIGHT, UPDATER_UI_FONT_HEIGHT_RATIO * spec.fontSize);
 }
 
 bool LabelBtnAdapter::IsValid(const UxLabelBtnInfo &info)

@@ -39,6 +39,11 @@ BoxProgressAdapter::BoxProgressAdapter(const UxViewInfo &info)
     epId_ = spec.endPoint;
 }
 
+void BoxProgressAdapter::SetViewInfo(const UxViewInfo &info)
+{
+    this->SetRange(progressWidth_ - 1, 0);
+}
+
 bool BoxProgressAdapter::IsValid(const UxBoxProgressInfo &info)
 {
     if (info.defaultValue > MAX_PROGRESS_VALUE) {

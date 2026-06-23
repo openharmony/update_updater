@@ -100,6 +100,18 @@ float UpdaterUiFacade::GetCurrentPercent(void)
     return g_currentPercent;
 }
 
+void UpdaterUiFacade::ShowCurPage()
+{
+    auto [res, it] = CheckMode();
+    if (IsInProgress()) {
+        ShowProgress(0);
+        pgMgr_.ShowPage(it->second.progressPage.progressPageId);
+        ShowProgressWarning(false);
+        return;
+    }
+    pgMgr_.ShowCurPage();
+}
+
 void UpdaterUiFacade::ShowProgress(float value) const
 {
     if (!CheckMode().first || (value > FULL_PERCENT_PROGRESS)) {

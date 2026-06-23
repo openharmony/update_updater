@@ -155,6 +155,10 @@ public:
         child->SetVisible(common.visible);
         child->SetViewId(viewId_.c_str());
     }
+    void SetViewInfo(const UxViewInfo &info) override
+    {
+        LOG(INFO) << "no need set fontsize or child position";
+    }
 
 protected:
     const TSpecificInfo &AsSpecific(const std::unique_ptr<UxViewSpecificInfo> &specificPtr)
