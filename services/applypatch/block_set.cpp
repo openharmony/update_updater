@@ -237,7 +237,7 @@ int32_t BlockSet::VerifySha256(const std::vector<uint8_t> &buffer, const size_t 
     uint8_t digest[SHA256_DIGEST_LENGTH];
     SHA256(buffer.data(), size * H_BLOCK_SIZE, digest);
     hexDigest = Utils::ConvertSha256Hex(digest, SHA256_DIGEST_LENGTH);
- 	    if (hexDigest == expected) {
+ 	if (hexDigest == expected) {
         return 0;
     }
     return -1;
