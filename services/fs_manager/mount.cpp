@@ -349,12 +349,13 @@ bool ErasePartition(const std::string &devPath, bool isWriteZero)
         LOG(ERROR) << "open failed:" << realPath;
         return false;
     }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
 
     uint64_t size = 0;
     int ret = ioctl(fd, BLKGETSIZE64, &size);
     if (ret < 0) {
         LOG(ERROR) << "get partition size failed:" << size;
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         return false;
     }
 
@@ -369,11 +370,11 @@ bool ErasePartition(const std::string &devPath, bool isWriteZero)
 
     if (ret < 0) {
         LOG(ERROR) << "erase partition failed";
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         return false;
     }
 
-    close(fd);
+    fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
     return true;
 }
 
