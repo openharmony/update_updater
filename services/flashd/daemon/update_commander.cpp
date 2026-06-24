@@ -66,6 +66,7 @@ void UpdateCommander::DoCommand(const std::string &cmdParam, size_t fileSize)
         FLASHD_LOGE("open file fail, errno = %d ", errno);
         return;
     }
+    fdsan_exchange_owner_tag(fd_, 0, FDSAN_UPDATER_TAG);
 }
 
 void UpdateCommander::DoCommand(const uint8_t *payload, int payloadSize)

@@ -24,6 +24,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "utils.h"
+#include "log.h"
 
 namespace Hpackage {
 #ifdef _WIN32
@@ -45,6 +46,7 @@ constexpr uint32_t THIRD_BUFFER = 3;
 constexpr uint8_t SHIFT_RIGHT_FOUR_BITS = 4;
 
 using namespace Updater::Utils;
+using namespace Updater;
 
 std::string GetFilePath(const std::string &fileName)
 {
@@ -185,14 +187,25 @@ uint8_t *FileMap(const std::string &path)
         PKG_LOGE("Failed to open file");
         return nullptr;
     }
+#ifndef DIFF_PATCH_SDK
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
+#endif
     size_t size = GetFileSize(path);
     void *mappedData = mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
     if (mappedData == MAP_FAILED) {
+#ifndef DIFF_PATCH_SDK
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
+#else
         close(fd);
+#endif
         PKG_LOGE("Failed to mmap file");
         return nullptr;
     }
+#ifndef DIFF_PATCH_SDK
+    fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
+#else
     close(fd);
+#endif
     return static_cast<uint8_t *>(mappedData);
 }
 

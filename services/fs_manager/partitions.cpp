@@ -133,7 +133,9 @@ bool SetBlockDeviceMode(BlockDevice &dev)
             dev.readOnly = a1;
             return false;
         }
+        fdsan_exchange_owner_tag(specific->fd, 0, FDSAN_UPDATER_TAG);
     } else {
+        fdsan_exchange_owner_tag(specific->fd, 0, FDSAN_UPDATER_TAG);
         dev.readOnly = 0;
     }
     return true;
@@ -142,7 +144,7 @@ bool SetBlockDeviceMode(BlockDevice &dev)
 static int BlockDeviceClose(const BlockDevice &dev)
 {
     BlockSpecific* specific = BLOCK_SPECIFIC(&dev);
-    if (fsync(specific->fd) < 0 || close(specific->fd) < 0) {
+    if (fsync(specific->fd) < 0 || fdsan_close_with_tag(specific->fd, FDSAN_UPDATER_TAG) < 0) {
         return 0;
     }
     return 1;

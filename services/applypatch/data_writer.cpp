@@ -49,9 +49,10 @@ int DataWriter::OpenPath(const std::string &path)
         LOG(ERROR) << "Datawriter: open block device " << path << " failed " << " : " << strerror(errno);
         return fd;
     }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
     if (lseek(fd, 0, SEEK_SET) == -1) {
         LOG(ERROR) << "Datawriter: seek " << path << "failed " << " : " << strerror(errno);
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         fd = -1;
     }
     return fd;

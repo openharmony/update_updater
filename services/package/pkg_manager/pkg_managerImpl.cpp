@@ -1232,8 +1232,9 @@ int32_t PkgManagerImpl::VerifyOtaPackage(const std::string &devPath, uint64_t of
         PKG_LOGE("open %s fail, %s", devRealPath, strerror(errno));
         return PKG_INVALID_FILE;
     }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
     ON_SCOPE_EXIT(closePath) {
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
     };
     uint8_t *pMap = static_cast<uint8_t *>(mmap64(nullptr, size + offset - offsetAligned, PROT_READ, MAP_PRIVATE,
         fd, offsetAligned));

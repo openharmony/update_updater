@@ -15,6 +15,8 @@
 #ifndef UPDATE_LOG_H__
 #define UPDATE_LOG_H__
 
+#define FDSAN_TAG_UPDATER 1
+
 #include <cstring>
 #include <functional>
 #include <fstream>
@@ -32,6 +34,8 @@ namespace Updater {
 void ReplaceLog(std::string &str);
 
 inline constexpr unsigned int UPDATER_DOMAIN = 0XD002E01;
+inline constexpr uint64_t FDSAN_UPDATER_TAG =
+    (static_cast<uint64_t>(UPDATER_DOMAIN) << 32) | FDSAN_TAG_UPDATER; // 32: high position number
 constexpr size_t MIN_UPDATE_SPACE = 50 * 1024 * 1024;
 constexpr int MAX_TIME_SIZE = 20;
 #define UPDATER_LOG_FILE_NAME \

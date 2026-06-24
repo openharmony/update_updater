@@ -151,17 +151,7 @@ struct MemMapInfo {
     uint8_t *memory {};
     size_t length {};
     int fd {-1};
-    ~MemMapInfo()
-    {
-        if (memory != nullptr) {
-            munmap(memory, length);
-        }
-        memory = nullptr;
-        if (fd != -1) {
-            close(fd);
-            fd = -1;
-        }
-    }
+    ~MemMapInfo();
 };
 
 int32_t WriteDataToFile(const std::string &fileName, const std::vector<uint8_t> &data, size_t dataSize);

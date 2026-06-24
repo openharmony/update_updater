@@ -69,6 +69,7 @@ int Partition::DoErasePartition() const
         FLASHD_LOGE("open partition %s fail, error = %d", devName_.c_str(), errno);
         return FLASHING_OPEN_PART_ERROR;
     }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
 
 #ifndef UPDATER_UT
     uint64_t size = GetBlockDeviceSize(fd);
@@ -80,19 +81,19 @@ int Partition::DoErasePartition() const
     range[0] = 0;
     range[1] = size;
     if (ioctl(fd, BLKDISCARD, &range) < 0) {
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         FLASHD_LOGE("BLKDISCARD fail");
         return FLASHING_NOPERMISSION;
     }
     std::vector<uint8_t> buffer(BLOCK_SIZE, 0);
     if (!Updater::Utils::WriteFully(fd, buffer.data(), buffer.size())) {
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         FLASHD_LOGE("WriteFully fail");
         return FLASHING_PART_WRITE_ERROR;
     }
     fsync(fd);
 #endif
-    close(fd);
+    fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
     return 0;
 }
 

@@ -39,6 +39,7 @@ void UpdaterUiTools::SaveUxBuffToFile(const std::string &filePath)
         ImageCacheFree(imageBit);
         return;
     }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
 
     uint8_t sizeByColorMode = DrawUtils::GetByteSizeByColorMode(OHOS::ColorMode::ARGB8888);
     uint16_t bfType = 0x4D42;
@@ -59,7 +60,7 @@ void UpdaterUiTools::SaveUxBuffToFile(const std::string &filePath)
         LOG(ERROR) << "uxtools save file failed";
     }
     ImageCacheFree(imageBit);
-    close(fd);
+    fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
 
     return;
 }
