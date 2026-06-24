@@ -89,7 +89,7 @@ bool PostUpdateSyncProcess([[maybe_unused]] bool isOtaUpdate, [[maybe_unused]] c
 bool PostUpdateWriteBack();
 void UpdaterVerifyFailEntry(bool verifyret);
 bool IsSpareBoardBoot(void);
-const char* GetResetMisc();
+const char* GetResetMisc(const std::vector<std::string> &args);
 const char* GetSdResetMisc();
 void DeleteOtaPkg([[maybe_unused]] const UpdaterParams &upParams);
 void NotifyAutoReboot(PackageUpdateMode &mode);
