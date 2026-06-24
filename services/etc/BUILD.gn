@@ -19,8 +19,10 @@ updater_path = rebase_path("${updater_absolutely_path}", ".")
 updater_normal_path = "${updater_path}/services/etc/updater_normal.cfg"
 if (!ohos_indep_compiler_enable) {
   updater_usb_init_cfg_path = "//base/startup/init/services/etc/init.usb.cfg"
-  updater_init_usb_configfs_path_cfg =
-      "//drivers/peripheral/usb/cfg/init.usb.configfs.cfg"
+  if (updater_use_init_usb_configfs_cfg) {
+    updater_init_usb_configfs_path_cfg =
+        "//drivers/peripheral/usb/cfg/init.usb.configfs.cfg"
+  }
   updater_faultloggerd_cfg =
       "//base/hiviewdfx/faultloggerd/services/config/faultloggerd.cfg"
 
@@ -53,11 +55,13 @@ if (!ohos_indep_compiler_enable) {
     part_name = "updater"
   }
 
-  ohos_prebuilt_etc("updater_init_usb_configfs.cfg") {
-    source = "${updater_init_usb_configfs_path_cfg}"
-    install_images = [ "updater" ]
-    subsystem_name = "updater"
-    part_name = "updater"
+  if (updater_use_init_usb_configfs_cfg) {
+    ohos_prebuilt_etc("updater_init_usb_configfs.cfg") {
+      source = "${updater_init_usb_configfs_path_cfg}"
+      install_images = [ "updater" ]
+      subsystem_name = "updater"
+      part_name = "updater"
+    }
   }
 }
 
@@ -78,8 +82,12 @@ group("updater_files") {
     deps += [
       ":updater_faultloggerd.cfg",
       ":updater_init_usb.cfg",
-      ":updater_init_usb_configfs.cfg",
     ]
+    if (updater_use_init_usb_configfs_cfg) {
+      deps += [
+        ":updater_init_usb_configfs.cfg",
+      ]
+    }
   }
   if (build_variant == "root") {
     deps += [ ":updater_hdcd.cfg" ]
