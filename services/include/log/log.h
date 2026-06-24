@@ -31,6 +31,7 @@ namespace Updater {
 
 void ReplaceLog(std::string &str);
 
+inline constexpr unsigned int UPDATER_DOMAIN = 0XD002E01;
 constexpr size_t MIN_UPDATE_SPACE = 50 * 1024 * 1024;
 constexpr int MAX_TIME_SIZE = 20;
 #define UPDATER_LOG_FILE_NAME \
