@@ -103,6 +103,7 @@ static int BlockDiskOpen(Disk &disk)
     if (disk.dev->fd < 0) {
         LOG(WARNING) << "open fail: " << disk.dev->devPath << errno;
     }
+    fdsan_exchange_owner_tag(disk.dev->fd, 0, FDSAN_UPDATER_TAG);
     return disk.dev->fd;
 }
 
@@ -110,7 +111,7 @@ static void BlockDiskClose(Disk &disk)
 {
     if (disk.dev != nullptr) {
         if (disk.dev->fd > 0) {
-            close(disk.dev->fd);
+            fdsan_close_with_tag(disk.dev->fd, FDSAN_UPDATER_TAG);
             disk.dev->fd = -1;
         }
     }
