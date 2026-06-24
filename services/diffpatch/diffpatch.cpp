@@ -27,6 +27,24 @@
 #include "pkg_utils.h"
 
 namespace UpdatePatch {
+using namespace Updater;
+
+MemMapInfo::~MemMapInfo()
+{
+    if (memory != nullptr) {
+        munmap(memory, length);
+    }
+    memory = nullptr;
+    if (fd != -1) {
+#ifndef DIFF_PATCH_SDK
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
+#else
+        close(fd);
+#endif
+        fd = -1;
+    }
+}
+
 int32_t WriteDataToFile(const std::string &fileName, const std::vector<uint8_t> &data, size_t dataSize)
 {
     std::ofstream patchFile(fileName, std::ios::out | std::ios::binary);
@@ -55,6 +73,9 @@ int32_t PatchMapFile(const std::string &fileName, MemMapInfo &info)
         PATCH_LOGE("Failed to open file %s", fileName.c_str());
         return -1;
     }
+#ifndef DIFF_PATCH_SDK
+    fdsan_exchange_owner_tag(info.fd, 0, FDSAN_UPDATER_TAG);
+#endif
     struct stat st {};
     int32_t ret = fstat(info.fd, &st);
     if (ret < 0) {
@@ -68,7 +89,11 @@ int32_t PatchMapFile(const std::string &fileName, MemMapInfo &info)
 
     void *mappedData = mmap(nullptr, st.st_size, PROT_READ, MAP_PRIVATE, info.fd, 0);
     if (mappedData == MAP_FAILED) {
+#ifndef DIFF_PATCH_SDK
+        fdsan_close_with_tag(info.fd, FDSAN_UPDATER_TAG);
+#else
         close(info.fd);
+#endif
         info.fd = -1;
         PATCH_LOGE("Failed to memory map");
         return -1;
