@@ -42,8 +42,8 @@ class BlockSet {
 public:
     BlockSet();
     explicit BlockSet(size_t offset);
-    BlockSet(const std::string &blockStr, size_t offset);
     explicit BlockSet(std::vector<BlockPair> &&pairs);
+    BlockSet(const std::string &blockStr, size_t offset);
 
     ~BlockSet() {}
 
@@ -81,7 +81,7 @@ public:
     }
 
     static int32_t VerifySha256(const std::vector<uint8_t> &buffer, const size_t size,
-        const std::string &expected);
+        const std::string &expected, std::string &hexDigest);
 
     static bool IsTwoBlocksOverlap(const BlockSet &source, BlockSet &target);
 

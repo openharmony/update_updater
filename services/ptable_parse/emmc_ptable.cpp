@@ -135,7 +135,8 @@ bool EmmcPtable::ParseGptHeaderByEmmc(uint8_t *gptImage, const uint32_t len)
 #else
     uint32_t lbaNum = 0xFFFFFFFF; // init to maximum
 #endif
-    return PartitionCheckGptHeader(gptImage, len, lbaNum, blockSize, gptHeaderInfo);
+    HeaderCheckInputs inputs = { .gptImage = gptImage, .len = len, .lbaNum = lbaNum };
+    return PartitionCheckGptHeader(inputs, blockSize, gptHeaderInfo);
 }
 
 bool EmmcPtable::EmmcReadGpt(uint8_t *ptableData, uint32_t len)
@@ -215,7 +216,7 @@ bool EmmcPtable::UpdateCommInitializeGptPartition(uint8_t *gptImage, const uint3
     EmmcPatchGptHeader(emmcPtnDataInfo_, deviceBlockSize);
     emmcPtnDataInfo_.isGptVaild = true;
 
-    return EmmcReadGpt(emmcPtnDataInfo_.data + 2 * deviceBlockSize, len); // 2: skip 2 lba length to set gpt entry
+    return EmmcReadGpt(emmcPtnDataInfo_.data + 2 * deviceBlockSize, len); // 2:skip 2 lba length to set gpt entry
 }
 
 bool EmmcPtable::ReadEmmcGptImageToRam()

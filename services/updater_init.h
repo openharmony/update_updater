@@ -38,6 +38,7 @@ enum UpdaterInitEvent {
     // binary
     UPDATER_BINARY_INIT_EVENT,
     UPDATER_BINARY_INIT_DONE_EVENT,
+    UPDATER_BINARY_PRE_PTABLE_EVENT,
 
     // factory reset
     FACTORY_RESET_INIT_EVENT,

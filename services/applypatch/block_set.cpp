@@ -230,13 +230,14 @@ size_t BlockSet::TotalBlockSize() const
     return blockSize_;
 }
 
-int32_t BlockSet::VerifySha256(const std::vector<uint8_t> &buffer, const size_t size, const std::string &expected)
+int32_t BlockSet::VerifySha256(const std::vector<uint8_t> &buffer, const size_t size,
+    const std::string &expected, std::string &hexDigest)
 {
     UPDATER_INIT_RECORD;
     uint8_t digest[SHA256_DIGEST_LENGTH];
     SHA256(buffer.data(), size * H_BLOCK_SIZE, digest);
-    std::string hexdigest = Utils::ConvertSha256Hex(digest, SHA256_DIGEST_LENGTH);
-    if (hexdigest == expected) {
+    hexDigest = Utils::ConvertSha256Hex(digest, SHA256_DIGEST_LENGTH);
+    if (hexDigest == expected) {
         return 0;
     }
     return -1;
@@ -395,7 +396,8 @@ int32_t BlockSet::LoadTargetBuffer(const Command &cmd, std::vector<uint8_t> &buf
     std::string storePath = storeBase + "/" + srcHash;
     struct stat storeStat {};
     int res = stat(storePath.c_str(), &storeStat);
-    int32_t verifyRes = VerifySha256(buffer, blockSize, srcHash);
+    std::string hexDigest;
+    int32_t verifyRes = VerifySha256(buffer, blockSize, srcHash, hexDigest);
     if (verifyRes != 0 && !cmd.GetTransferParams()->canWrite) {
         return BlockVerify(cmd, buffer, blockSize, srcHash, pos);
     }
