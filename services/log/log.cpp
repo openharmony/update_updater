@@ -41,9 +41,6 @@ static std::ofstream g_nullStream;
 static std::string g_logTag;
 static ReplaceLogType g_replaceMap;
 static std::atomic<int> g_logLevel{ static_cast<int>(INFO) };
-#ifndef DIFF_PATCH_SDK
-static constexpr unsigned int UPDATER_DOMAIN = 0XD002E01;
-#endif
 
 namespace {
 void OpenLogStream(std::ofstream &ofs, const std::string &file)
