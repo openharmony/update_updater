@@ -43,14 +43,15 @@ bool PartitionRecord::IsPartitionUpdated(const std::string &partitionName)
             LOG(ERROR) << "PartitionRecord: Open misc to recording partition failed" << " : " << strerror(errno);
             return false;
         }
+        fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
         if (lseek(fd, PARTITION_RECORD_START, SEEK_CUR) < 0) {
             LOG(ERROR) << "PartitionRecord: Seek misc to specific offset failed" << " : " << strerror(errno);
-            close(fd);
+            fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
             return false;
         }
         if (read(fd, buffer, PARTITION_UPDATER_RECORD_MSG_SIZE) != PARTITION_UPDATER_RECORD_MSG_SIZE) {
             LOG(ERROR) << "PartitionRecord: Read from misc partition failed" << " : " << strerror(errno);
-            close(fd);
+            fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
             return false;
         }
         for (uint8_t *p = buffer; p < buffer + PARTITION_UPDATER_RECORD_MSG_SIZE; p += sizeof(PartitionRecordInfo)) {
@@ -58,12 +59,12 @@ bool PartitionRecord::IsPartitionUpdated(const std::string &partitionName)
             if (strcmp(pri->partitionName, partitionName.c_str()) == 0) {
                 LOG(DEBUG) << "PartitionRecord: Found " << partitionName << " record in misc partition";
                 LOG(DEBUG) << "PartitionRecord: update status: " << pri->updated;
-                close(fd);
+                fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
                 return pri->updated;
             }
         }
         fsync(fd);
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         LOG(INFO) << "PartitionRecord: Cannot found " << partitionName << " record in misc partition";
     }
     return false;
@@ -127,24 +128,25 @@ bool PartitionRecord::RecordPartitionUpdateStatus(const std::string &partitionNa
             LOG(ERROR) << "PartitionRecord: Open misc to recording partition failed" << " : " << strerror(errno);
             return false;
         }
+        fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
         if (!RecordPartitionSetOffset(fd)) {
-            close(fd);
+            fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
             return false;
         }
         if (offset_ + static_cast<off_t>(sizeof(PartitionRecordInfo)) < PARTITION_UPDATER_RECORD_SIZE) {
             if (!RecordPartitionSetInfo(partitionName, updated, fd)) {
-                close(fd);
+                fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
                 return false;
             }
             LOG(DEBUG) << "PartitionRecord: offset is " << offset_;
         } else {
             LOG(WARNING) << "PartitionRecord: partition record overflow, offset = " << offset_;
-            close(fd);
+            fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
             return false;
         }
         LOG(DEBUG) << "PartitionRecord: record " << partitionName << " successfully.";
         fsync(fd);
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
     }
     return true;
 }
@@ -158,20 +160,21 @@ bool PartitionRecord::ClearRecordPartitionOffset()
             LOG(ERROR) << "Open misc to recording partition failed" << " : " << strerror(errno);
             return false;
         }
+        fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
         if (lseek(fd, PARTITION_RECORD_OFFSET, SEEK_SET) < 0) {
             LOG(ERROR) << "Seek misc to specific offset failed" << " : " << strerror(errno);
-            close(fd);
+            fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
             return false;
         }
 
         off_t initOffset = 0;
         if (write(fd, &initOffset, sizeof(off_t)) != static_cast<ssize_t>(sizeof(off_t))) {
             LOG(ERROR) << "StartUpdater: Write misc initOffset 0 failed" << " : " << strerror(errno);
-            close(fd);
+            fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
             return false;
         }
         fsync(fd);
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
     }
     return true;
 }
