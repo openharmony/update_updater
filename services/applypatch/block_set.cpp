@@ -396,7 +396,8 @@ int32_t BlockSet::LoadTargetBuffer(const Command &cmd, std::vector<uint8_t> &buf
     std::string storePath = storeBase + "/" + srcHash;
     struct stat storeStat {};
     int res = stat(storePath.c_str(), &storeStat);
-    int32_t verifyRes = VerifySha256(buffer, blockSize, srcHash);
+    std::string hexDigest;
+    int32_t verifyRes = VerifySha256(buffer, blockSize, srcHash, hexDigest);
     if (verifyRes != 0 && !cmd.GetTransferParams()->canWrite) {
         return BlockVerify(cmd, buffer, blockSize, srcHash, pos);
     }
