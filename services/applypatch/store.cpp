@@ -114,26 +114,28 @@ int32_t Store::WriteDataToStore(const std::string &dirPath, const std::string &f
         LOG(ERROR) << "Failed to create store, " << strerror(errno);
         return -1;
     }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
     if (size < 0 || !WriteFully(fd, buffer.data(), static_cast<size_t>(size))) {
         if (errno == EIO) {
-            close(fd);
+            fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
             return 1;
         }
         LOG(ERROR) << "Write to stash failed, " << size << " blocks to " << path;
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         return -1;
     }
     if (fsync(fd) == -1) {
         LOG(WARNING) << "Failed to fsync :" << strerror(errno);
     }
-    close(fd);
+    fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
 
     int fdd = open(dirPath.c_str(), O_RDONLY | O_DIRECTORY);
     if (fdd == -1) {
         LOG(ERROR) << "Failed to open";
         return -1;
     }
-    close(fdd);
+    fdsan_exchange_owner_tag(fdd, 0, FDSAN_UPDATER_TAG);
+    fdsan_close_with_tag(fdd, FDSAN_UPDATER_TAG);
     return 0;
 }
 
@@ -159,14 +161,15 @@ int32_t Store::LoadDataFromStore(const std::string &dirPath, const std::string &
         LOG(ERROR) << "Failed to create";
         return -1;
     }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
     buffer.resize(fileStat.st_size);
     if (!ReadFully(fd, buffer.data(), fileStat.st_size)) {
         LOG(ERROR) << "Failed to read store data";
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         fd = -1;
         return -1;
     }
-    close(fd);
+    fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
     fd = -1;
     return 0;
 }
