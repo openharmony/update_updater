@@ -28,6 +28,8 @@ constexpr const char *PTABLE_NORMAL_PATH = "/mnt/sys_installer/update_ptable.img
 constexpr const char *PTABLE_TEMP_PATH = "/data/update/update_ptable.img";
 constexpr const char *PTABLE_NORMAL_PATH = "/data/update/update_ptable.img";
 #endif
+constexpr uint32_t PTABLE_MAX_LUN_NUMBERS = 32;
+
 class Ptable {
 public:
     Ptable() = default;
@@ -158,7 +160,6 @@ public:
     static constexpr uint32_t HEADER_CRC_OFFSET = 16;
     static constexpr uint32_t GPT_CRC_LEN = 92;
     static constexpr uint32_t GPT_ENTRYS_SIZE = 128 * 128;
-    static constexpr uint32_t PTABLE_MAX_LUN_NUMBERS = 32;
 
     // set 32 bits data
     inline void PUT_LONG(uint8_t *x, const uint32_t y)
