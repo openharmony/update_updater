@@ -58,7 +58,8 @@ std::vector<std::string> UiStrategy::modeStr_ = {
     {UPDATERMODE_RECOVER},
     {UPDATERMODE_NIGHTUPDATE},
     {UPDATERMODE_SECUREERASE},
-    {UPDATERMODE_UPLOADLOG}
+    {UPDATERMODE_UPLOADLOG},
+    {UPDATERMODE_DISKERASE}
 };
 
 void UiStrategy::RegisterUiMode(const std::string &mode)

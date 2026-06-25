@@ -43,7 +43,6 @@ constexpr const char *MODULE_UPDATE_RESULT_FILE = "module_update_result";
 constexpr const char *MISC_FILE = "/dev/block/platform/soc/10100000.himci.eMMC/by-name/misc";
 constexpr const char *MISC_PATH = "/misc";
 constexpr const char *UPDATER_BINARY = "updater_binary";
-constexpr const char *STREAM_ZIP_PATH = "/data/updater/update_stream.zip";
 constexpr const char *SDCARD_PATH = "/sdcard";
 constexpr const char *INTERNAL_DATA_PATH = "/internaldata";
 constexpr const char *UPDATER_HDC_LOG = "/data/updater/log/flashd_hdc.log";
@@ -55,6 +54,12 @@ constexpr const char *MANUAL_UPLOAD_LOG_TIME_FILE = "manual_upload_time";
 constexpr const char *UPLOAD_LOG_TIME_FILE = "upload_time";
 constexpr const char *ERASE_LOG_OEMINFO = "not_erase_log_switch";
 constexpr const char *RESET_MESSAGE_INFO = "reset_enter:331";
+constexpr const char *SECURE_ERASE_MESSAGE_INFO = "--secure_erase\n--reset_enter:212";
+constexpr const char *STREAM_PACKAGE_PATH = "/data/update/vab/stream_package/";
+constexpr const char *STREAM_HEAD_FILETYPE = ".bin";
+constexpr const char *STREAM_ZIP_FILETYPE = ".zip";
+constexpr const char *STREAM_BIN_STREAMTYPE = ".shm";
+constexpr const char *STREAM_ARG_PREFIX = "stream=";
 constexpr const char *FACTORY_RESET_OTA_MISC = "--user_wipe_data\n--reset_enter:337";
 
 // update mode
@@ -107,13 +112,15 @@ constexpr const char *VERIFY_FAILED_REBOOT = "reboot_verify_failed";
 constexpr const char *IO_FAILED_REBOOT = "reboot_IO_failed";
 constexpr const char *BLOCK_UPDATE_FAILED_REBOOT = "reboot_block_update_failed";
 constexpr const char *PROCESS_BIN_FAIL_RETRY = "process_bin_failed";
+constexpr const char *EXTRACT_PATCH_FAIL_RETRY = "extract_patch_failed";
 
 constexpr int MAX_RETRY_COUNT = 3;
 constexpr int MINIMAL_ARGC_LIMIT = 2;
 constexpr int MAXIMAL_ARGC_LIMIT = 4;
+constexpr int32_t PKG_INFO_NUM = 3;
 constexpr int MAX_LOG_BUF_SIZE = 4096;
 constexpr int MAX_LOG_NAME_SIZE = 100;
-constexpr long MAX_LOG_SIZE = 10 * 1024 * 1024;
+constexpr long MAX_LOG_SIZE = 2 * 1024 * 1024;
 constexpr long MAX_LOG_DIR_SIZE = 10 * 1024 * 1024;
 constexpr int MAX_RESULT_SIZE = 20;
 constexpr int MAX_RESULT_BUFF_SIZE = 1000;
@@ -149,8 +156,9 @@ constexpr unsigned int INTERVAL_TIME = 300;
 constexpr float EPSINON = 0.00001;
 constexpr float FULL_EPSINON = 1;
 constexpr uint64_t DEFAULT_1T_SIZE = 1024ULL * 1024 * 1024 * 1024;
-constexpr uint32_t SSD_ERASE_1T_TIME = 133 * 60;
-constexpr uint32_t UFS_ERASE_1T_TIME = 73 * 60;
-constexpr uint32_t EMMC_ERASE_1T_TIME = 266 * 60;
+constexpr uint32_t SSD_ERASE_1T_TIME = 266 * 60;
+constexpr uint32_t UFS_ERASE_1T_TIME = 202 * 60;
+constexpr uint32_t EMMC_ERASE_1T_TIME = 532 * 60;
+constexpr int SHM_BLOCK_SIZE = 50 * 1024;
 } // namespace Updater
 #endif
