@@ -161,7 +161,7 @@ static void HandleMiscInfo(int argc, char **argv)
 
 static int HandleSecureErase(struct UpdateMessage &boot)
 {
-    if (strncpy_s(boot.update, sizeof(boot.update), "--secure_erase",
+    if (strncpy_s(boot.update, sizeof(boot.update), SECURE_ERASE_MESSAGE_INFO,
         sizeof(boot.update) - 1) != 0) {
         cout << "strncpy_s failed!" << endl;
         return -1;
