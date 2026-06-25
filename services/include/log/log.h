@@ -69,6 +69,7 @@ using ReplaceFunc = std::function<void(std::string &)>;
 void SetReplaceMap(const ReplaceLogType &replaceMap);
 
 void SetLogLevel(int level);
+int GetLogLevel();
 
 void InitUpdaterLogger(const std::string &tag, const std::string &logFile, const std::string &stageFile,
     const std::string &errorCodeFile);
