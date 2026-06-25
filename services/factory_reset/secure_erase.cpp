@@ -177,9 +177,9 @@ bool SecureErase::OverwriteSinglePartition(int fd, const PartInfo &partInfo, int
 
         time_t end = time(nullptr);
         double eplapsed = difftime(end, start);
-        uint64_t eplased_uint64 = static_cast<uint64_t>(eplapsed);
+        uint64_t eplasedUint64 = static_cast<uint64_t>(eplapsed);
         uint64_t writeTime =
-            CalculateOverWriteTime(totalSize - overwriteOffset_, writeSize, eplased_uint64);
+            CalculateOverWriteTime(totalSize - overwriteOffset_, writeSize, eplasedUint64);
 
         remainingOverWriteTime_ = (remainingOverWriteTime_ == 0 || writeTime == 0) ? writeTime
             : (remainingOverWriteTime_ <= writeTime ? remainingOverWriteTime_ - 1 : writeTime);
@@ -455,9 +455,9 @@ int SecureErase::OverWritePartition(int fd, const uint32_t writeSize, std::vecto
     overwriteOffset_ += writeSize;
     time_t overwriteEnd = time(nullptr);
     double elapsed = difftime(overwriteEnd, overwriteStart);
-    uint64_t elapsed_uint64 = static_cast<uint64_t>(elapsed);
-    if (elapsed_uint64 < sleepTime_) {
-        sleep(sleepTime_ - elapsed_uint64);
+    uint64_t elapsedUint64 = static_cast<uint64_t>(elapsed);
+    if (elapsedUint64 < sleepTime_) {
+        sleep(sleepTime_ - elapsedUint64);
     }
     return 0;
 }
