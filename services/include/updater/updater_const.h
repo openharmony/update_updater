@@ -43,6 +43,7 @@ constexpr const char *MODULE_UPDATE_RESULT_FILE = "module_update_result";
 constexpr const char *MISC_FILE = "/dev/block/platform/soc/10100000.himci.eMMC/by-name/misc";
 constexpr const char *MISC_PATH = "/misc";
 constexpr const char *UPDATER_BINARY = "updater_binary";
+constexpr const char *STREAM_ZIP_PATH = "/data/updater/update_stream.zip";
 constexpr const char *SDCARD_PATH = "/sdcard";
 constexpr const char *INTERNAL_DATA_PATH = "/internaldata";
 constexpr const char *UPDATER_HDC_LOG = "/data/updater/log/flashd_hdc.log";
