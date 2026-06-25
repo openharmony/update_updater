@@ -1576,7 +1576,8 @@ int UpdaterMain(int argc, char **argv)
                 status == UPDATE_CORRUPT ? TR(LOGRES_VERIFY_FAILED) : TR(LOGRES_UPDATE_FAILED));
             UPDATER_UI_INSTANCE.ShowFailedPage();
         } else if (upParams.factoryResetMode == "user_wipe_data" || upParams.factoryResetMode == "secure_erase" ||
-            upParams.factoryResetMode == "menu_wipe_data" || upParams.factoryResetMode == "factory_wipe_data") {
+            upParams.factoryResetMode == "menu_wipe_data" || upParams.factoryResetMode == "factory_wipe_data"||
+            upParams.factoryResetMode == "disk_erase") {
             UPDATER_UI_INSTANCE.ShowFailedPage();
         } else if (CheckUpdateMode(USB_UPDATE_FAIL)) {
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_USBUPDATE);
