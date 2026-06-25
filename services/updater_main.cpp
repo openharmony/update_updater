@@ -1268,7 +1268,8 @@ UpdaterStatus DoUpdaterEntry(UpdaterParams &upParams)
     return status;
 }
 
-static void InitSecureEraseFunc(char* &optarg, PackageUpdateMode &mode, UpdaterParams &upParams)
+static void InitSecureEraseFunc(char* &optarg,
+    PackageUpdateMode &mode, UpdaterParams &upParams)
 {
     (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_REBOOTFACTORYRST);
     SecureErase::GetInstance().AddOverWritePartitions(upParams.factoryResetMode);
