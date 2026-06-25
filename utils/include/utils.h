@@ -162,6 +162,7 @@ bool GetBatteryCapacity(int &capacity);
 void RecordBatteryLevel();
 // print data hex code, 16bytes per line
 void PrintHex(const uint8_t *buffer, size_t length);
+void GetLocalTime(tm &tm);
 bool IsAiUpdateBinary();
 std::string GetDiffTempPath();
 
