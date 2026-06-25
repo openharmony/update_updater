@@ -1287,6 +1287,16 @@ bool GetBatteryCapacity(int &capacity)
     return false;
 }
 
+void GetLocalTime(tm &tm)
+{
+#ifndef DIFF_PATCH_SDK
+    struct timeval tv {};
+
+    gettimeofday(&tv, nullptr);
+    localtime_r(&tv.tv_sec, &tm);
+#endif
+}
+
 void RecordBatteryLevel()
 {
     int capacity = 0;
