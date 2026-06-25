@@ -97,11 +97,11 @@
         "secure_erase" : {
             "labelLogResId" : {
                 "pageId" : "upd",
-                "comId" : "SecureErasing_Label"
+                "comId" : "RemainingTime_Label"
             },
             "labelUpdId" : {
                 "pageId" : "upd",
-                "comId" : "RemainingTime_Label"
+                "comId" : "SecureErasing_Label"
              },
             "progressPage" : {
                 "progressPageId" : "upd:secureErasing",
