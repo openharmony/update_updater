@@ -37,17 +37,17 @@ void SecureErase::ShowRemainingTime(uint64_t remainSeconds)
     (void)remainingOverWriteTime_;
 }
 
-bool SecureErase::OverWritePartition()
+bool SecureErase::OverWritePartition(int number)
 {
     return true;
 }
 
-int SecureErase::OverWritePartition(int fd, const uint32_t writeSize, std::vector<uint8_t> &buffer)
+int SecureErase::OverWritePartition(int fd, const uint32_t writeSize, std::vector<uint8_t> &buffer, int number)
 {
     return 0;
 }
 
-void SecureErase::AddOverWritePartitions(const std::string &factoryResetMode)
+void SecureErase::AddOverWritePartitions(const std::string &factoryResetType)
 {
 }
 
