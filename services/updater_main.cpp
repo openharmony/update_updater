@@ -1174,12 +1174,12 @@ UpdaterStatus DoSecureErase(UpdaterParams &upParams)
         status = UPDATE_ERROR;
     }
     time_t eraseEnd = time(nullptr);
-    uint64_t eplased_seconds = static_cast<uint64_t>(difftime(eraseEnd, eraseStart));
+    uint64_t eplasedSeconds = static_cast<uint64_t>(difftime(eraseEnd, eraseStart));
     if (status == UPDATE_SUCCESS) {
         LOG(INFO) << "Secure Erase Finish";
         UPDATER_UI_INSTANCE.ShowProgress(100); // 100 : 100%
         UPDATER_UI_INSTANCE.ShowSuccessPage();
-        Utils::Time finishedTime(eplased_seconds);
+        Utils::Time finishedTime(eplasedSeconds);
         std::string costTimeText = TR(LABEL_COST_TIME) + std::to_string(finishedTime.GetHour()) + " " +
             TR(HOUR_STRING) + std::to_string(finishedTime.GetMinute()) + " " + TR(MINUTE_STRING);
         std::string currentTime = GetCurrentTime();
