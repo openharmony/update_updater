@@ -341,6 +341,23 @@ bool ReadFully(int fd, void *data, size_t size)
     return true;
 }
 
+std::string ReadFile(const std::string &path)
+{
+    char realPath[PATH_MAX] = {0};
+    if (realpath(path.c_str(), realPath) == nullptr) {
+        LOG(ERROR) << "realpath failed " << path;
+        return "";
+    }
+    std::string readFilePath(realPath);
+    std::ifstream file(readFilePath);
+    if (!file.is_open()) {
+        LOG(ERROR) << "Failed to open file: " << readFilePath;
+        return "";
+    }
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    return content;
+}
+
 bool WriteStringToFile(int fd, const std::string& content)
 {
     const char *p = content.data();
