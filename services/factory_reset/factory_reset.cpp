@@ -21,6 +21,7 @@
 #include "secure_erase.h"
 
 namespace Updater {
+constexpr int OVERWRITE_COUNTS = 1;
 FactoryResetProcess &FactoryResetProcess::GetInstance()
 {
     static FactoryResetProcess resetProcessor;
@@ -71,7 +72,7 @@ int FactoryResetProcess::DoFactoryReset(FactoryResetMode mode, const std::string
         return -1;
     }
     LOG(INFO) << "Begin erasing data";
-    if (mode == SECURE_ERASE && !SecureErase::GetInstance().OverWritePartition()) {
+    if (mode == SECURE_ERASE && !SecureErase::GetInstance().OverWritePartition(OVERWRITE_COUNTS)) {
         resetStatus = 1;
     }
     if (FormatPartition(path, true) != 0) {
