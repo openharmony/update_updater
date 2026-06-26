@@ -1139,24 +1139,58 @@ UpdaterStatus StartUpdaterEntry(UpdaterParams &upParams)
     return status;
 }
 
+std::string GetCurrentTime()
+{
+    struct tm timeInfo {};
+    GetLocalTime(timeInfo);
+    std::ostringstream oss;
+    int width = 2;
+    oss << std::setw(width) << std::setfill('0') << timeInfo.tm_hour
+        << ":" << std::setw(width) << std::setfill('0') << timeInfo.tm_min;
+    std::string formattedTime = oss.str();
+    int beginYear = 1900;
+    std::string currentTime = std::to_string(timeInfo.tm_year + beginYear) + TR(YEAR_STRING) +
+        std::to_string(timeInfo.tm_mon + 1) + TR(MONTH_STRING) +
+        std::to_string(timeInfo.tm_mday) + TR(DAY_STRING) + " " + formattedTime;
+    return currentTime;
+}
+
 UpdaterStatus DoSecureErase(UpdaterParams &upParams)
 {
     UpdaterStatus status = UPDATE_UNKNOWN;
     UPDATER_UI_INSTANCE.ShowProgressPage();
     (void) UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_SECUREERASE);
+    if (upParams.factoryResetMode == "disk_erase") {
+        (void) UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_DISKERASE);
+    }
     LOG(INFO) << "SecureErase FactoryReset begin";
     status = UPDATE_SUCCESS;
 #if !defined(UPDATER_UT) && defined(UPDATER_UI_SUPPORT)
     DoProgress();
 #endif
+    time_t eraseStart = time(nullptr);
     if (FactoryReset(SECURE_ERASE, "/data") != 0) {
         LOG(ERROR) << "FactoryReset secure erase failed";
         status = UPDATE_ERROR;
     }
+    time_t eraseEnd = time(nullptr);
+    uint64_t eplasedSeconds = static_cast<uint64_t>(difftime(eraseEnd, eraseStart));
     if (status == UPDATE_SUCCESS) {
         LOG(INFO) << "Secure Erase Finish";
         UPDATER_UI_INSTANCE.ShowProgress(100); // 100 : 100%
+        UPDATER_UI_INSTANCE.ShowSuccessPage();
+        Utils::Time finishedTime(eplasedSeconds);
+        std::string costTimeText = TR(LABEL_COST_TIME) + std::to_string(finishedTime.GetHour()) + " " +
+            TR(HOUR_STRING) + std::to_string(finishedTime.GetMinute()) + " " + TR(MINUTE_STRING);
+        std::string currentTime = GetCurrentTime();
+        std::string finshedText = TR(LABEL_FINISHED_TIME) + currentTime + "   (" + costTimeText + ")";
+        UPDATER_UI_INSTANCE.ShowLogRes(finshedText);
         ClearUpdaterParaMisc();
+        if (upParams.factoryResetMode == "disk_erase") {
+            while (true) {
+                Utils::UsSleep(DISPLAY_TIME);
+            }
+        }
     }
     return status;
 }
@@ -1234,7 +1268,8 @@ UpdaterStatus DoUpdaterEntry(UpdaterParams &upParams)
     return status;
 }
 
-static void InitSecureEraseFunc(char* &optarg, PackageUpdateMode &mode, UpdaterParams &upParams)
+static void InitSecureEraseFunc(char* &optarg,
+    PackageUpdateMode &mode, UpdaterParams &upParams)
 {
     (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_REBOOTFACTORYRST);
     SecureErase::GetInstance().AddOverWritePartitions(upParams.factoryResetMode);
@@ -1542,7 +1577,8 @@ int UpdaterMain(int argc, char **argv)
                 status == UPDATE_CORRUPT ? TR(LOGRES_VERIFY_FAILED) : TR(LOGRES_UPDATE_FAILED));
             UPDATER_UI_INSTANCE.ShowFailedPage();
         } else if (upParams.factoryResetMode == "user_wipe_data" || upParams.factoryResetMode == "secure_erase" ||
-            upParams.factoryResetMode == "menu_wipe_data" || upParams.factoryResetMode == "factory_wipe_data") {
+            upParams.factoryResetMode == "menu_wipe_data" || upParams.factoryResetMode == "factory_wipe_data"||
+            upParams.factoryResetMode == "disk_erase") {
             UPDATER_UI_INSTANCE.ShowFailedPage();
         } else if (CheckUpdateMode(USB_UPDATE_FAIL)) {
             (void)UPDATER_UI_INSTANCE.SetMode(UPDATERMODE_USBUPDATE);

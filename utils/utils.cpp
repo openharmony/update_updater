@@ -27,6 +27,7 @@
 #include <sys/stat.h>
 #include <sys/sendfile.h>
 #include <sys/syscall.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <vector>
 #include "fs_manager/mount.h"
@@ -338,6 +339,23 @@ bool ReadFully(int fd, void *data, size_t size)
         remaining -= static_cast<size_t>(sread);
     }
     return true;
+}
+
+std::string ReadFile(const std::string &path)
+{
+    char realPath[PATH_MAX] = {0};
+    if (realpath(path.c_str(), realPath) == nullptr) {
+        LOG(ERROR) << "realpath failed " << path;
+        return "";
+    }
+    std::string readFilePath(realPath);
+    std::ifstream file(readFilePath);
+    if (!file.is_open()) {
+        LOG(ERROR) << "Failed to open file: " << readFilePath;
+        return "";
+    }
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    return content;
 }
 
 bool WriteStringToFile(int fd, const std::string& content)
@@ -1285,6 +1303,16 @@ bool GetBatteryCapacity(int &capacity)
     }
 
     return false;
+}
+
+void GetLocalTime(tm &tm)
+{
+#ifndef DIFF_PATCH_SDK
+    struct timeval tv {};
+
+    gettimeofday(&tv, nullptr);
+    localtime_r(&tv.tv_sec, &tm);
+#endif
 }
 
 void RecordBatteryLevel()
