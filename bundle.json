@@ -378,7 +378,16 @@
  	                    "header_files": [],
  	                    "header_base": "//base/update/updater/services/ui"
  	                }
- 	            }
+ 	            },
+                {
+                    "name": "//base/update/updater/services/diffpatch/diff:libdiff",
+                    "header": {
+                        "header_files": [
+                            "update_diff.h"
+                        ],
+                        "header_base": "//base/update/updater/services/diffpatch/diff"
+                    }
+                }
             ],
             "test": [
                 "//base/update/updater:unittest",
