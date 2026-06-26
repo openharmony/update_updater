@@ -33,6 +33,7 @@ declare_args() {
       !defined(global_parts_info.third_party_zlib)) {
     updater_zlib_enable = false
   }
+  updater_use_init_usb_configfs_cfg = false
 }
 
 if (updater_feature_sign_on_server) {

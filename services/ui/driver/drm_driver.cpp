@@ -228,12 +228,13 @@ drmModeRes *DrmDriver::GetOneResources(const int devIndex, int &fd) const
         LOG(ERROR) << "open failed " << devName;
         return nullptr;
     }
+    fdsan_exchange_owner_tag(tmpFd, 0, FDSAN_UPDATER_TAG);
     // 2: check drm capacity
     uint64_t cap = 0;
     int ret = drmGetCap(tmpFd, DRM_CAP_DUMB_BUFFER, &cap);
     if (ret != 0 || cap == 0) {
         LOG(ERROR) << "drmGetCap failed";
-        close(tmpFd);
+        fdsan_close_with_tag(tmpFd, FDSAN_UPDATER_TAG);
         return nullptr;
     }
 
@@ -241,7 +242,7 @@ drmModeRes *DrmDriver::GetOneResources(const int devIndex, int &fd) const
     drmModeRes *res = drmModeGetResources(tmpFd);
     if (res == nullptr) {
         LOG(ERROR) << "drmModeGetResources failed";
-        close(tmpFd);
+        fdsan_close_with_tag(tmpFd, FDSAN_UPDATER_TAG);
         return nullptr;
     }
 
@@ -256,7 +257,7 @@ drmModeRes *DrmDriver::GetOneResources(const int devIndex, int &fd) const
             return res;
         }
     }
-    close(tmpFd);
+    fdsan_close_with_tag(tmpFd, FDSAN_UPDATER_TAG);
     drmModeFreeResources(res);
     return nullptr;
 }
@@ -334,7 +335,7 @@ void DrmDriver::ModesetDestroyFb(struct BufferObject *bo)
         drmModeFreeResources(res_);
     }
     if (fd_ > 0) {
-        close(fd_);
+        fdsan_close_with_tag(fd_, FDSAN_UPDATER_TAG);
         fd_ = -1;
     }
 }

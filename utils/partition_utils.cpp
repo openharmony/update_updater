@@ -42,29 +42,30 @@ int PartitionUtils::WipeBlockPartition() const
         LOG(ERROR) << "open partition "<<  devName_.c_str() << " fail, error = " << errno;
         return -1;
     }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
  
     uint64_t size = GetBlockDeviceSize(fd);
     uint64_t range[2] = { 0, size };
     if (ioctl(fd, BLKSECDISCARD, &range) >= 0) {
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         return 0;
     }
  
     range[0] = 0;
     range[1] = size;
     if (ioctl(fd, BLKDISCARD, &range) < 0) {
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         LOG(ERROR) << "BLKDISCARD fail";
         return -1;
     }
     std::vector<uint8_t> buffer(BLOCK_SIZE, 0);
     if (!Updater::Utils::WriteFully(fd, buffer.data(), buffer.size())) {
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         LOG(ERROR) << "wipe block partition write fully fail";
         return -1;
     }
     fsync(fd);
-    close(fd);
+    fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
     return 0;
 }
 }

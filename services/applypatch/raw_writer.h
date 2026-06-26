@@ -21,6 +21,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "applypatch/data_writer.h"
+#include "log.h"
 
 namespace Updater {
 class RawWriter : public DataWriter {
@@ -36,7 +37,7 @@ public:
         offset_ = 0;
         if (fd_ > 0) {
             fsync(fd_);
-            close(fd_);
+            fdsan_close_with_tag(fd_, FDSAN_UPDATER_TAG);
         }
         fd_ = -1;
     }

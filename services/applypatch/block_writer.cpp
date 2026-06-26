@@ -41,6 +41,10 @@ bool BlockWriter::Write(const uint8_t *addr, size_t len, [[maybe_unused]] const 
         LOG(WARNING) << "BlockWriter: call writer while no more blocks need to write. skip " << len << " byte(s)";
         return false;
     }
+    if (offset_ < 0) {
+        LOG(ERROR) << "BlockWriter: offset " << offset_ << " is invalid";
+        return false;
+    }
     while (len > 0) {
         // Check if blocks can be written.
         // All blocks are written.

@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "fs_manager.h"
 #include "log/log.h"
 #include "securec.h"
 #include "updater/updater_const.h"
@@ -30,10 +31,17 @@ constexpr const uint32_t LUN_FOR_SLOT_A = 3;
 constexpr const uint32_t LUN_FOR_SLOT_B = 4;
 constexpr const uint32_t IMG_BLOCK_SIZE = 512;
 constexpr const uint32_t DEVICE_BLOCK_SIZE = 4096;
+constexpr const uint32_t DEFAULT_ENTRY_OFFSET = 2;
 
 uint32_t UfsPtable::GetDeviceLunNum()
 {
     return deviceLunNum_;
+}
+
+uint32_t UfsPtable::GetDefaultImageSize()
+{
+    SetDeviceLunNum();
+    return ptableData_.emmcGptDataLen + deviceLunNum_ * ptableData_.imgLuSize + GetPtableExtraOffset();
 }
 
 uint64_t UfsPtable::GetDeviceLunCapacity(const uint32_t lunIndex)
@@ -50,22 +58,8 @@ uint32_t UfsPtable::GetPtableExtraOffset(void)
     return 0;
 }
 
-void UfsPtable::SetLunPtnDataInfoNeedWrite(UfsPartitionDataInfo &ufsPtnInfo)
+bool UfsPtable::MatchSuffix(std::string &suffix, const UfsPartitionDataInfo &ufsPtnInfo)
 {
-    if (!hotABUpdateFlag_) {
-        ufsPtnInfo.needWrite = true;
-        return;
-    }
-    ufsPtnInfo.needWrite = false;
-    if (ufsPtnInfo.lunIndex < 2) { // 2 : skip sda sdb
-        return;
-    }
-    int slot = Utils::GetUpdateSlot();
-    if (slot != SLOT_A && slot != SLOT_B) {
-        LOG(ERROR) << "Invalid slot: " << slot;
-        return;
-    }
-    std::string suffix = (slot == SLOT_A ? PARTITION_A_SUFFIX : PARTITION_B_SUFFIX);
     std::transform(suffix.begin(), suffix.end(), suffix.begin(), ::toupper);
     uint32_t deviceBlockSize = GetDeviceBlockSize();
     const uint8_t *nameOffset = ufsPtnInfo.data + 2 * deviceBlockSize + GPT_PARTITION_NAME_OFFSET; // 2 : skip 2 block
@@ -75,11 +69,36 @@ void UfsPtable::SetLunPtnDataInfoNeedWrite(UfsPartitionDataInfo &ufsPtnInfo)
     std::string dispSuffix = dispName.substr(dispName.size() - PARTITION_AB_SUFFIX_SIZE, PARTITION_AB_SUFFIX_SIZE);
     if (dispSuffix == suffix) {
         LOG(INFO) << "dispSuffix is " << dispSuffix << ", suffix is " << suffix;
+        return true;
+    }
+    return false;
+}
+
+void UfsPtable::SetLunPtnDataInfoNeedWrite(UfsPartitionDataInfo &ufsPtnInfo)
+{
+    if (!isVabDevice_) {
         ufsPtnInfo.needWrite = true;
+        LOG(WARNING) << "force set needWrite to true for non vab device";
         return;
     }
+    ufsPtnInfo.needWrite = isUpdaterMode_;
+    if (ufsPtnInfo.lunIndex < 2) { // 2 : skip sda sdb
+        return;
+    }
+    int updateSlot = Utils::GetUpdateSlot();
+    int curSlot = GetCurrentSlot();
+    // update slot match current slot, no need to set need write
+    if ((updateSlot != SLOT_A && updateSlot != SLOT_B) || (curSlot == updateSlot)) {
+        LOG(ERROR) << "Invalid slot: " << updateSlot << ", curSlot is " << curSlot;
+        return;
+    }
+    // A -> B: updater mode write ptable of all lun except A lun, sys mode only write ptable of B lun
+    std::string suffix = isUpdaterMode_ ? ((updateSlot == SLOT_A ? PARTITION_B_SUFFIX : PARTITION_A_SUFFIX)) :
+        ((updateSlot == SLOT_A ? PARTITION_A_SUFFIX : PARTITION_B_SUFFIX));
+    ufsPtnInfo.needWrite = isUpdaterMode_ ? !MatchSuffix(suffix, ufsPtnInfo) : MatchSuffix(suffix, ufsPtnInfo);
     return;
 }
+
 // avoid u disk being recognized as a valid gpt lun device
 bool UfsPtable::IsUsbPath(const uint32_t lunIndex)
 {
@@ -170,7 +189,8 @@ bool UfsPtable::ParseGptHeaderByUfsLun(const uint8_t *gptImage, const uint32_t l
     }
     uint64_t lunDeviceSize = GetDeviceLunCapacity(lun);
     uint32_t lunLbaNum = lunDeviceSize / deviceBlockSize;
-    return PartitionCheckGptHeader(gptImage, len, lunLbaNum, blockSize, gptHeaderInfo);
+    HeaderCheckInputs inputs = { .gptImage = gptImage, .len = len, .lbaNum = lunLbaNum, .lunNum = lun };
+    return PartitionCheckGptHeader(inputs, blockSize, gptHeaderInfo);
 }
 
 bool UfsPtable::UfsReadGpt(const uint8_t *gptImage, const uint32_t len,
@@ -202,13 +222,12 @@ void UfsPtable::UfsReadGptEntry(const uint8_t *gptImage, const uint32_t lun,
                                 const uint32_t blockSize, std::vector<PtnInfo>::iterator startIter)
 {
     uint32_t partEntryCnt = blockSize / PARTITION_ENTRY_SIZE;
-    uint32_t partition0 = GET_LLWORD_FROM_BYTE(gptImage + blockSize + PARTITION_ENTRIES_OFFSET);
 
     uint32_t count = 0;
     const uint8_t *data = nullptr;
     bool tailPartFlag = false;
     for (uint32_t i = 0; i < (MAX_PARTITION_NUM / partEntryCnt) && count < MAX_PARTITION_NUM; i++) {
-        data = gptImage + (partition0 + i) * blockSize;
+        data = gptImage + (DEFAULT_ENTRY_OFFSET + i) * blockSize;
         for (uint32_t j = 0; j < partEntryCnt; j++) {
             uint8_t typeGuid[GPT_PARTITION_TYPE_GUID_LEN] = {0};
             if (memcpy_s(typeGuid, sizeof(typeGuid), &data[(j * PARTITION_ENTRY_SIZE)],
@@ -235,8 +254,8 @@ void UfsPtable::UfsReadGptEntry(const uint8_t *gptImage, const uint32_t lun,
                 typeGuid, GPT_PARTITION_TYPE_GUID_LEN);
             newPtnInfo.isTailPart = tailPartFlag;
             newPtnInfo.lun = lun;
-            newPtnInfo.gptEntryBufOffset = static_cast<int>((partition0 + i) * blockSize + j * PARTITION_ENTRY_SIZE -
-                                                            2 * blockSize); // 2 : pmbr and gpt header
+            newPtnInfo.gptEntryBufOffset = static_cast<int>((DEFAULT_ENTRY_OFFSET + i) * blockSize +
+                j * PARTITION_ENTRY_SIZE - 2 * blockSize); // 2 : pmbr and gpt header
             if (newPtnInfo.dispName == USERDATA_PARTITION) {
                 tailPartFlag = true;
                 usrDataPtnIndex_ = std::distance(partitionInfo_.begin(), startIter);
@@ -430,7 +449,7 @@ bool UfsPtable::LoadPartitionInfoFromLun(const uint32_t lunIndex, const uint32_t
         LOG(ERROR) << "new buffer failed!";
         return false;
     }
-    if (!MemReadWithOffset(ufsNode, 0, buffer, imgLen)) {
+    if (!MemReadWithOffset(ufsNode, lunOffset_[lunIndex], buffer, imgLen)) {
         LOG(ERROR) << "read " << imgLen << " bytes from ufsNode " << ufsNode << " failed!";
         delete [] buffer;
         return false;
@@ -484,18 +503,25 @@ bool UfsPtable::WritePartitionTable()
         return false;
     }
     for (uint32_t i = 0; i < ufsPtnDataInfo_.size(); i++) {
-        if (!ufsPtnDataInfo_[i].needWrite) {
+        uint32_t currLunIndex = ufsPtnDataInfo_[i].lunIndex;
+        if (currLunIndex >= MAX_LUN_NUMBERS) {
+            LOG(ERROR) << "invalid curr lun index " << currLunIndex;
+            return false;
+        }
+        // lun offset is not 0 means ptable change, can not continue in advance
+        if (!ufsPtnDataInfo_[i].needWrite && lunOffset_[currLunIndex] == 0) {
             continue;
         }
         uint64_t writeDataLen = ufsPtnDataInfo_[i].writeDataLen;
-        std::string ufsNode = GetDeviceLunNodePath(ufsPtnDataInfo_[i].lunIndex);
-        LOG(INFO) << "ufs node name:" << ufsNode << ", writeDataLen = " << writeDataLen;
+        std::string ufsNode = GetDeviceLunNodePath(currLunIndex);
+        LOG(INFO) << "ufs node name:" << ufsNode << ", writeDataLen = " << writeDataLen <<
+            ", offset: " << lunOffset_[currLunIndex];
 
         if (!ufsPtnDataInfo_[i].isGptVaild) {
             LOG(WARNING) <<  "invaild ptable, no need to update";
             continue;
         }
-        if (!WriteBufferToPath(ufsNode, 0, ufsPtnDataInfo_[i].data, writeDataLen)) {
+        if (!WriteBufferToPath(ufsNode, lunOffset_[currLunIndex], ufsPtnDataInfo_[i].data, writeDataLen)) {
             LOG(ERROR) << "write first gpt fail";
             return false;
         }
@@ -740,14 +766,20 @@ void UfsPtable::GetTgtPartitionName(std::string &name, const int sourceSlot)
 
 bool UfsPtable::EditABPartition(uint8_t *gptImage, const uint32_t blockSize, const int sourceSlot)
 {
+    if (gptImage == nullptr) {
+        LOG(ERROR) << "invalid gptImage";
+        return false;
+    }
     uint32_t partEntryCnt = blockSize / PARTITION_ENTRY_SIZE; // blockSize = 4096
-    uint32_t partition0 = GET_LLWORD_FROM_BYTE(gptImage + blockSize + PARTITION_ENTRIES_OFFSET);
-
+    if (partEntryCnt == 0) {
+        LOG(ERROR) << "invalid partEntryCnt";
+        return false;
+    }
     uint32_t count = 0;
     uint8_t *data = nullptr;
     LOG(INFO) << "Write Partition begin";
     for (uint32_t i = 0; i < (MAX_PARTITION_NUM / partEntryCnt) && count < MAX_PARTITION_NUM; i++) {
-        data = gptImage + (partition0 + i) * blockSize;
+        data = gptImage + (DEFAULT_ENTRY_OFFSET + i) * blockSize;
         for (uint32_t j = 0; j < partEntryCnt; j++) {
             uint8_t typeGuid[GPT_PARTITION_TYPE_GUID_LEN] = {0};
             if (memcpy_s(typeGuid, sizeof(typeGuid), &data[(j * PARTITION_ENTRY_SIZE)], sizeof(typeGuid)) != EOK) {
@@ -809,8 +841,17 @@ bool UfsPtable::ModifyBufferPartitionName(uint8_t *buffer, const uint32_t buffer
 bool UfsPtable::SyncABLunPtableDevice(const int sourceSlot)
 {
     LOG(INFO) << "start to sync ABLun Ptable in Device";
+    if (sourceSlot != SLOT_A && sourceSlot != SLOT_B) {
+        LOG(ERROR) << "Invalid sourceSlot: " << sourceSlot;
+        return false;
+    }
     std::string srcNodePath = GetDeviceLunNodePath(sourceSlot == SLOT_A ? LUN_FOR_SLOT_A : LUN_FOR_SLOT_B);
     uint32_t len = ptableData_.writeDeviceLunSize;
+    constexpr uint32_t maxBufSize = 1 * 1024 * 1024; // 1M
+    if (len == 0 || len > maxBufSize) {
+        LOG(ERROR) << "Invalid len: " << len;
+        return false;
+    }
     std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(len);
     if (buffer == nullptr) {
         LOG(ERROR) << "new buffer failed!";
@@ -836,6 +877,10 @@ bool UfsPtable::SyncABLunPtableDevice(const int sourceSlot)
 bool UfsPtable::GetABLunPartitionInfo(const int sourceSlot, std::string &srcNode,
     std::string &tgtNode, uint32_t &offset)
 {
+    if (sourceSlot != SLOT_A && sourceSlot != SLOT_B) {
+        LOG(ERROR) << "Invalid sourceSlot: " << sourceSlot;
+        return false;
+    }
     srcNode = GetDeviceLunNodePath(sourceSlot == SLOT_A ? LUN_FOR_SLOT_A : LUN_FOR_SLOT_B);
     tgtNode = GetDeviceLunNodePath(sourceSlot == SLOT_A ? LUN_FOR_SLOT_B : LUN_FOR_SLOT_A);
     offset = ptableData_.writeDeviceLunSize;
@@ -848,5 +893,40 @@ bool UfsPtable::GetABLunPartitionInfo(const int sourceSlot, std::string &srcNode
         return false;
     }
     return true;
+}
+
+bool UfsPtable::WritePtableLunOffset(uint32_t lunIndex, uint64_t offset)
+{
+    if (lunIndex >= MAX_LUN_NUMBERS) {
+        LOG(ERROR) << "invalid lun index " << lunIndex;
+        return false;
+    }
+    lunOffset_[lunIndex] = offset;
+    LOG(INFO) << "write lun offset success, index " << lunIndex << " offset " << offset;
+    return true;
+}
+
+uint32_t UfsPtable::GetGptEntryCrc(const HeaderCheckInputs &inputs, uint64_t offset, uint32_t crcLen)
+{
+    if (offset == DEFAULT_ENTRY_OFFSET * GetDeviceBlockSize()) {
+        return Ptable::GetGptEntryCrc(inputs, offset, crcLen);
+    }
+    // get entry crc from ufs node when offset is not default
+    if (inputs.lunNum >= MAX_LUN_NUMBERS) {
+        LOG(ERROR) << "invalid lun index " << inputs.lunNum;
+        return 0;
+    }
+    std::string ufsNode = GetDeviceLunNodePath(inputs.lunNum);
+    auto data = std::make_unique<uint8_t[]>(crcLen);
+    if (data == nullptr) {
+        LOG(ERROR) << "new buffer failed";
+        return 0;
+    }
+    if (!MemReadWithOffset(ufsNode, offset, data.get(), crcLen)) {
+        LOG(ERROR) << "read ufs node failed " << ufsNode;
+        return 0;
+    }
+    LOG(INFO) << "get entry crc with offset " << offset;
+    return CalculateCrc32(data.get(), crcLen);
 }
 } // namespace Updater

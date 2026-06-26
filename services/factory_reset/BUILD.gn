@@ -24,6 +24,7 @@ ohos_static_library("libsecure_erase") {
     "${updater_path}/services/fs_manager:libfsmanager",
     "${updater_path}/services/log:libupdaterlog",
     "${updater_path}/interfaces/kits/misc_info:libmiscinfo",
+    "${updater_path}/services/ptable_parse:libptableparse",
   ]
   include_dirs = [
     "include",
@@ -38,6 +39,7 @@ ohos_static_library("libsecure_erase") {
     "${updater_path}/services/ui/include",
     "${updater_path}/services/ui/control",
     "${updater_path}/services",
+    "${updater_path}/services/ptable_parse",
     "${updater_path}/utils/json",
   ]
   external_deps = [

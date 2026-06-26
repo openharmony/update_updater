@@ -425,7 +425,8 @@ HWTEST_F(BlockSetUnitTest, blockset_test_026, TestSize.Level1)
     memset_s(digest, SHA256_DIGEST_LENGTH, 0xAB, SHA256_DIGEST_LENGTH);
     std::string hexDigest = Utils::ConvertSha256Hex(digest, SHA256_DIGEST_LENGTH);
     EXPECT_EQ(hexDigest.size(), SHA256_DIGEST_LENGTH * 2);
-    int32_t ret = BlockSet::VerifySha256(buffer, 1, hexDigest, hexDigest);
+    std::string testDigest;
+    int32_t ret = BlockSet::VerifySha256(buffer, 1, hexDigest, testDigest);
     EXPECT_EQ(ret, -1);
 }
 

@@ -39,6 +39,12 @@ namespace Updater {
 using namespace Hpackage;
 using namespace Updater::Utils;
 
+std::recursive_mutex &GetAffinityLock()
+{
+    static std::recursive_mutex setAffinityLock;
+    return setAffinityLock;
+}
+
 void DeleteInstallTimeFile()
 {
     const std::string installTimeFilePath = std::string(UPDATER_PATH) + "/" + std::string(INSTALL_TIME_FILE);
@@ -281,10 +287,15 @@ std::optional<BootMode> SelectMode(const UpdateMessage &boot)
     return *it;
 }
 
+void AddBinaryTids(UpdaterParams &upParams, pid_t pid)
+{
+    std::lock_guard<std::recursive_mutex> lock(GetAffinityLock());
+    upParams.binaryTids = {std::to_string(pid)};
+}
+
 bool SetCpuAffinityByPid(const UpdaterParams &upParams, unsigned int reservedCores)
 {
-    static std::mutex setAffinityLock;
-    std::lock_guard<std::mutex> lock(setAffinityLock);
+    std::lock_guard<std::recursive_mutex> lock(GetAffinityLock());
     std::vector<std::string> binaryTids = upParams.binaryTids;
     if (upParams.binaryPid == -1 || std::find(
         binaryTids.begin(), binaryTids.end(), std::to_string(upParams.binaryPid)) == binaryTids.end()) {
@@ -321,6 +332,7 @@ bool SetCpuAffinityByPid(const UpdaterParams &upParams, unsigned int reservedCor
 
 void UpdateBinaryTids(const std::vector<std::string> &output, UpdaterParams &upParams)
 {
+    std::lock_guard<std::recursive_mutex> lock(GetAffinityLock());
     if (output.size() < DEFAULT_PROCESS_NUM) {
         LOG(ERROR) << "check output fail";
         return;

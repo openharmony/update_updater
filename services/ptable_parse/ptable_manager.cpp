@@ -365,7 +365,7 @@ bool PtableManager::LoadPartitionInfoWithFile(const std::string &ptablePath)
         imageBuf = nullptr;
         return false;
     }
-    pPtable_->SetHotABUpdateFlag(!Utils::IsUpdaterMode() && Utils::IsVabDevice());
+    pPtable_->SetHotABUpdateFlag(Utils::IsVabDevice(), Utils::IsUpdaterMode());
     if (!pPtable_->ParsePartitionFromBuffer(imageBuf, imgBufSize)) {
         LOG(ERROR) << "parse ptable buff fail";
         delete [] imageBuf;
@@ -405,6 +405,15 @@ bool PtableManager::WritePtableWithFile()
     Ptable::DeletePartitionTmpFile();
     LOG(INFO) << "write patble with file success";
     return true;
+}
+
+bool PtableManager::WritePtableLunOffset(uint32_t lunIndex, uint64_t offset)
+{
+    if (pPtable_ == nullptr) {
+        LOG(ERROR) << "pPtable_ is nullptr";
+        return false;
+    }
+    return pPtable_->WritePtableLunOffset(lunIndex, offset);
 }
 
 // class PackagePtable

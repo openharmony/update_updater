@@ -44,19 +44,13 @@ std::vector<Ptable::PtnInfo> Ptable::GetPtablePartitionInfo() const
     return partitionInfo_;
 }
 
-bool Ptable::CorrectBufByPtnList(uint8_t *imageBuf, uint64_t imgBufSize, const std::vector<PtnInfo> &srcInfo,
-                                 const std::vector<PtnInfo> &dstInfo)
-{
-    return false;
-}
-
-bool SyncABLunPtableDevice(const int sourceSlot)
+bool Ptable::SyncABLunPtableDevice(const int sourceSlot)
 {
     (void)sourceSlot;
     return false;
 }
 
-bool GetABLunPartitionInfo(const int sourceSlot, std::string &srcNode, std::string &tgtNode, uint32_t &offset)
+bool Ptable::GetABLunPartitionInfo(const int sourceSlot, std::string &srcNode, std::string &tgtNode, uint32_t &offset)
 {
     (void)sourceSlot;
     (void)srcNode;
@@ -78,6 +72,12 @@ bool Ptable::LoadPtnInfo(const std::vector<PtnInfo> &ptnInfo)
     }
     partitionInfo_ = ptnInfo;
     return true;
+}
+
+bool Ptable::CorrectBufByPtnList(uint8_t *imageBuf, uint64_t imgBufSize, const std::vector<PtnInfo> &srcInfo,
+                                 const std::vector<PtnInfo> &dstInfo)
+{
+    return false;
 }
 
 void Ptable::SetReservedSize(uint64_t reservedSize)
@@ -166,7 +166,7 @@ bool Ptable::ParsePtableData()
     return ret;
 }
 
-uint32_t Ptable::GetDefaultImageSize() const
+uint32_t Ptable::GetDefaultImageSize()
 {
     return ptableData_.emmcGptDataLen + ptableData_.defaultLunNum * ptableData_.imgLuSize;
 }
@@ -435,13 +435,14 @@ bool Ptable::CheckGptHeader(uint8_t *buffer, const uint32_t bufferLen, const uin
     return true;
 }
 
-bool Ptable::PartitionCheckGptHeader(const uint8_t *gptImage, const uint32_t len, const uint64_t lbaNum,
+bool Ptable::PartitionCheckGptHeader(const HeaderCheckInputs &inputs,
     const uint32_t blockSize, GPTHeaderInfo& gptHeaderInfo)
 {
-    if (len < ptableData_.writeDeviceLunSize || lbaNum == 0 ||
-        len < 2 * blockSize) { // 2: ptable image has at least two blocks
-        LOG(ERROR) << "len" << len << "ptableData_.writeDeviceLunSize" << ptableData_.writeDeviceLunSize
-            << "lbaNum" << lbaNum << " blockSize " << blockSize;
+    if (inputs.len < ptableData_.writeDeviceLunSize || inputs.lbaNum == 0 ||
+        inputs.lunNum > PTABLE_MAX_LUN_NUMBERS ||
+        inputs.len < 2 * blockSize) { // 2: ptable image has at least two blocks
+        LOG(ERROR) << "len " << inputs.len << " ptableData_.writeDeviceLunSize " << ptableData_.writeDeviceLunSize
+            << " lbaNum " << inputs.lbaNum << " blockSize " << blockSize;
         return false;
     }
 
@@ -450,13 +451,13 @@ bool Ptable::PartitionCheckGptHeader(const uint8_t *gptImage, const uint32_t len
         LOG(ERROR) << "new buffer failed!";
         return false;
     }
-    if (memcpy_s(buffer, blockSize, gptImage + blockSize, blockSize) != EOK) {
+    if (memcpy_s(buffer, blockSize, inputs.gptImage + blockSize, blockSize) != EOK) {
         LOG(ERROR) << "copy gpt header fail";
         delete [] buffer;
         return false;
     }
 
-    if (!CheckGptHeader(buffer, blockSize, lbaNum, gptHeaderInfo)) {
+    if (!CheckGptHeader(buffer, blockSize, inputs.lbaNum, gptHeaderInfo)) {
         LOG(ERROR) << "CheckGptHeader fail";
         delete [] buffer;
         return false;
@@ -466,7 +467,7 @@ bool Ptable::PartitionCheckGptHeader(const uint8_t *gptImage, const uint32_t len
     uint32_t orgCrcVal = GET_LWORD_FROM_BYTE(&buffer[PARTITION_CRC_OFFSET]);
     delete [] buffer;
 
-    uint32_t crcVal = CalculateCrc32(gptImage + partition0 * blockSize,
+    uint32_t crcVal = GetGptEntryCrc(inputs, partition0 * blockSize,
         gptHeaderInfo.maxPartitionCount * gptHeaderInfo.partitionEntrySize);
     if (crcVal != orgCrcVal) {
         LOG(ERROR) << "partition entires crc mismatch crcVal =" << std::hex << crcVal << " with orgCrcVal =" <<
@@ -749,7 +750,7 @@ bool Ptable::ReadPartitionFileToBuffer(uint8_t *ptbImgBuffer, uint32_t &imgBufSi
 
 void Ptable::DeletePartitionTmpFile()
 {
-    const char *ptablePath = Utils::IsUpdaterMode() ? PTABLE_TEMP_PATH : PTABLE_NORMAL_PATH;
+    const char* ptablePath = Utils::IsUpdaterMode() ? PTABLE_TEMP_PATH : PTABLE_NORMAL_PATH;
     if (Utils::DeleteFile(ptablePath) != 0) {
         LOG(ERROR) << "delete ptable tmp file fail " << ptablePath << strerror(errno);
         return;
@@ -793,5 +794,19 @@ void Ptable::PrintPartition(size_t index, const PtnInfo &info)
     LOG_LITE_SEN(INFO) << "[" << index << "].name=" << info.dispName << ", addr=0x" << std::hex << info.startAddr
         << ", size=0x" << info.partitionSize << ", lun=" << std::dec << info.lun
         << ", type=" << static_cast<std::underlying_type<PartType>::type>(info.partType);
+}
+
+bool Ptable::WritePtableLunOffset(uint32_t lunIndex, uint64_t offset)
+{
+    return true;
+}
+
+uint32_t Ptable::GetGptEntryCrc(const HeaderCheckInputs &inputs, uint64_t offset, uint32_t crcLen)
+{
+    if (inputs.len < static_cast<uint32_t>(offset) + crcLen) {
+        LOG(ERROR) << "input invalid " << inputs.len << " " << offset << " " << crcLen;
+        return 0;
+    }
+    return CalculateCrc32(inputs.gptImage + offset, crcLen);
 }
 } // namespace Updater

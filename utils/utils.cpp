@@ -27,6 +27,7 @@
 #include <sys/stat.h>
 #include <sys/sendfile.h>
 #include <sys/syscall.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <vector>
 #include "fs_manager/mount.h"
@@ -340,6 +341,23 @@ bool ReadFully(int fd, void *data, size_t size)
     return true;
 }
 
+std::string ReadFile(const std::string &path)
+{
+    char realPath[PATH_MAX] = {0};
+    if (realpath(path.c_str(), realPath) == nullptr) {
+        LOG(ERROR) << "realpath failed " << path;
+        return "";
+    }
+    std::string readFilePath(realPath);
+    std::ifstream file(readFilePath);
+    if (!file.is_open()) {
+        LOG(ERROR) << "Failed to open file: " << readFilePath;
+        return "";
+    }
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    return content;
+}
+
 bool WriteStringToFile(int fd, const std::string& content)
 {
     const char *p = content.data();
@@ -362,8 +380,9 @@ void SyncFile(const std::string &dst)
         LOG(ERROR) << "open " << dst << " failed! err " << strerror(errno);
         return;
     }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
     fsync(fd);
-    close(fd);
+    fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
 }
 
 bool CopyFile(const std::string &src, const std::string &dest, bool isAppend)
@@ -405,12 +424,13 @@ bool CopyFileBySendFile(const std::string &srcFile, const std::string &destFile)
         LOG(ERROR) << srcFile << ", Open source file fail, errno: " << errno;
         return false;
     }
+    fdsan_exchange_owner_tag(source, 0, FDSAN_UPDATER_TAG);
 
     (void)memset_s(realPath, PATH_MAX + 1, 0, PATH_MAX + 1);
     std::string::size_type pos = destFile.find_last_of("/");
     if (pos == std::string::npos || realpath(destFile.substr(0, pos).c_str(), realPath) == nullptr) {
         LOG(ERROR) << destFile << " dest file dir realpath fail";
-        close(source);
+        fdsan_close_with_tag(source, FDSAN_UPDATER_TAG);
         return false;
     }
 
@@ -418,9 +438,10 @@ bool CopyFileBySendFile(const std::string &srcFile, const std::string &destFile)
     int32_t dest = open(destRealPath.c_str(), O_WRONLY | O_CREAT, 0644); // 0644 : file permission
     if (dest == -1) {
         LOG(ERROR) << destRealPath << ", Open dest file fail, errno: " << errno;
-        close(source);
+        fdsan_close_with_tag(source, FDSAN_UPDATER_TAG);
         return false;
     }
+    fdsan_exchange_owner_tag(dest, 0, FDSAN_UPDATER_TAG);
 
     struct stat fst{};
     bool result = false;
@@ -430,7 +451,8 @@ bool CopyFileBySendFile(const std::string &srcFile, const std::string &destFile)
             result = true;
         }
     }
-    close(source);
+    fdsan_close_with_tag(source, FDSAN_UPDATER_TAG);
+    fdsan_close_with_tag(dest, FDSAN_UPDATER_TAG);
     close(dest);
     return result;
 }
@@ -1281,6 +1303,16 @@ bool GetBatteryCapacity(int &capacity)
     }
 
     return false;
+}
+
+void GetLocalTime(tm &tm)
+{
+#ifndef DIFF_PATCH_SDK
+    struct timeval tv {};
+
+    gettimeofday(&tv, nullptr);
+    localtime_r(&tv.tv_sec, &tm);
+#endif
 }
 
 void RecordBatteryLevel()

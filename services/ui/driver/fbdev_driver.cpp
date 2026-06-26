@@ -84,19 +84,20 @@ bool FbdevDriver::Init()
         LOG(ERROR) << "cannot open fb0";
         return false;
     }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
     Connect(fd, CONNECT);
     (void)FbPowerContrl(fd, false);
     (void)FbPowerContrl(fd, true);
 
     if (ioctl(fd, FBIOGET_FSCREENINFO, &finfo_) < 0) {
         LOG(ERROR) << "failed to get fb0 info";
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         return false;
     }
 
     if (ioctl(fd, FBIOGET_VSCREENINFO, &vinfo_) < 0) {
         LOG(ERROR) << "failed to get fb0 info";
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         return false;
     }
 
@@ -108,7 +109,7 @@ bool FbdevDriver::Init()
     buff_.vaddr = mmap(nullptr, finfo_.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (buff_.vaddr == MAP_FAILED) {
         LOG(ERROR) << "failed to mmap framebuffer";
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         return false;
     }
     (void)memset_s(buff_.vaddr, finfo_.smem_len, 0, finfo_.smem_len);
@@ -176,7 +177,7 @@ void FbdevDriver::ReleaseFb(const struct FbBufferObject *fbo)
     if (munmap(fbo->vaddr, finfo_.smem_len)) {
         LOG(ERROR) << "munmap fb failed" ;
     }
-    close(fd_);
+    fdsan_close_with_tag(fd_, FDSAN_UPDATER_TAG);
     fd_ = -1;
 }
 

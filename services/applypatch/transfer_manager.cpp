@@ -178,12 +178,13 @@ bool TransferManager::RegisterForRetry(const std::string &cmd)
         LOG(ERROR) << "Failed to create";
         return false;
     }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
     bool ret = Utils::WriteStringToFile(fd, cmd);
     if (ret == false) {
         LOG(ERROR) << "Write retry flag error";
     }
     fsync(fd);
-    close(fd);
+    fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
     return ret;
 }
 
@@ -195,12 +196,13 @@ std::string TransferManager::ReloadForRetry() const
         LOG(ERROR) << "Failed to open";
         return "";
     }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_UPDATER_TAG);
     (void)lseek(fd, 0, SEEK_SET);
     std::string cmd = "";
     if (!Utils::ReadFileToString(fd, cmd)) {
         LOG(ERROR) << "Error to read retry flag";
     }
-    close(fd);
+    fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
     return cmd;
 }
 

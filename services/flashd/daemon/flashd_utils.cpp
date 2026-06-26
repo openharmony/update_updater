@@ -18,8 +18,11 @@
 #include <unistd.h>
 
 #include "securec.h"
+#include "log/log.h"
 
 namespace Flashd {
+using namespace Updater;
+
 std::string GetPathRoot(const std::string &path)
 {
     auto pos = path.find_first_of('/', 1);
@@ -64,7 +67,7 @@ std::vector<std::string> Split(const std::string &src, const std::vector<std::st
 void SafeCloseFile(int &fd)
 {
     if (fd >= 0) {
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_UPDATER_TAG);
         fd = -1;
     }
 }

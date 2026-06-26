@@ -28,6 +28,8 @@ constexpr const char *PTABLE_NORMAL_PATH = "/mnt/sys_installer/update_ptable.img
 constexpr const char *PTABLE_TEMP_PATH = "/data/update/update_ptable.img";
 constexpr const char *PTABLE_NORMAL_PATH = "/data/update/update_ptable.img";
 #endif
+constexpr uint32_t PTABLE_MAX_LUN_NUMBERS = 32;
+
 class Ptable {
 public:
     Ptable() = default;
@@ -40,7 +42,6 @@ public:
         B_TYPE,
         RESERVED_TYPE
     };
-
     static constexpr uint32_t GPT_PARTITION_TYPE_GUID_LEN = 16;
     static constexpr const char *PREFIX_SYS_CLASS_BLOCK = "/sys/class/block/sd";
     static constexpr const char *PARTITION_NORMAL_TYPE = "normal";
@@ -64,6 +65,13 @@ public:
         std::string writePath {};
     };
 
+    struct HeaderCheckInputs {
+        const uint8_t *gptImage = nullptr;
+        uint32_t len = 0;
+        uint64_t lbaNum = 0;
+        uint32_t lunNum = 0;
+    };
+
     struct GptParseInfo {
     GptParseInfo(uint64_t imgBlockSize, uint64_t devBlockSize, uint64_t devDensity)
         : imgBlockSize(imgBlockSize), devBlockSize(devBlockSize), devDensity(devDensity) {}
@@ -75,7 +83,7 @@ public:
     uint32_t GetPtablePartitionNum() const;
     void SetReservedSize(uint64_t reservedSize);
     bool InitPtable();
-    virtual uint32_t GetDefaultImageSize() const;
+    virtual uint32_t GetDefaultImageSize();
     void PrintPtableInfo() const;
     void PrintPtableInfo(const std::vector<PtnInfo> &ptnInfo) const;
     bool GetPartionInfoByName(const std::string &partitionName, PtnInfo &ptnInfo, int32_t &index);
@@ -97,6 +105,8 @@ public:
     virtual bool GetABLunPartitionInfo(const int sourceSlot, std::string &srcNode,
         std::string &tgtNode, uint32_t &offset);
     virtual void ClearPartitionInfo();
+    virtual bool WritePtableLunOffset(uint32_t lunIndex, uint64_t offset);
+    virtual uint32_t GetGptEntryCrc(const HeaderCheckInputs &inputs, uint64_t offset, uint32_t crcLen);
 
     int GetEndPtnIndex()
     {
@@ -118,19 +128,10 @@ public:
         return hasTailpart_;
     }
 
-    void ClearPtnInfo()
+    void SetHotABUpdateFlag(bool isVabDevice, bool isUpdaterMode)
     {
-        partitionInfo_.clear();
-    }
-
-    void SetHotABUpdateFlag(bool hotABUpdateFlag)
-    {
-        hotABUpdateFlag_ = hotABUpdateFlag;
-    }
-
-    bool GetHotABUpdateFlag()
-    {
-        return hotABUpdateFlag_;
+        isVabDevice_ = isVabDevice;
+        isUpdaterMode_ = isUpdaterMode;
     }
 
 #ifndef UPDATER_UT
@@ -233,7 +234,9 @@ public:
     int endPtnIndex_ {-1};
     int usrDataPtnIndex_ {-1};
     bool hasTailpart_ {false};
-    bool hotABUpdateFlag_ {false};
+    bool isVabDevice_ {false};
+    bool isUpdaterMode_ {false};
+    uint64_t lunOffset_[PTABLE_MAX_LUN_NUMBERS] = {0};
 
     PtableData GetPtableData() const;
     bool MemReadWithOffset(const std::string &filePath, const uint64_t offset,
@@ -243,7 +246,7 @@ public:
     bool GetCapacity(const std::string &filePath, uint64_t &lunCapacity);
     bool GetPartitionGptHeaderInfo(const uint8_t *buffer, const uint32_t bufferLen, GPTHeaderInfo& gptHeaderInfo);
     void PatchBackUpGptHeader(uint8_t *gptHeader, const uint32_t len, uint64_t backGptEntryStart);
-    bool PartitionCheckGptHeader(const uint8_t *gptImage, const uint32_t len, const uint64_t lbaNum,
+    bool PartitionCheckGptHeader(const HeaderCheckInputs &inputs,
         const uint32_t blockSize, GPTHeaderInfo& gptHeaderInfo);
     void ParsePartitionName(const uint8_t *data, const uint32_t dataLen,
         std::string &name, const uint32_t nameLen);

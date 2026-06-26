@@ -108,6 +108,7 @@ void DoShutdown(const std::string &shutdownReason);
 std::string GetCertName();
 bool WriteFully(int fd, const uint8_t *data, size_t size);
 bool ReadFully(int fd, void* data, size_t size);
+std::string ReadFile(const std::string &path);
 bool CopyFile(const std::string &src, const std::string &dest, bool isAppend = false);
 bool CopyFileBySendFile(const std::string &srcFile, const std::string &destFile);
 bool CopyDir(const std::string &srcPath, const std::string &dstPath);
@@ -161,6 +162,7 @@ bool GetBatteryCapacity(int &capacity);
 void RecordBatteryLevel();
 // print data hex code, 16bytes per line
 void PrintHex(const uint8_t *buffer, size_t length);
+void GetLocalTime(tm &tm);
 bool IsAiUpdateBinary();
 std::string GetDiffTempPath();
 
