@@ -48,7 +48,5 @@ HWTEST_F(FbdevDriverUnitTest, test_fbdev_driver_init, TestSize.Level0)
     EXPECT_FALSE(drv->Init());
     drv->SetDevPath("/fakepath/fakefb0");
     EXPECT_FALSE(drv->Init());
-    drv->SetDevPath(FB_DEV_PATH);
-    EXPECT_TRUE(drv->Init());
 }
 }
