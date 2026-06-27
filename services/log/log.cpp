@@ -135,6 +135,11 @@ void SetLogLevel(int level)
     g_logLevel = level;
 }
 
+int GetLogLevel()
+{
+    return g_logLevel;
+}
+
 void GetFormatTime(char time[], int size)
 {
 #ifndef DIFF_PATCH_SDK

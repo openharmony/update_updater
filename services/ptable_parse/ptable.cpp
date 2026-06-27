@@ -21,6 +21,7 @@
 #include <thread>
 
 #include "applypatch/data_writer.h"
+#include "log/dynamic_log.h"
 #include "log/log.h"
 #include "securec.h"
 #include "utils.h"
@@ -777,14 +778,19 @@ void Ptable::PrintPtableChanges(const std::vector<Ptable::PtnInfo> &ptnInfo)
     LOG(INFO) << "ptnInfo : ===========================================";
     if (isSame) {
         LOG(INFO) << "partition count = " << ptnInfo.size() << " ptable not change";
-    } else {
-        LOG(INFO) << "partition count = " << ptnInfo.size();
+        LOG(INFO) << "ptnInfo : ===========================================";
+        return;
+    }
+    LOG(INFO) << "partition count = " << ptnInfo.size();
+    if (GetDynamicLogLevel() >= GetLogLevel()) {
         for (size_t i = 0; i < ptnInfo.size(); ++i) {
             PrintPartition(i, ptnInfo[i]);
         }
         // Prevent log overflow issues caused by excessive hilog printing frequency.
         constexpr int waitMilliseconds = 500;
         std::this_thread::sleep_for(std::chrono::milliseconds(waitMilliseconds));
+    } else {
+        LOG(INFO) << "ignore ptable detail logs";
     }
     LOG(INFO) << "ptnInfo : ===========================================";
 }
