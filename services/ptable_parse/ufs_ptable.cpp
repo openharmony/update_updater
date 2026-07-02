@@ -719,7 +719,7 @@ bool UfsPtable::GetPtableImageBuffer(uint8_t *imageBuf, const uint32_t imgBufSiz
         /* get mbr head */
         if (!MemReadWithOffset(ufsNode, curDevOffset, imageBuf + curImgOffset + imgOffset, imgBlockSize)) {
             LOG(ERROR) << "MemReadWithOffset " << ufsNode << " error";
-            return false;
+            continue;
         }
         bool isGptExist = CheckProtectiveMbr(imageBuf + curImgOffset + imgOffset, imgBlockSize);
         curImgOffset += imgBlockSize;
