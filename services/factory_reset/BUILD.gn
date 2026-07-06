@@ -47,7 +47,7 @@ ohos_static_library("libsecure_erase") {
     "cJSON:cjson",
     "init:libbegetutil_static",
     "init:libfsmanager_static_real",
-    "zlib:libz",
+    "zlib:shared_libz",
   ]
   if (updater_ui_support) {
     external_deps += [

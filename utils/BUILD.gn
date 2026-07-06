@@ -144,7 +144,7 @@ ohos_executable("write_updater") {
     "${updater_path}/utils:libutils",
   ]
   external_deps = [
-    "bounds_checking_function:libsec_static",
+    "bounds_checking_function:libsec_shared",
     "init:libbegetutil_static",
   ]
 

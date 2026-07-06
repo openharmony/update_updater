@@ -70,7 +70,7 @@ ohos_static_library("libui_driver") {
   ]
 
   external_deps = [
-    "bounds_checking_function:libsec_static",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "libdrm:libdrm",
     "libpng:libpng",
@@ -143,7 +143,7 @@ ohos_static_library("libui") {
   ]
 
   external_deps = [
-    "bounds_checking_function:libsec_static",
+    "bounds_checking_function:libsec_shared",
     "cJSON:cjson",
     "c_utils:utils",
     "libdrm:libdrm",

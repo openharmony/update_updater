@@ -104,7 +104,7 @@ ohos_static_library("flashd_deamon") {
   configs = [ ":flashd_hdc_config" ]
 
   external_deps = [
-    "bounds_checking_function:libsec_static",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "libuv:uv",
     "lz4:liblz4_static",
@@ -221,7 +221,7 @@ ohos_static_library("libflashd") {
   }
 
   external_deps = [
-    "bounds_checking_function:libsec_static",
+    "bounds_checking_function:libsec_shared",
     "bzip2:libbz2",
     "cJSON:cjson",
     "c_utils:utils",
@@ -229,7 +229,7 @@ ohos_static_library("libflashd") {
     "libuv:uv",
     "lz4:liblz4_static",
     "openssl:libcrypto_shared",
-    "zlib:libz",
+    "zlib:shared_libz",
   ]
 
   if (updater_hdc_depend) {

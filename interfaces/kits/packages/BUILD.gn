@@ -42,7 +42,7 @@ ohos_shared_library("libpackage_shared") {
     "${updater_path}/services/package:libupdaterpackage_shared",
   ]
 
-  external_deps = [ "bounds_checking_function:libsec_static" ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 
   innerapi_tags = [
     "platformsdk",
