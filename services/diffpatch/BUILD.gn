@@ -66,11 +66,11 @@ ohos_executable("diff") {
   ]
 
   external_deps = [
-    "bounds_checking_function:libsec_static",
+    "bounds_checking_function:libsec_shared",
     "bzip2:libbz2",
     "lz4:liblz4_static",
     "openssl:libcrypto_static",
-    "zlib:libz",
+    "zlib:shared_libz",
   ]
 
   if (is_mingw) {

@@ -83,7 +83,7 @@ ohos_shared_library("libpatch_shared") {
     "bzip2:libbz2",
     "lz4:liblz4_static",
     "openssl:libcrypto_shared",
-    "zlib:libz",
+    "zlib:shared_libz",
   ]
 
   configs = [ ":patch_config" ]

@@ -147,7 +147,7 @@ ohos_shared_library("libupdaterpackage_shared") {
   ]
 
   external_deps = [
-    "bounds_checking_function:libsec_static",
+    "bounds_checking_function:libsec_shared",
     "lz4:liblz4_static",
     "openssl:libcrypto_shared",
     "zlib:shared_libz",
@@ -176,7 +176,7 @@ ohos_shared_library("libverify_shared") {
   ]
 
   external_deps = [
-    "bounds_checking_function:libsec_static",
+    "bounds_checking_function:libsec_shared",
     "openssl:libcrypto_shared",
   ]
 

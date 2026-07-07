@@ -47,7 +47,7 @@ ohos_shared_library("libupdaterlog_shared") {
     "${updater_path}/config/shared_library:updater_shared_config"
   ]
 
-  external_deps = [ "bounds_checking_function:libsec_static" ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 
   deps = []
 

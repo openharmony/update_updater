@@ -81,7 +81,7 @@ ohos_static_library("libupdaterkits") {
   ]
 
   external_deps = [
-    "bounds_checking_function:libsec_static",
+    "bounds_checking_function:libsec_shared",
     "init:libbegetutil_static",
   ]
   public_configs = [ ":libring_buffer_headers" ]
