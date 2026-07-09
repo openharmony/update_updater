@@ -65,6 +65,10 @@ static std::string GetFstabFile()
 #ifndef UPDATE_PATCH_SHARED
 MountStatus GetMountStatusForPath(const std::string &path)
 {
+    if (g_fstab == nullptr) {
+        LOG(ERROR) << "g_fstab is nullptr";
+        return MountStatus::MOUNT_ERROR;
+    }
     FstabItem *item = FindFstabItemForPath(*g_fstab, path.c_str());
     if (item == nullptr) {
         return MountStatus::MOUNT_ERROR;
