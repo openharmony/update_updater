@@ -65,6 +65,7 @@ ohos_static_library("libBinFlowUpdate") {
     external_deps += [ "cJSON:cjson_static" ]
     defines = [ "UPDATER_USE_PTABLE" ]
   }
+  branch_protector_ret = "pac_ret"
   subsystem_name = "updater"
   part_name = "updater"
 }

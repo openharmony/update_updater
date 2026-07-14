@@ -56,6 +56,8 @@ ohos_static_library("libutils") {
     "init:libfsmanager_static_real",
   ]
 
+  branch_protector_ret = "pac_ret"
+
   if (build_selinux) {
     external_deps += [
       "selinux:libselinux_static",
@@ -78,6 +80,8 @@ ohos_static_library("libutils_fs") {
 
   public_configs = [ ":libutils_exported_headers" ]
 
+  branch_protector_ret = "pac_ret"
+
   subsystem_name = "updater"
   part_name = "updater"
 }
@@ -94,6 +98,8 @@ ohos_static_library("libutils_json") {
 
   external_deps = [ "cJSON:cjson" ]
 
+  branch_protector_ret = "pac_ret"
+
   subsystem_name = "updater"
   part_name = "updater"
 }
@@ -105,6 +111,8 @@ ohos_static_library("libutils_common") {
     "include",
     "${updater_path}/services/include/",
   ]
+
+  branch_protector_ret = "pac_ret"
 
   subsystem_name = "updater"
   part_name = "updater"
@@ -124,6 +132,7 @@ ohos_executable("updater_reboot") {
     "${updater_path}/services/fs_manager:libfsmanager",
     "${updater_path}/utils:libutils",
   ]
+  branch_protector_ret = "pac_ret"
   install_images = [ "updater" ]
   install_enable = true
   part_name = "updater"
@@ -147,6 +156,8 @@ ohos_executable("write_updater") {
     "bounds_checking_function:libsec_shared",
     "init:libbegetutil_static",
   ]
+
+  branch_protector_ret = "pac_ret"
 
   install_enable = true
   part_name = "updater"

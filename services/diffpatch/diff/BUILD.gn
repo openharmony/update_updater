@@ -59,6 +59,8 @@ ohos_static_library("libdiff") {
 
   public_configs = [ ":diff_config" ]
 
+  branch_protector_ret = "pac_ret"
+
   subsystem_name = "updater"
   part_name = "updater"
 }

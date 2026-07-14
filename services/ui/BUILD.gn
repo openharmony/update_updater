@@ -86,6 +86,8 @@ ohos_static_library("libui_driver") {
     ]
   }
 
+  branch_protector_ret = "pac_ret"
+
   subsystem_name = "updater"
   part_name = "updater"
 }
@@ -159,6 +161,8 @@ ohos_static_library("libui") {
       "graphic_utils_lite:utils_lite",
     ]
   }
+
+  branch_protector_ret = "pac_ret"
 
   subsystem_name = "updater"
   part_name = "updater"
