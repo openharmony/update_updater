@@ -36,6 +36,7 @@ constexpr const char *UPDATER_PATH = "/data/updater";
 constexpr const char *LOG_UPDATER_PATH = "/log/updater";
 constexpr const char *UPDATER_LOCALE_FILE = "locale";
 constexpr const char *UPDATER_RESULT_FILE = "updater_result";
+constexpr const char *EUPDATER_RESULT_FILE = "eupdater_result";
 constexpr const char *SINGULAR_UPDATE_PATH = "/data/updater/singular_update";
 constexpr const char *SINGULAR_UPDATE_NAME = "singular_update";
 constexpr const char *SINGULAR_UPDATE_RESULT = "singular_update_result";

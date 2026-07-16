@@ -110,6 +110,7 @@ bool DeleteUpdaterPath(const std::string &path)
             (currentName.compare(MANUAL_UPLOAD_LOG_TIME_FILE) == 0) ||
             (currentName.compare(INSTALL_TIME_FILE) == 0) ||
             (currentName.compare(ROLLBACK_FILE) == 0) ||
+            (currentName.compare(EUPDATER_RESULT_FILE) == 0) ||
             (currentName.compare(SINGULAR_UPDATE_NAME) == 0) ||
             (currentName.compare(CDC_LOG_NAME) == 0) ||
             (currentName.compare(SINGULAR_UPDATE_RESULT) == 0)) {
