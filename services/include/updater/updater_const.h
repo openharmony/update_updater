@@ -64,6 +64,7 @@ constexpr const char *STREAM_ZIP_FILETYPE = ".zip";
 constexpr const char *STREAM_BIN_STREAMTYPE = ".shm";
 constexpr const char *STREAM_ARG_PREFIX = "stream=";
 constexpr const char *FACTORY_RESET_OTA_MISC = "--user_wipe_data\n--reset_enter:337";
+constexpr const char *DROP_UPGRADE_TAG = "/data/update/drop_upgrade";
 
 // update mode
 constexpr const char *SDCARD_MODE = "sdcard_update";
