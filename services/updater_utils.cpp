@@ -211,6 +211,7 @@ static void DeleteUpdaterTmpFiles()
     if (access(DROP_UPGRADE_TAG, 0) == 0 && !Utils::DeleteFile(DROP_UPGRADE_TAG)) {
         LOG(ERROR) << "Delete drop upgrade tag failed";
     }
+    sync();
 }
 
 void PostUpdater(bool clearMisc)
