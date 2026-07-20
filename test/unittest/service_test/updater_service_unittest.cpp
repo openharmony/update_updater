@@ -21,6 +21,7 @@
 #include "securec.h"
 #include "updater/updater_const.h"
 #include "updater/updater.h"
+#include "updater/updater_preprocess.h"
 #include "sdcard_update/sdcard_update.h"
 #include "fs_manager/mount.h"
 #include "misc_info/misc_info.h"
