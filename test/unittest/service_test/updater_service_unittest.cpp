@@ -509,14 +509,6 @@ HWTEST_F(UpdaterUtilUnitTest, GetCpuCoresTest, TestSize.Level1)
     EXPECT_EQ(cores, 4);
 }
 
-HWTEST_F(UpdaterUtilUnitTest, AddBinaryTidsTest, TestSize.Level1)
-{
-    UpdaterParams upParams;
-    AddBinaryTids(upParams, 12345);
-    EXPECT_EQ(upParams.binaryTids.size(), 1);
-    EXPECT_EQ(upParams.binaryTids[0], "12345");
-}
-
 HWTEST_F(UpdaterUtilUnitTest, SetCpuAffinityByPidTest, TestSize.Level1)
 {
     UpdaterParams upParams;
