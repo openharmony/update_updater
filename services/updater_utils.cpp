@@ -208,6 +208,10 @@ static void DeleteUpdaterTmpFiles()
     if (access(Flashd::FLASHD_FILE_PATH, 0) == 0 && !DeleteUpdaterPath(Flashd::FLASHD_FILE_PATH)) {
         LOG(ERROR) << "DeleteUpdaterPath failed";
     }
+    if (access(DROP_UPGRADE_TAG, 0) == 0 && !Utils::DeleteFile(DROP_UPGRADE_TAG)) {
+        LOG(ERROR) << "Delete drop upgrade tag failed";
+    }
+    sync();
 }
 
 void PostUpdater(bool clearMisc)
