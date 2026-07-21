@@ -21,6 +21,7 @@
 #include "securec.h"
 #include "updater/updater_const.h"
 #include "updater/updater.h"
+#include "updater/updater_preprocess.h"
 #include "sdcard_update/sdcard_update.h"
 #include "fs_manager/mount.h"
 #include "misc_info/misc_info.h"
@@ -353,5 +354,301 @@ HWTEST_F(UpdaterUtilUnitTest, CheckSdcardPkgs, TestSize.Level0)
 
     upParams.updatePackage.push_back("/sdcard/updater/updater_full.zip");
     EXPECT_EQ(CheckSdcardPkgs(upParams), UPDATE_SUCCESS);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, OtaUpdatePreCheckTest, TestSize.Level1)
+{
+    Hpackage::PkgManager::PkgManagerPtr pkgManager = nullptr;
+    std::string packagePath = "/data/updater/updater_full.zip";
+    int32_t ret = OtaUpdatePreCheck(pkgManager, packagePath);
+    EXPECT_EQ(ret, UPDATE_CORRUPT);
+
+    pkgManager = Hpackage::PkgManager::CreatePackageInstance();
+    ret = OtaUpdatePreCheck(pkgManager, "/nonexistent/path/updater.zip");
+    EXPECT_EQ(ret, Hpackage::PKG_INVALID_FILE);
+    Hpackage::PkgManager::ReleasePackageInstance(pkgManager);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, IsBatteryCapacitySufficientTest, TestSize.Level1)
+{
+    bool ret = IsBatteryCapacitySufficient();
+    EXPECT_EQ(ret, true);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, CheckStatvfsTest, TestSize.Level1)
+{
+    int ret = CheckStatvfs(0);
+    EXPECT_TRUE(ret == UPDATE_SUCCESS || ret == UPDATE_ERROR);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, GetCurrentPackagePathTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    upParams.pkgLocation = 0;
+    upParams.updatePackage.push_back("/data/updater/test.zip");
+    std::string path = GetCurrentPackagePath(upParams);
+    EXPECT_EQ(path, "/data/updater/test.zip");
+
+    upParams.pkgLocation = 10;
+    path = GetCurrentPackagePath(upParams);
+    EXPECT_EQ(path, "");
+}
+
+HWTEST_F(UpdaterUtilUnitTest, SetUpdateSlotParamTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    upParams.updatePackage.push_back("/data/updater/updater.zip");
+    UpdaterStatus ret = SetUpdateSlotParam(upParams, false);
+    EXPECT_EQ(ret, UPDATE_SUCCESS);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, ClearUpdateSlotParamTest, TestSize.Level1)
+{
+    UpdaterStatus ret = ClearUpdateSlotParam();
+    EXPECT_EQ(ret, UPDATE_SUCCESS);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, IsUpdateBasePkgTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    upParams.updatePackage.push_back("/data/updater/update_base.zip");
+    bool ret = IsUpdateBasePkg(upParams);
+    EXPECT_EQ(ret, true);
+
+    upParams.updatePackage.clear();
+    upParams.updatePackage.push_back("/data/updater/update_full.zip");
+    ret = IsUpdateBasePkg(upParams);
+    EXPECT_EQ(ret, false);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, ProgressSmoothHandlerTest, TestSize.Level1)
+{
+    ProgressSmoothHandler(0, FULL_PERCENT_PROGRESS);
+    ProgressSmoothHandler(50, 100);
+    ProgressSmoothHandler(-1, 0);
+    ProgressSmoothHandler(0, FULL_PERCENT_PROGRESS + 1);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, SetAndGetTmpProgressValueTest, TestSize.Level1)
+{
+    SetTmpProgressValue(50);
+    EXPECT_EQ(GetTmpProgressValue(), 50);
+    SetTmpProgressValue(100);
+    EXPECT_EQ(GetTmpProgressValue(), 100);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, SetAndGetTotalProgressRatioTest, TestSize.Level1)
+{
+    SetTotalProgressRatio(0.5f);
+    EXPECT_EQ(GetTotalProgressRatio(), 0.5f);
+    SetTotalProgressRatio(1.0f);
+    EXPECT_EQ(GetTotalProgressRatio(), 1.0f);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, SetAndGetCancelStatusTest, TestSize.Level1)
+{
+    SetCancelStatus(true);
+    EXPECT_EQ(GetCancelStatus(), true);
+    SetCancelStatus(false);
+    EXPECT_EQ(GetCancelStatus(), false);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, PreProcessTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    Hpackage::PkgManager::PkgManagerPtr pkgManager = nullptr;
+    int32_t ret = Updater::PreProcess::GetInstance().DoUpdatePreProcess(upParams, pkgManager);
+    EXPECT_EQ(ret, 109);
+
+    ret = Updater::PreProcess::GetInstance().DoUpdateAuth("");
+    EXPECT_EQ(ret, 0);
+
+    ret = Updater::PreProcess::GetInstance().DoUpdateClear();
+    EXPECT_EQ(ret, 0);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, CheckVersionTest, TestSize.Level1)
+{
+    Hpackage::PkgManager::PkgManagerPtr pkgManager = nullptr;
+    PackagesInfoPtr pkginfomanager = nullptr;
+    int ret = CheckVersion(pkgManager, pkginfomanager);
+    EXPECT_EQ(ret, Hpackage::PKG_INVALID_VERSION);
+
+    pkgManager = Hpackage::PkgManager::CreatePackageInstance();
+    ret = CheckVersion(pkgManager, pkginfomanager);
+    EXPECT_EQ(ret, Hpackage::PKG_INVALID_VERSION);
+    Hpackage::PkgManager::ReleasePackageInstance(pkgManager);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, CheckBoardIdTest, TestSize.Level1)
+{
+    Hpackage::PkgManager::PkgManagerPtr pkgManager = nullptr;
+    PackagesInfoPtr pkginfomanager = nullptr;
+    int ret = CheckBoardId(pkgManager, pkginfomanager);
+    EXPECT_EQ(ret, Hpackage::PKG_INVALID_VERSION);
+
+    pkgManager = Hpackage::PkgManager::CreatePackageInstance();
+    ret = CheckBoardId(pkgManager, pkginfomanager);
+    EXPECT_EQ(ret, Hpackage::PKG_INVALID_VERSION);
+    Hpackage::PkgManager::ReleasePackageInstance(pkgManager);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, GetCpuCoresTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    upParams.cpuTypeCores = {4, 2, 2};
+    unsigned int cores = GetCpuCores(upParams, 0);
+    EXPECT_EQ(cores, 4);
+    cores = GetCpuCores(upParams, 1);
+    EXPECT_EQ(cores, 2);
+    cores = GetCpuCores(upParams, 2);
+    EXPECT_EQ(cores, 2);
+    cores = GetCpuCores(upParams, -1);
+    EXPECT_EQ(cores, 4);
+    cores = GetCpuCores(upParams, 10);
+    EXPECT_EQ(cores, 4);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, SetCpuAffinityByPidTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    upParams.binaryPid = -1;
+    bool ret = SetCpuAffinityByPid(upParams, 1);
+    EXPECT_EQ(ret, false);
+
+    upParams.binaryPid = 12345;
+    upParams.binaryTids = {"99999"};
+    ret = SetCpuAffinityByPid(upParams, 1);
+    EXPECT_EQ(ret, false);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, GetStashSizeListTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    upParams.pkgLocation = 0;
+    upParams.updatePackage.push_back("/data/updater/updater/updater_full.zip");
+    std::vector<uint64_t> stashList = GetStashSizeList(upParams);
+    EXPECT_TRUE(stashList.size() > 0);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, GetWorkPathTest, TestSize.Level1)
+{
+    std::string path = GetWorkPath();
+    EXPECT_FALSE(path.empty());
+}
+
+HWTEST_F(UpdaterUtilUnitTest, UpdateBinaryTidsTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    std::vector<std::string> output = {"set_binary_tids", "12345,67890"};
+    UpdateBinaryTids(output, upParams);
+    EXPECT_EQ(upParams.binaryTids.size(), 2);
+
+    output = {"set_binary_tids"};
+    UpdateBinaryTids(output, upParams);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, WriteInstallTimeTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    upParams.pkgLocation = 0;
+    upParams.installTime.push_back(std::chrono::duration<double>(1.5));
+    WriteInstallTime(upParams);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, ReadInstallTimeTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    upParams.pkgLocation = 0;
+    upParams.installTime.push_back(std::chrono::duration<double>(0));
+    ReadInstallTime(upParams);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, UpdatePreProcessTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    Hpackage::PkgManager::PkgManagerPtr pkgManager = nullptr;
+    int32_t ret = UpdatePreProcess(upParams, pkgManager);
+    EXPECT_EQ(ret, Hpackage::PKG_INVALID_VERSION);
+
+    pkgManager = Hpackage::PkgManager::CreatePackageInstance();
+    ret = UpdatePreProcess(upParams, pkgManager);
+    Hpackage::PkgManager::ReleasePackageInstance(pkgManager);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, RegisterModeTest, TestSize.Level1)
+{
+    GetBootModes().clear();
+    auto dummyEntry = [] (int argc, char **argv) -> int { return 0; };
+    RegisterMode({ IsFlashd, "TEST_MODE", "", dummyEntry });
+    EXPECT_EQ(GetBootModes().size(), 1);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, DoUpdaterEntryTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    upParams.updateMode = HOTA_UPDATE;
+    upParams.updatePackage.clear();
+    upParams.factoryResetMode = "";
+    UpdaterStatus ret = DoUpdaterEntry(upParams);
+    EXPECT_EQ(ret, UPDATE_UNKNOWN);
+
+    upParams.factoryResetMode = "secure_erase";
+    ret = DoUpdaterEntry(upParams);
+
+    upParams.factoryResetMode = "disk_erase";
+    ret = DoUpdaterEntry(upParams);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, StartUpdaterEntryTest_SubPkg, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    upParams.updateMode = SUBPKG_UPDATE;
+    UpdaterStatus ret = StartUpdaterEntry(upParams);
+    EXPECT_TRUE(ret == UPDATE_SUCCESS || ret == UPDATE_ERROR);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, InstallUpdaterPackagesTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    upParams.callbackProgress = nullptr;
+    UpdaterStatus ret = InstallUpdaterPackages(upParams);
+    EXPECT_FALSE(ret == UPDATE_SUCCESS || ret == UPDATE_ERROR || ret == UPDATE_SKIP);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, GetUpdatePackageInfoTest, TestSize.Level1)
+{
+    Hpackage::PkgManager::PkgManagerPtr pkgManager = nullptr;
+    int32_t ret = GetUpdatePackageInfo(pkgManager, "/data/updater/updater.zip");
+    EXPECT_EQ(ret, UPDATE_CORRUPT);
+
+    pkgManager = Hpackage::PkgManager::CreatePackageInstance();
+    ret = GetUpdatePackageInfo(pkgManager, "/nonexistent/package.zip");
+    EXPECT_NE(ret, Hpackage::PKG_SUCCESS);
+    Hpackage::PkgManager::ReleasePackageInstance(pkgManager);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, PostUpdaterTest, TestSize.Level1)
+{
+    PostUpdater(true);
+    PostUpdater(false);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, DeleteInstallTimeFileTest, TestSize.Level1)
+{
+    DeleteInstallTimeFile();
+}
+
+HWTEST_F(UpdaterUtilUnitTest, FactoryResetModeTest, TestSize.Level1)
+{
+    UpdaterParams upParams;
+    upParams.factoryResetMode = "factory_wipe_data";
+    UpdaterStatus ret = DoFactoryRstEntry(upParams);
+
+    upParams.factoryResetMode = "user_wipe_data";
+    ret = DoFactoryRstEntry(upParams);
+
+    upParams.factoryResetMode = "menu_wipe_data";
+    ret = DoFactoryRstEntry(upParams);
 }
 }
