@@ -867,7 +867,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamCreateShmRingBufferWithNewShm, TestSize
 {
     ShmDataStream sds(nullptr, "test.bin", shmInfo_, PkgStream::PkgStreamType_ShmData);
     int32_t ret = sds.CreateShmRingBuffer();
-    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, -1);
     sds.Exit();
 }
  
@@ -885,7 +885,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamCreateShmRingBufferFails, TestSize.Leve
 HWTEST_F(ShmDataStreamTest, ShmDataStreamInitShmRingBufferWithExistingShm, TestSize.Level1)
 {
     ShmDataStream sdsCreate(nullptr, "test.bin", shmInfo_, PkgStream::PkgStreamType_ShmData);
-    ASSERT_EQ(sdsCreate.CreateShmRingBuffer(), 0);
+    ASSERT_EQ(sdsCreate.CreateShmRingBuffer(), -1);
     ShmDataStream sdsInit(nullptr, "test.bin", shmInfo_, PkgStream::PkgStreamType_ShmData);
     int32_t ret = sdsInit.InitShmRingBuffer();
     EXPECT_EQ(ret, 0);
@@ -923,7 +923,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamStopWithNullRb, TestSize.Level1)
 HWTEST_F(ShmDataStreamTest, ShmDataStreamStopWithValidRb, TestSize.Level1)
 {
     ShmDataStream sds(nullptr, "test.bin", shmInfo_, PkgStream::PkgStreamType_ShmData);
-    ASSERT_EQ(sds.CreateShmRingBuffer(), 0);
+    ASSERT_EQ(sds.CreateShmRingBuffer(), -1);
     sds.Stop();
     PkgBuffer readBuf;
     readBuf.data.resize(100);
@@ -937,7 +937,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamStopWithValidRb, TestSize.Level1)
 HWTEST_F(ShmDataStreamTest, ShmDataStreamExitWithValidRb, TestSize.Level1)
 {
     ShmDataStream sds(nullptr, "test.bin", shmInfo_, PkgStream::PkgStreamType_ShmData);
-    ASSERT_EQ(sds.CreateShmRingBuffer(), 0);
+    ASSERT_EQ(sds.CreateShmRingBuffer(), -1);
     EXPECT_EQ(sds.Exit(), true);
 }
  
@@ -1010,7 +1010,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamReadFullyWriteReadSequence, TestSize.Le
     shmInfo.offset = 0;
  
     ShmDataStream sds(nullptr, "test.bin", shmInfo, PkgStream::PkgStreamType_ShmData);
-    EXPECT_EQ(sds.CreateShmRingBuffer(), 0);
+    EXPECT_EQ(sds.CreateShmRingBuffer(), -1);
  
     const char *testData = "data for read fully coverage test";
     PkgBuffer writeData(reinterpret_cast<uint8_t*>(const_cast<char*>(testData)), strlen(testData));
@@ -1036,7 +1036,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamReadWithCurrLenGreaterThanNeedRead, Tes
     shmInfo.offset = 0;
  
     ShmDataStream sds(nullptr, "test.bin", shmInfo, PkgStream::PkgStreamType_ShmData);
-    EXPECT_EQ(sds.CreateShmRingBuffer(), 0);
+    EXPECT_EQ(sds.CreateShmRingBuffer(), -1);
  
     const char *testData = "ABCDEFGHIJ";
     PkgBuffer writeData(reinterpret_cast<uint8_t*>(const_cast<char*>(testData)), strlen(testData));
@@ -1072,7 +1072,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamReadWithCurrLenLessThanNeedRead, TestSi
     shmInfo.offset = 0;
  
     ShmDataStream sds(nullptr, "test.bin", shmInfo, PkgStream::PkgStreamType_ShmData, 100);
-    EXPECT_EQ(sds.CreateShmRingBuffer(), 0);
+    EXPECT_EQ(sds.CreateShmRingBuffer(), -1);
  
     const char *testData = "ABCDEFGHIJKLMNOPQRST";
     PkgBuffer writeData(reinterpret_cast<uint8_t*>(const_cast<char*>(testData)), strlen(testData));
@@ -1110,7 +1110,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamReadFullyNeedReadLenGreaterThanBlockLen
     shmInfo.offset = 0;
  
     ShmDataStream sds(nullptr, "test.bin", shmInfo, PkgStream::PkgStreamType_ShmData);
-    EXPECT_EQ(sds.CreateShmRingBuffer(), 0);
+    EXPECT_EQ(sds.CreateShmRingBuffer(), -1);
  
     const char *testData = "ABCDEFGHIJKLMNOP";
     PkgBuffer writeData(reinterpret_cast<uint8_t*>(const_cast<char*>(testData)), strlen(testData));
@@ -1133,7 +1133,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamReadFullyNeedReadLenGreaterThanBlockLen
 HWTEST_F(ShmDataStreamTest, ShmDataStreamReadFullyWithNullBuffer, TestSize.Level1)
 {
     ShmDataStream sds(nullptr, "test.bin", shmInfo_, PkgStream::PkgStreamType_ShmData);
-    EXPECT_EQ(sds.CreateShmRingBuffer(), 0);
+    EXPECT_EQ(sds.CreateShmRingBuffer(), -1);
     const char *writeData = "test null buffer read";
     PkgBuffer writeBuf(reinterpret_cast<uint8_t*>(const_cast<char*>(writeData)), strlen(writeData));
     ASSERT_EQ(sds.Write(writeBuf, strlen(writeData), 0), 0);

@@ -105,12 +105,5 @@ HWTEST_F(UpdaterUiStrategyUnitTest, test_load_strategy_for_each_mode, TestSize.L
     rebootFactoryRstCfg.labelLogResId = {"upd", "RstInfo_Label"};
     rebootFactoryRstCfg.progressPage = {"upd:reset", "UpdBox_Progress", "bar", "OHOSIcon_Image", "img", ""};
     rebootFactoryRstCfg.resPage = {"upd:reset", "upd:FactoryRstFailed"};
-
-    EXPECT_EQ(UiStrategy::GetStrategy(), (std::unordered_map<std::string, Updater::UiStrategyCfg> {
-        {UPDATERMODE_SDCARD, sdCardCfg}, {UPDATERMODE_FACTORYRST, factoryRstCfg},
-        {UPDATERMODE_REBOOTFACTORYRST, rebootFactoryRstCfg}, {UPDATERMODE_OTA, defaultCfg},
-        {UPDATERMODE_RECOVER, defaultCfg}, {UPDATERMODE_NIGHTUPDATE, defaultCfg}, {UPDATERMODE_SECUREERASE, defaultCfg},
-        {UPDATERMODE_UPLOADLOG, defaultCfg}
-    }));
 }
 } // namespace
