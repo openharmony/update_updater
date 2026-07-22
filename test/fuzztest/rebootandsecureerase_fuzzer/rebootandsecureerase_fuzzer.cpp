@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <fuzzer/FuzzedDataProvider.h>
 #include "log/log.h"
 #include "updaterkits/updaterkits.h"
 #include "securec.h"
@@ -27,8 +28,9 @@ using namespace Updater;
 namespace OHOS {
     void FuzzRebootAndSecureErase(const uint8_t* data, size_t size)
     {
-        std::string eraseType(reinterpret_cast<const char*>(data), size);
-        std::string cmd(reinterpret_cast<const char*>(data), size);
+        FuzzedDataProvider fdp(data, size);
+        std::string eraseType = fdp.ConsumeRandomLengthString(32); // 32 : max eraseType size
+        std::string cmd = fdp.ConsumeRandomLengthString(700); // 700 : max cmd size
         RebootAndSecureErase(eraseType);
         RebootAndSecureErase(eraseType, cmd);
     }
