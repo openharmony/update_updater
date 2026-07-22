@@ -527,6 +527,7 @@ int32_t UScriptInstructionBlockUpdate::ExecuteUpdateBlock(Uscript::UScriptEnv &e
     Hpackage::PkgManager::StreamPtr outStream = nullptr;
     if (ExtractFileByName(env, infos.transferName, outStream,
                           transferListBuffer, transferListSize) != USCRIPT_SUCCESS) {
+        env.PostMessage(UPDATER_RETRY_TAG, EXTRACT_PATCH_FAIL_RETRY);
         return USCRIPT_ERROR_EXECUTE;
     }
 
@@ -726,6 +727,7 @@ int32_t UScriptInstructionShaCheck::DoBlocksVerify(Uscript::UScriptEnv &env, con
     if (ExtractFileByName(env, infos.transferName, outStream,
                           transferListBuffer, transferListSize) != USCRIPT_SUCCESS) {
         LOG(ERROR) << "Error to extract " << infos.transferName;
+        env.PostMessage(UPDATER_RETRY_TAG, EXTRACT_PATCH_FAIL_RETRY);
         return USCRIPT_ERROR_EXECUTE;
     }
 
