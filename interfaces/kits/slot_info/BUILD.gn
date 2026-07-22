@@ -24,6 +24,8 @@ ohos_static_library("libslotinfo") {
     "${updater_path}/utils/include",
   ]
 
+  branch_protector_ret = "pac_ret"
+
   deps = [ "${updater_path}/services/log:libupdaterlog" ]
   if (init_feature_ab_partition) {
     defines = [ "UPDATER_AB_SUPPORT" ]

@@ -49,6 +49,8 @@ ohos_shared_library("libupdaterlog_shared") {
 
   external_deps = [ "bounds_checking_function:libsec_shared" ]
 
+  branch_protector_ret = "pac_ret"
+
   deps = []
 
   innerapi_tags = [
@@ -80,6 +82,7 @@ ohos_static_library("libupdaterlog") {
   public_configs = [ ":log_config" ]
 
   external_deps = [ "bounds_checking_function:libsec_static" ]
+  branch_protector_ret = "pac_ret"
 
   deps = []
   subsystem_name = "updater"

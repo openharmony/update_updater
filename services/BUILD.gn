@@ -76,6 +76,7 @@ ohos_static_library("libupdater_static") {
     "updater_utils.cpp",
     "trace/io_collect.cpp",
   ]
+  branch_protector_ret = "pac_ret"
 
   if (updater_ui_support) {
     sources += [ "updater_ui.cpp" ]
@@ -160,6 +161,8 @@ ohos_static_library("libupdater") {
     "trace/io_collect.cpp",
   ]
 
+  branch_protector_ret = "pac_ret"
+
   include_dirs = updater_common_include
 
   deps = updater_common_deps
@@ -231,6 +234,8 @@ ohos_static_library("libupdater_sys_installer") {
     "updater_utils.cpp",
     "trace/io_collect.cpp",
   ]
+
+  branch_protector_ret = "pac_ret"
 
   include_dirs = updater_common_include
 

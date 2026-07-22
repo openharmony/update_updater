@@ -34,6 +34,7 @@ ohos_static_library("libsdupdate") {
     "bounds_checking_function:libsec_shared",
     "init:libbegetutil_static",
   ]
+  branch_protector_ret = "pac_ret"
   subsystem_name = "updater"
   part_name = "updater"
 }

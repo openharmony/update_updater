@@ -55,6 +55,8 @@ ohos_shared_library("libupdater_patch_shared") {
     "openssl:libssl_static",
   ]
 
+  branch_protector_ret = "pac_ret"
+
   output_extension = "so"
   install_enable = false
   subsystem_name = "updater"
@@ -96,6 +98,8 @@ ohos_static_library("libupdater_patch_static") {
     "init:libfsmanager_static_real",
     "openssl:libcrypto_static",
   ]
+
+  branch_protector_ret = "pac_ret"
 
   public_configs = [ ":libupdater_patch_config" ]
   subsystem_name = "updater"

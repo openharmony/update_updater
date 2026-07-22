@@ -111,6 +111,8 @@ ohos_static_library("libupdaterpackage") {
     "zlib:libz",
   ]
 
+  branch_protector_ret = "pac_ret"
+
   configs = [ ":package_config" ]
 
   public_configs = [ ":libupdaterpackage_exported_headers" ]
@@ -164,6 +166,8 @@ ohos_shared_library("libupdaterpackage_shared") {
     "OPENSSL_SUPPRESS_DEPRECATED",
   ]
 
+  branch_protector_ret = "pac_ret"
+
   subsystem_name = "updater"
   part_name = "updater"
 }
@@ -187,6 +191,8 @@ ohos_shared_library("libverify_shared") {
     "DIFF_PATCH_SDK",
     "OPENSSL_SUPPRESS_DEPRECATED",
   ]
+
+  branch_protector_ret = "pac_ret"
 
   subsystem_name = "updater"
   part_name = "updater"

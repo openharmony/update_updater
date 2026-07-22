@@ -71,6 +71,7 @@ ohos_static_library("libapplypatch") {
     "openssl:libcrypto_static",
     "zlib:libz",
   ]
+  branch_protector_ret = "pac_ret"
   public_configs = [ ":libapplypatch_exported_headers" ]
   subsystem_name = "updater"
   part_name = "updater"
