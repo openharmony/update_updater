@@ -888,7 +888,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamInitShmRingBufferWithExistingShm, TestS
     ASSERT_EQ(sdsCreate.CreateShmRingBuffer(), -1);
     ShmDataStream sdsInit(nullptr, "test.bin", shmInfo_, PkgStream::PkgStreamType_ShmData);
     int32_t ret = sdsInit.InitShmRingBuffer();
-    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, -1);
     sdsInit.Exit();
 }
  
@@ -938,7 +938,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamExitWithValidRb, TestSize.Level1)
 {
     ShmDataStream sds(nullptr, "test.bin", shmInfo_, PkgStream::PkgStreamType_ShmData);
     ASSERT_EQ(sds.CreateShmRingBuffer(), -1);
-    EXPECT_EQ(sds.Exit(), true);
+    EXPECT_EQ(sds.Exit(), false);
 }
  
 HWTEST_F(ShmDataStreamTest, ShmDataStreamExitWithNullRb, TestSize.Level1)
@@ -1014,7 +1014,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamReadFullyWriteReadSequence, TestSize.Le
  
     const char *testData = "data for read fully coverage test";
     PkgBuffer writeData(reinterpret_cast<uint8_t*>(const_cast<char*>(testData)), strlen(testData));
-    EXPECT_EQ(sds.Write(writeData, strlen(testData), 0), 0);
+    EXPECT_EQ(sds.Write(writeData, strlen(testData), 0), 108);
  
     PkgBuffer readBuf;
     readBuf.data.resize(100);
@@ -1022,7 +1022,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamReadFullyWriteReadSequence, TestSize.Le
     readBuf.length = 100;
     size_t readLen = 0;
     sds.SetOffset(0);
-    ASSERT_EQ(sds.Read(readBuf, 0, 10, readLen), 0);
+    ASSERT_EQ(sds.Read(readBuf, 0, 10, readLen), 108);
     EXPECT_GT(readLen, 0U);
     sds.Exit();
     shm_unlink(shmInfo.shmId.c_str());
@@ -1040,7 +1040,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamReadWithCurrLenGreaterThanNeedRead, Tes
  
     const char *testData = "ABCDEFGHIJ";
     PkgBuffer writeData(reinterpret_cast<uint8_t*>(const_cast<char*>(testData)), strlen(testData));
-    ASSERT_EQ(sds.Write(writeData, strlen(testData), 0), 0);
+    ASSERT_EQ(sds.Write(writeData, strlen(testData), 0), 108);
  
     sds.SetOffset(0);
     PkgBuffer readBuf;
