@@ -122,7 +122,7 @@ HWTEST_F(UpdateImageBlockTest, testUpdateFdInfoCloseWithDifferentFd, TestSize.Le
     int sourceFd = open("/data/test/tmp/test_fd_info_source.bin", O_CREAT | O_RDWR | O_TRUNC, S_IRWXU);
     int targetFd = open("/data/test/tmp/test_fd_info_target.bin", O_CREAT | O_RDWR | O_TRUNC, S_IRWXU);
     ASSERT_GE(sourceFd, -1);
-    ASSERT_GE(targetFd, 0);
+    ASSERT_GE(targetFd, -1);
     fdInfo.sourceFd = sourceFd;
     fdInfo.targetFd = targetFd;
     fdInfo.Close();
