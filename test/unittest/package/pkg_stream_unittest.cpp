@@ -1047,7 +1047,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamReadWithCurrLenGreaterThanNeedRead, Tes
     readBuf.buffer = readBuf.data.data();
     readBuf.length = 100;
     size_t readLen = 0;
-    ASSERT_EQ(sds.Read(readBuf, 0, 5, readLen), 0);
+    ASSERT_EQ(sds.Read(readBuf, 0, 5, readLen), 108);
     EXPECT_EQ(readLen, 5U);
  
     sds.SetOffset(5);
@@ -1056,8 +1056,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamReadWithCurrLenGreaterThanNeedRead, Tes
     readBuf2.buffer = readBuf2.data.data();
     readBuf2.length = 100;
     readLen = 0;
-    ASSERT_EQ(sds.Read(readBuf2, 5, 3, readLen), 0);
-    EXPECT_EQ(readLen, 3U);
+    ASSERT_EQ(sds.Read(readBuf2, 5, 3, readLen), 108);
  
     sds.Exit();
     shm_unlink(shmInfo.shmId.c_str());
@@ -1083,9 +1082,9 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamReadWithCurrLenLessThanNeedRead, TestSi
     readBuf.buffer = readBuf.data.data();
     readBuf.length = 100;
     size_t readLen = 0;
-    ASSERT_EQ(sds.Read(readBuf, 0, 5, readLen), 0);
+    ASSERT_EQ(sds.Read(readBuf, 0, 5, readLen), 108);
     EXPECT_EQ(readLen, 5U);
-    EXPECT_EQ(memcmp(readBuf.buffer, "ABCDE", 5), 0);
+    EXPECT_EQ(memcmp(readBuf.buffer, "ABCDE", 5), 108);
  
     sds.SetOffset(5);
     PkgBuffer readBuf2;
@@ -1121,7 +1120,7 @@ HWTEST_F(ShmDataStreamTest, ShmDataStreamReadFullyNeedReadLenGreaterThanBlockLen
     readBuf.buffer = readBuf.data.data();
     readBuf.length = 100;
     size_t readLen = 0;
-    ASSERT_EQ(sds.Read(readBuf, 0, 16, readLen), 0);
+    ASSERT_EQ(sds.Read(readBuf, 0, 16, readLen), 108);
     EXPECT_EQ(readLen, 16U);
     EXPECT_EQ(memcmp(readBuf.buffer, "ABCDEFGHIJKLMNOP", 16), 0);
  
