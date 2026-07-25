@@ -471,11 +471,11 @@ int SecureErase::OverWritePartition(int fd, const uint32_t writeSize, std::vecto
 
 void SecureErase::AddOverWritePartitions(const std::string &factoryResetType)
 {
-    if (factoryResetType == "secure_erase") {
-        AddOverWritePartition(USERDATA_PATH);
-    } else if (factoryResetType == "disk_erase") {
+    if (factoryResetType == "disk_erase") {
         type_ = SecureEraseType::ERASE_DATA_AND_OS;
-        std::vector<std::string> partitionErase = PartitionErase();
+    }
+    if (factoryResetType == "disk_erase" || factoryResetType == "secure_erase") {
+        std::vector<std::string> partitionErase = PartitionErase(factoryResetType);
         for (const auto &part : partitionErase) {
             LOG(INFO) << "AddOverWritePartition " << part;
             AddOverWritePartition(part);
