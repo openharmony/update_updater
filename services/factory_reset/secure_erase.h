@@ -56,7 +56,7 @@ public:
     std::vector<std::string> PartitionErase(const std::string &factoryResetType);
 private:
     int OverWritePartition(int fd, const uint32_t writeSize, std::vector<uint8_t> &buffer, int eraseTimes);
-    void AddBlockDevices(std::vector<std::string> &partitionErasePatch);    
+    void AddBlockDevices(std::vector<std::string> &partitionErasePatch);
     bool OverwriteSinglePartition(int fd, const PartInfo &partInfo, int eraseTimes, uint64_t totalSize);
     void AddOverWritePartInfo(const PartInfo &partInfo);
     void SyncOffsetInMisc(uint64_t offset);
