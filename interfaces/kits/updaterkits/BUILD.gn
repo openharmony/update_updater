@@ -55,6 +55,7 @@ ohos_shared_library("libupdater_shared") {
     "platformsdk",
     "sasdk",
   ]
+  branch_protector_ret = "pac_ret"
   public_configs = [ ":libring_buffer_headers" ]
   install_enable = true
   install_images = [
@@ -84,6 +85,7 @@ ohos_static_library("libupdaterkits") {
     "bounds_checking_function:libsec_static",
     "init:libbegetutil_static",
   ]
+  branch_protector_ret = "pac_ret"
   public_configs = [ ":libring_buffer_headers" ]
   subsystem_name = "updater"
   part_name = "updater"

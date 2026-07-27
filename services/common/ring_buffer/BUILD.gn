@@ -37,6 +37,8 @@ ohos_static_library("libringbuffer") {
 
   public_configs = [ ":libringbuffer_exported_headers" ]
 
+  branch_protector_ret = "pac_ret"
+
   subsystem_name = "updater"
   part_name = "updater"
 }

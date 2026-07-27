@@ -64,6 +64,8 @@ ohos_static_library("libpatch") {
     "zlib:libz",
   ]
 
+  branch_protector_ret = "pac_ret"
+
   configs = [ ":patch_config" ]
   subsystem_name = "updater"
   part_name = "updater"
@@ -85,6 +87,8 @@ ohos_shared_library("libpatch_shared") {
     "openssl:libcrypto_shared",
     "zlib:libz",
   ]
+
+  branch_protector_ret = "pac_ret"
 
   configs = [ ":patch_config" ]
   subsystem_name = "updater"
