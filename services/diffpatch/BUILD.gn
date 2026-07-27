@@ -95,6 +95,8 @@ ohos_executable("diff") {
       "-Wl,--no-whole-archive",
     ]
   }
+
+  branch_protector_ret = "pac_ret"
   install_enable = false
   subsystem_name = "updater"
   part_name = "updater"

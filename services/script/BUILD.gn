@@ -84,6 +84,8 @@ ohos_static_library("libthreadpool") {
     "${updater_path}/utils/include",
   ]
 
+  branch_protector_ret = "pac_ret"
+
   subsystem_name = "updater"
   part_name = "updater"
 }
@@ -119,6 +121,8 @@ ohos_static_library("libupdaterscript") {
     "${updater_path}/services/script:gen_yacc",
     "${updater_path}/services/script:libthreadpool",
   ]
+
+  branch_protector_ret = "pac_ret"
 
   subsystem_name = "updater"
   part_name = "updater"

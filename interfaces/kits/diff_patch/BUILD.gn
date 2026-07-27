@@ -32,6 +32,8 @@ ohos_static_library("libdiff_patch") {
     "${updater_path}/utils/include",
   ]
 
+  branch_protector_ret = "pac_ret"
+
   public_configs = [ ":libdiff_patch_exported_headers" ]
   deps = [ "${updater_path}/services/diffpatch/patch:libpatch" ]
   external_deps = [ "openssl:libcrypto_shared" ]
@@ -51,11 +53,14 @@ ohos_shared_library("libdiff_patch_shared") {
     "${updater_path}/utils/include",
   ]
 
+  branch_protector_ret = "pac_ret"
+
   public_configs = [ ":libdiff_patch_exported_headers" ]
   deps = [
     "${updater_path}/interfaces/kits/packages:libpackage_shared",
     "${updater_path}/services/diffpatch/patch:libpatch_shared",
   ]
+
   external_deps = [ "openssl:libcrypto_shared" ]
 
   subsystem_name = "updater"
