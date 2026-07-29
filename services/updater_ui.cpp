@@ -47,15 +47,13 @@ void DoProgress(uint32_t progressTimeMs)
     constexpr float ratio = 10.0;
     constexpr int progressValueStep = static_cast<int>(0.3 * ratio);
     constexpr int maxProgressValue = static_cast<int>(100 * ratio);
-    int totalSteps = maxProgressValue / progressValueStep;
-    int stepSleepUs = static_cast<int>(progressTimeMs * 1000) / totalSteps;
 
     int progressvalueTmp = 0;
     GetFacade().ShowProgress(0);
     while (progressvalueTmp <= maxProgressValue) {
         progressvalueTmp = progressvalueTmp + progressValueStep;
         GetFacade().ShowProgress(progressvalueTmp / ratio);
-        Utils::UsSleep(stepSleepUs);
+        Utils::UsSleep(progressTimeMs);
         if (progressvalueTmp >= maxProgressValue) {
             Utils::UsSleep(maxSleepMs);
             return;
