@@ -16,8 +16,27 @@ import("//build/ohos.gni")
 
 updater_path = rebase_path("${updater_absolutely_path}", ".")
 
+config("libsdcardupdate_exported_headers") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "${updater_path}/services/sdcard_update/action",
+    "${updater_path}/services/sdcard_update/adapter",
+    "${updater_path}/services/sdcard_update/framework",
+    "${updater_path}/services/sdcard_update/manager",
+    "${updater_path}/services/sdcard_update/service",
+  ]
+}
+
 ohos_static_library("libsdupdate") {
-  sources = [ "sdcard_update.cpp" ]
+  sources = [
+    "${updater_path}/services/sdcard_update/action/sdcard_update_action.cpp",
+    "${updater_path}/services/sdcard_update/adapter/sdcard_update_adapter.cpp",
+    "${updater_path}/services/sdcard_update/framework/sdcard_update_chain_builder.cpp",
+    "${updater_path}/services/sdcard_update/framework/sdcard_update_group.cpp",
+    "${updater_path}/services/sdcard_update/framework/sdcard_update_step.cpp",
+    "${updater_path}/services/sdcard_update/manager/sdcard_update_process_manager.cpp",
+    "${updater_path}/services/sdcard_update/service/sdcard_update.cpp",
+  ]
 
   include_dirs = [
     "${updater_path}/interfaces/kits/include",
@@ -29,7 +48,11 @@ ohos_static_library("libsdupdate") {
     "${updater_path}/utils/include",
   ]
 
-  deps = [ "${updater_path}/utils:libutils" ]
+  public_configs = [":libsdcardupdate_exported_headers"]
+
+  deps = [ 
+    "${updater_path}/utils:libutils",
+  ]
   external_deps = [
     "bounds_checking_function:libsec_shared",
     "init:libbegetutil_static",

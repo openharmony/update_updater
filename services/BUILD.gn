@@ -24,6 +24,8 @@ updater_common_include = [
   "${updater_path}/services/include/package",
   "${updater_path}/services/package/pkg_manager",
   "${updater_path}/services/package/pkg_verify",
+  "${updater_path}/services/sdcard_update/manager",
+  "${updater_path}/services/sdcard_update/service",
   "${updater_path}/services/include/log",
   "${updater_path}/utils/json",
   ".",
