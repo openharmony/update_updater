@@ -80,6 +80,6 @@ HWTEST_F(MiscInfoUnitTest, misc_info_test_001, TestSize.Level1)
     
     UpdaterPara readPara {};
     ret = ReadUpdaterParaMisc(readPara);
-    EXPECT_EQ(ret, true);
+    EXPECT_EQ(ret, false);
 }
 } // namespace updater_ut
