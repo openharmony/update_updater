@@ -41,7 +41,7 @@
 #include "pkg_manager.h"
 #include "pkg_utils.h"
 #include "ptable_parse/ptable_process.h"
-#include "sdcard_update/sdcard_update.h"
+#include "sdcard_update_process_manager.h"
 #include "scope_guard.h"
 #include "securec.h"
 #include "trace/io_collect.h"
@@ -1062,6 +1062,15 @@ static void PostSdcardUpdatePackages(UpdaterParams &upParams, UpdaterStatus &sta
         }
         UPDATER_UI_INSTANCE.ShowSuccessPage();
     }
+}
+
+UpdaterStatus CheckSdcardPkgs(UpdaterParams &upParams)
+{
+#ifndef UPDATER_UT
+    auto sdParam = "updater.data.configs";
+    Utils::SetParameter(sdParam, "1");
+#endif
+    return SdcardUpdateProcessManager::GetInstance().SdcardUpdateProcess(upParams);
 }
 
 UpdaterStatus UpdaterFromSdcard(UpdaterParams &upParams)
