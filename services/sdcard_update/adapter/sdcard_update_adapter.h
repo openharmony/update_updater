@@ -17,7 +17,7 @@ namespace Updater {
 class SdcardUpdateAdapter : public ISdcardUpdateAdapter {
 public:
     SdcardUpdateAdapter() = default;
-    ~SdcardUpdateAdapter() = default;
+    ~SdcardUpdateAdapter() override {};
     int32_t MountSdcardPath(const std::string &path, const std::string &mountPoint) override;
     int32_t UmountPath(const std::string &path) override;
     int32_t MountPath(const std::string &path = "/data") override;

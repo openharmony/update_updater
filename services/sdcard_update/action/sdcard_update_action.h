@@ -36,8 +36,8 @@ protected:
 class IMountAction : public ISdcardUpdateAction {
 public:
     IMountAction() : ISdcardUpdateAction() {}
-    virtual ~IMountAction() = default;
-    IMountAction(const std::string &path) : mountPath_(path) {}
+    ~IMountAction() override {};
+    explicit IMountAction(const std::string &path) : mountPath_(path) {}
 protected:
     std::string mountPath_;
 };
@@ -45,22 +45,22 @@ protected:
 class MountPathAction : public IMountAction {
 public:
     MountPathAction() : IMountAction() {}
-    MountPathAction(const std::string &path) : IMountAction(path) {}
-    virtual ~MountPathAction() = default;
+    explicit MountPathAction(const std::string &path) : IMountAction(path) {}
+    ~MountPathAction() override {};
     UpdaterStatus Execute(UpdaterParams &upParams) override;
 };
 
 class IFindPkgAction : public ISdcardUpdateAction {
 public:
     IFindPkgAction() : ISdcardUpdateAction() {}
-    virtual ~IFindPkgAction() = default;
+    ~IFindPkgAction() override {};
 };
 
 class IUmountAction : public ISdcardUpdateAction {
 public:
     IUmountAction() : ISdcardUpdateAction() {}
-    virtual ~IUmountAction() = default;
-    IUmountAction(const std::string &path) : umountPath_(path) {}
+    ~IUmountAction() override {};
+    explicit IUmountAction(const std::string &path) : umountPath_(path) {}
 protected:
     std::string umountPath_;
 };
@@ -68,8 +68,8 @@ protected:
 class UmountPathAction : public IUmountAction {
 public:
     UmountPathAction() = default;
-    virtual ~UmountPathAction() = default;
-    UmountPathAction(const std::string &path) : IUmountAction(path) {}
+    ~UmountPathAction() override {};
+    explicit UmountPathAction(const std::string &path) : IUmountAction(path) {}
     UpdaterStatus Execute(UpdaterParams &upParams) override;
 };
 
@@ -77,8 +77,10 @@ class MountSdCardAction : public IMountAction {
 public:
     MountSdCardAction() : IMountAction() {}
     MountSdCardAction(std::string item, std::string mountPoint) :
-        IMountAction(), item_(item), mountPoint_(mountPoint) {}
-    virtual ~MountSdCardAction() = default;
+        IMountAction(),
+        item_(item),
+        mountPoint_(mountPoint) {}
+    ~MountSdCardAction() override {};
     UpdaterStatus Execute(UpdaterParams &upParams) override;
 private:
     std::string item_;
@@ -88,7 +90,7 @@ private:
 class FindSdPkgAction : public IFindPkgAction {
 public:
     FindSdPkgAction() : IFindPkgAction() {}
-    virtual ~FindSdPkgAction() = default;
+    ~FindSdPkgAction() override {};
     UpdaterStatus Execute(UpdaterParams &upParams) override;
 #ifndef UPDATER_UT
 protected:
