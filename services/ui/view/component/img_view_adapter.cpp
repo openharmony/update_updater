@@ -16,6 +16,8 @@
 #include <sstream>
 #include <unistd.h>
 #include "core/render_manager.h"
+#include "draw/draw_utils.h"
+#include "gfx_utils/graphic_types.h"
 #include "language/language_ui.h"
 #include "log/log.h"
 #include "page/view_proxy.h"
@@ -87,9 +89,15 @@ ImgViewAdapter::ImgViewAdapter(const UxViewInfo &info)
     this->SetAutoEnable(false);
     this->SetTouchable(true);
     SetViewCommonInfo(info.commonInfo);
-    LOG(DEBUG) << "dir:" << dir_ << ", imgCnt:" << imgCnt_ << ", interval:" << interval_;
+    LOG(DEBUG) << "dir:" << dir_ << ", imgCnt:" << imgCnt_ << ", interval:" << interval_
+        << ", antiAliasing:" << spec.antiAliasing << ", edgeSmoothRadius:" << spec.edgeSmoothRadius;
     if (interval_ == 0) {
         GetRealImgPath();
+#if defined(GRAPHIC_ENABLE_BLUR_EFFECT_FLAG) && GRAPHIC_ENABLE_BLUR_EFFECT_FLAG
+        if (spec.antiAliasing && spec.edgeSmoothRadius > 0) {
+            this->SetEdgeSmoothRadius(static_cast<uint16_t>(spec.edgeSmoothRadius));
+        }
+#endif
         this->SetSrc(dir_.c_str());
         this->SetResizeMode(OHOS::UIImageView::ImageResizeMode::FILL);
     } else {

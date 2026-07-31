@@ -21,6 +21,8 @@
         "UIImageView": {
             "imgCnt" : 1,
             "updInterval": 0,
+            "antiAliasing": false,
+            "edgeSmoothRadius": 0,
             "filePrefix" : ""
         },
         "UILabelButton": {
