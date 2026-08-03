@@ -273,6 +273,7 @@ bool IsDataDisk(const std::string &deviceName)
         if (!CheckNvmeFormat(deviceName)) {
             return false;
         }
+        return true;
     }
     if (deviceName.find("sd") == std::string::npos) {
         return false;
@@ -286,14 +287,17 @@ bool IsDataDisk(const std::string &deviceName)
         }
     }
     std::string devicePath = "/sys/block/" + deviceName;
-    char resolvedPath[PATH_MAX] {0};
-    if (realpath(devicePath.c_str(), resolvedPath) == nullptr) {
-        LOG(ERROR) << "realpath " << devicePath << " failed";
-        return false;
-    }
-    std::string resolvedPathStr(resolvedPath);
-    if (resolvedPathStr.find("ufs") != std::string::npos) {
-        LOG(ERROR) << "UFS: " << resolvedPathStr;
+    char linkTarget[PATH_MAX];
+    ssize_t len = readlink(devicePath.c_str(), linkTarget, sizeof(linkTarget) - 1);
+    if (len != -1) {
+        linkTarget[len] = '\0';
+        std::string targetPath(linkTarget);
+        if (targetPath.find("ufs") != std::string::npos) {
+            LOG(ERROR) << "UFS " << targetPath;
+            return false;
+        }
+    } else {
+        LOG(ERROR) << "readlink failed": << devicePath
         return false;
     }
     return true;
