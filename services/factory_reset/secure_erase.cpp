@@ -297,7 +297,7 @@ bool IsDataDisk(const std::string &deviceName)
             return false;
         }
     } else {
-        LOG(ERROR) << "readlink failed": << devicePath
+        LOG(ERROR) << "readlink failed": << devicePath;
         return false;
     }
     return true;
