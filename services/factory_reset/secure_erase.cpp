@@ -287,7 +287,7 @@ bool IsDataDisk(const std::string &deviceName)
         }
     }
     std::string devicePath = "/sys/block/" + deviceName;
-    char linkTarget[PATH_MAX];
+    char linkTarget[PATH_MAX] {0};
     ssize_t len = readlink(devicePath.c_str(), linkTarget, sizeof(linkTarget) - 1);
     if (len != -1) {
         linkTarget[len] = '\0';
