@@ -273,6 +273,7 @@ bool IsDataDisk(const std::string &deviceName)
         if (!CheckNvmeFormat(deviceName)) {
             return false;
         }
+        return true;
     }
     if (deviceName.find("sd") == std::string::npos) {
         return false;
@@ -286,14 +287,17 @@ bool IsDataDisk(const std::string &deviceName)
         }
     }
     std::string devicePath = "/sys/block/" + deviceName;
-    char resolvedPath[PATH_MAX] {0};
-    if (realpath(devicePath.c_str(), resolvedPath) == nullptr) {
-        LOG(ERROR) << "realpath " << devicePath << " failed";
-        return false;
-    }
-    std::string resolvedPathStr(resolvedPath);
-    if (resolvedPathStr.find("ufs") != std::string::npos) {
-        LOG(ERROR) << "UFS: " << resolvedPathStr;
+    char linkTarget[PATH_MAX] {0};
+    ssize_t len = readlink(devicePath.c_str(), linkTarget, sizeof(linkTarget) - 1);
+    if (len != -1) {
+        linkTarget[len] = '\0';
+        std::string targetPath(linkTarget);
+        if (targetPath.find("ufs") != std::string::npos) {
+            LOG(ERROR) << "UFS " << targetPath;
+            return false;
+        }
+    } else {
+        LOG(ERROR) << "readlink failed: " << devicePath;
         return false;
     }
     return true;
@@ -384,7 +388,7 @@ std::vector<std::string> ExtractSecureErasePartition(const std::string& filename
     }
 }
 
-std::vector<std::string> SecureErase::PartitionErase()
+std::vector<std::string> SecureErase::PartitionErase(const std::string &factoryResetType)
 {
     std::vector<std::string> partitionErasePatch;
     DevicePtable& devicePtb = DevicePtable::GetInstance();
@@ -395,36 +399,44 @@ std::vector<std::string> SecureErase::PartitionErase()
     std::vector<Ptable::PtnInfo> ptableData = devicePtb.pPtable_->GetPtablePartitionInfo();
     bool foundCust = false;
     std::string devPath;
-    partitionErasePatch.push_back("/dev/block/by-name/userdata");
-    for (const auto &ptnInfo : ptableData) {
-        std::string lowerDispName = ptnInfo.dispName;
-        std::transform(lowerDispName.begin(), lowerDispName.end(), lowerDispName.begin(),
-            [](unsigned char c) { return std::tolower(c); });
-        if (lowerDispName == "cust") {
-            foundCust = true;
+    partitionErasePatch.push_back(USERDATA_PATH);
+    if (factoryResetType == "disk_erase") {
+        for (const auto &ptnInfo : ptableData) {
+            std::string lowerDispName = ptnInfo.dispName;
+            std::transform(lowerDispName.begin(), lowerDispName.end(), lowerDispName.begin(),
+                [](unsigned char c) { return std::tolower(c); });
+            if (lowerDispName == "cust") {
+                foundCust = true;
+            }
+
+            if (lowerDispName == "userdata") {
+                continue;
+            }
+
+            if (foundCust) {
+                devPath = "/dev/block/by-name/" + lowerDispName;
+                LOG(INFO) << "ptable dispName CUST later " << devPath;
+                partitionErasePatch.push_back(devPath);
+            }
+        }
+        if (!foundCust) {
+            LOG(ERROR) << "cust partition not found";
+            return partitionErasePatch;
         }
 
-        if (lowerDispName == "userdata") {
-            continue;
-        }
-
-        if (foundCust) {
-            devPath = "/dev/block/by-name/" + lowerDispName;
-            LOG(INFO) << "ptable dispName CUST later " << devPath;
-            partitionErasePatch.push_back(devPath);
+        std::vector<std::string> secureErasePartition = ExtractSecureErasePartition(SECURE_ERASE_PARTITION_PATH);
+        for (const auto &partitionPath : secureErasePartition) {
+            LOG(INFO) << "secureErasePartition PATH " << partitionPath;
+            partitionErasePatch.push_back("/dev/block/by-name/" + partitionPath);
         }
     }
-    if (!foundCust) {
-        LOG(ERROR) << "cust partition not found";
-        return partitionErasePatch;
-    }
 
-    std::vector<std::string> secureErasePartition = ExtractSecureErasePartition(SECURE_ERASE_PARTITION_PATH);
-    for (const auto &partitionPath : secureErasePartition) {
-        LOG(INFO) << "secureErasePartition PATH " << partitionPath;
-        partitionErasePatch.push_back("/dev/block/by-name/" + partitionPath);
-    }
+    AddBlockDevices(partitionErasePatch);
+    return partitionErasePatch;
+}
 
+void SecureErase::AddBlockDevices(std::vector<std::string> &partitionErasePatch)
+{
     std::vector<std::string> blockDevices;
     const char *path = "/sys/block";
     blockDevices = ScanBlockDevices(path);
@@ -432,7 +444,6 @@ std::vector<std::string> SecureErase::PartitionErase()
         LOG(INFO) << "Data Disk Path " << blockpath;
         partitionErasePatch.push_back(blockpath);
     }
-    return partitionErasePatch;
 }
 
 int SecureErase::OverWritePartition(int fd, const uint32_t writeSize, std::vector<uint8_t> &buffer, int number)
@@ -464,11 +475,11 @@ int SecureErase::OverWritePartition(int fd, const uint32_t writeSize, std::vecto
 
 void SecureErase::AddOverWritePartitions(const std::string &factoryResetType)
 {
-    if (factoryResetType == "secure_erase") {
-        AddOverWritePartition(USERDATA_PATH);
-    } else if (factoryResetType == "disk_erase") {
+    if (factoryResetType == "disk_erase") {
         type_ = SecureEraseType::ERASE_DATA_AND_OS;
-        std::vector<std::string> partitionErase = PartitionErase();
+    }
+    if (factoryResetType == "disk_erase" || factoryResetType == "secure_erase") {
+        std::vector<std::string> partitionErase = PartitionErase(factoryResetType);
         for (const auto &part : partitionErase) {
             LOG(INFO) << "AddOverWritePartition " << part;
             AddOverWritePartition(part);
