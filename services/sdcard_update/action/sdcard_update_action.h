@@ -76,7 +76,8 @@ public:
 class MountSdCardAction : public IMountAction {
 public:
     MountSdCardAction() : IMountAction() {}
-    MountSdCardAction(std::string item, std::string mountPoint) : IMountAction(), item_(item), mountPoint_(mountPoint) {}
+    MountSdCardAction(std::string item, std::string mountPoint)
+        : IMountAction(), item_(item), mountPoint_(mountPoint) {}
     ~MountSdCardAction() override {};
     UpdaterStatus Execute(UpdaterParams &upParams) override;
 private:

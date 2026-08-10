@@ -25,7 +25,6 @@ ohos_unittest("updater_service_unittest") {
   sources = [
     "${updater_path}/services/factory_reset/factory_reset.cpp",
     "${updater_path}/services/hardware_fault/hardware_fault_retry.cpp",
-    "${updater_path}/services/sdcard_update/sdcard_update.cpp",
     "${updater_path}/services/updater.cpp",
     "${updater_path}/services/updater_main.cpp",
     "${updater_path}/services/updater_preprocess.cpp",
@@ -61,6 +60,7 @@ ohos_unittest("updater_service_unittest") {
     "${updater_path}/services/diffpatch/patch:libpatch",
     "${updater_path}/services/fs_manager:libfsmanager",
     "${updater_path}/services/log:libupdaterlog",
+    "${updater_path}/services/sdcard_update:libsdupdate",
     "${updater_path}/services/package:libupdaterpackage",
     "${updater_path}/services/write_state:libwritestate",
     "${updater_path}/test/unittest/fake:libsecure_erase_fake",
