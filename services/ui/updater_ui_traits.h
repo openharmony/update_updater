@@ -106,7 +106,9 @@ DEFINE_TRAIT(UxImageInfo, ImgViewAdapter::COMPONENT_TYPE,
     (std::string, resPath),
     (std::string, filePrefix),
     (uint32_t, imgCnt),
-    (uint32_t, updInterval)
+    (uint32_t, updInterval),
+    (bool, antiAliasing),
+    (uint32_t, edgeSmoothRadius)
 );
 
 DEFINE_TRAIT(UxLabelBtnInfo, LabelBtnAdapter::COMPONENT_TYPE,

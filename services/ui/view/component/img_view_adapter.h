@@ -29,6 +29,8 @@ struct UxImageInfo {
     std::string filePrefix;
     uint32_t imgCnt;
     uint32_t updInterval;
+    bool antiAliasing;
+    uint32_t edgeSmoothRadius;
 };
 
 class ImgViewAdapter : public OHOS::UIImageView, public ComponentCommon<ImgViewAdapter, UxImageInfo> {
