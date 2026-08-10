@@ -46,8 +46,8 @@ public:
     MockSdcardUpdateAdapter() = default;
     ~MockSdcardUpdateAdapter() = default;
 
-    MOCK_METHOD(int, MountSdcardPath, (std::string &path, std::string &mountPoint), (override));
-    MOCK_METHOD(int, UmountPath, (const std::string& path), (override));
+    MOCK_METHOD(int32_t, MountSdcardPath, (const std::string &path, const std::string &mountPoint), (override));
+    MOCK_METHOD(int32_t, UmountPath, (const std::string &path), (override));
     MOCK_METHOD(int32_t, MountPath, (const std::string &path), (override));
     MOCK_METHOD(const std::vector<std::string>, GetBlockDevices, (const std::string &mountPoint), (override));
     MOCK_METHOD(std::string, GetVc, (), (override));
