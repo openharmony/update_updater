@@ -71,6 +71,8 @@ void SetTotalProgressRatio(float ratio);
 
 float GetTotalProgressRatio();
 
+UpdaterStatus CheckSdcardPkgs(UpdaterParams &upParams);
+
 void ProcessPrgrsSmooth(float beginProgress, float endProgress, UpdaterParams upParams, bool isFinish);
 
 #ifdef __cplusplus

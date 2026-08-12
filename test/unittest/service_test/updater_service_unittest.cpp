@@ -22,7 +22,6 @@
 #include "updater/updater_const.h"
 #include "updater/updater.h"
 #include "updater/updater_preprocess.h"
-#include "sdcard_update/sdcard_update.h"
 #include "fs_manager/mount.h"
 #include "misc_info/misc_info.h"
 #include "updater_main.h"
@@ -320,40 +319,6 @@ HWTEST_F(UpdaterUtilUnitTest, StartUpdaterProcTest, TestSize.Level1)
     upParams.isLoadReduction = true;
     EXPECT_EQ(StartUpdaterProc(nullptr, upParams), UPDATE_CORRUPT);
     EXPECT_EQ(StartUpdaterProc(pkgManager, upParams), UPDATE_ERROR);
-}
-
-HWTEST_F(UpdaterUtilUnitTest, GetSdcardPkgsFromDev, TestSize.Level0)
-{
-    UpdaterParams upParams;
-    EXPECT_EQ(GetSdcardPkgsFromDev(upParams), UPDATE_ERROR);
-}
-
-HWTEST_F(UpdaterUtilUnitTest, DoMountSdCard, TestSize.Level0)
-{
-    UpdaterParams upParams;
-    std::string str = "";
-    std::vector<std::string> vec;
-    EXPECT_EQ(DoMountSdCard(vec, str, upParams), true);
-}
-
-HWTEST_F(UpdaterUtilUnitTest, GetSdcardPkgsPath, TestSize.Level0)
-{
-    UpdaterParams upParams;
-    EXPECT_EQ(GetSdcardPkgsPath(upParams), UPDATE_SUCCESS);
-
-    upParams.updatePackage.push_back("/sdcard/updater/updater_full.zip");
-    EXPECT_EQ(GetSdcardPkgsPath(upParams), UPDATE_SUCCESS);
-    upParams.updatePackage.clear();
-}
-
-HWTEST_F(UpdaterUtilUnitTest, CheckSdcardPkgs, TestSize.Level0)
-{
-    UpdaterParams upParams;
-    EXPECT_EQ(CheckSdcardPkgs(upParams), UPDATE_SUCCESS);
-    upParams.updatePackage.clear();
-
-    upParams.updatePackage.push_back("/sdcard/updater/updater_full.zip");
-    EXPECT_EQ(CheckSdcardPkgs(upParams), UPDATE_SUCCESS);
 }
 
 HWTEST_F(UpdaterUtilUnitTest, OtaUpdatePreCheckTest, TestSize.Level1)

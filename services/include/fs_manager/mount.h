@@ -30,11 +30,12 @@ int FormatPartition(const std::string &path, bool isZeroErase = false);
 int UmountForPath(const std::string &path);
 int UmountRetry(const std::string &path);
 int MountForPath(const std::string &path);
-int MountSdcard(std::string &mountPoint, std::string &path);
+int MountSdcard(const std::string &mountPoint, const std::string &path);
 int SetupPartitions(bool isMountData = true, bool isMountMetadata = false);
 const std::string GetBlockDeviceByMountPoint(const std::string &mountPoint);
 const std::vector<std::string> GetBlockDevicesByMountPoint(const std::string &mountPoint);
 void AddSkipMountPoint(const std::string &mountPoint);
+int32_t MountDataForUpdate(const std::string &path = "/data");
 #ifndef UPDATE_PATCH_SHARED
 MountStatus GetMountStatusForPath(const std::string &path);
 #endif

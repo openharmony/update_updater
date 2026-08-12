@@ -261,7 +261,7 @@ static int MountExfatWithRetry(std::string source, std::string target)
     return LoopToMount(argv, source, target);
 }
 
-int MountSdcard(std::string &path, std::string &mountPoint)
+int MountSdcard(const std::string &path, const std::string &mountPoint)
 {
     if (path.empty() || mountPoint.empty()) {
         LOG(ERROR) << "path or mountPoint is null, mount fail";
@@ -591,5 +591,19 @@ const std::vector<std::string> GetBlockDevicesByMountPoint(const std::string &mo
         blockDevices.push_back(blockDevice);
     }
     return blockDevices;
+}
+
+int32_t MountDataForUpdate(const std::string &path)
+{
+    if (MountForPath(path) != 0) {
+        LOG(ERROR) << "mount data fail";
+        return -1;
+    }
+
+    if (GetMountStatusForPath(path) != MountStatus::MOUNT_MOUNTED) {
+        LOG(ERROR) << "userdata not mounted";
+        return -1;
+    }
+    return 0;
 }
 } // updater
