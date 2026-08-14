@@ -63,6 +63,7 @@ void SdcardUpdateProcessManager::ProcessSdcardUpdateExtMap()
 
 bool SdcardUpdateProcessManager::InitSdUpdateFunc()
 {
+    ProcessSdcardUpdateExtMap();
     for (const auto &it : sdcardUpdateMap_) {
         if (Utils::CheckUpdateMode(it.first)) {
             sdUpdateFunc_ = it.second;
