@@ -56,10 +56,10 @@ ThreadPool* ThreadPool::CreateThreadPool(int number)
 
 void ThreadPool::Destroy()
 {
+    std::lock_guard<std::mutex> lock(g_initMutex);
     if (g_threadPool == nullptr) {
         return;
     }
-    std::lock_guard<std::mutex> lock(g_initMutex);
     delete g_threadPool;
     g_threadPool = nullptr;
 }
