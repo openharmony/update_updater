@@ -1189,10 +1189,9 @@ UpdaterStatus DoSecureErase(UpdaterParams &upParams)
         UPDATER_UI_INSTANCE.ShowProgress(100); // 100 : 100%
         UPDATER_UI_INSTANCE.ShowSuccessPage();
         Utils::Time finishedTime(eplasedSeconds);
-        std::string costTimeText = TR(LABEL_COST_TIME) + std::to_string(finishedTime.GetHour()) + " " +
+        std::string costTimeText = std::to_string(finishedTime.GetHour()) + " " +
             TR(HOUR_STRING) + std::to_string(finishedTime.GetMinute()) + " " + TR(MINUTE_STRING);
-        std::string currentTime = GetCurrentTime();
-        std::string finshedText = TR(LABEL_FINISHED_TIME) + currentTime + "   (" + costTimeText + ")";
+        std::string finshedText = TR(LABEL_FINISHED_TIME) + costTimeText;
         UPDATER_UI_INSTANCE.ShowLogRes(finshedText);
         ClearUpdaterParaMisc();
         if (upParams.factoryResetMode == "disk_erase") {
