@@ -83,6 +83,7 @@ ohos_unittest("binary_unittest") {
     "openssl:libcrypto_shared",
     "openssl:libssl_shared",
     "zlib:libz",
+    "bounds_checking_function:libsec_shared",
   ]
   install_enable = true
   part_name = "updater"
