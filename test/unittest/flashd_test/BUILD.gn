@@ -150,6 +150,7 @@ ohos_unittest("flashd_utils_unittest") {
     "hilog:libhilog",
     "init:libbegetutil_static",
     "libuv:uv",
+    "bounds_checking_function:libsec_shared",
   ]
   deps = []
   configs = [ "${updater_path}/test/unittest:utest_config" ]
