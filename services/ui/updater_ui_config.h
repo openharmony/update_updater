@@ -28,7 +28,9 @@ public:
     static bool Init();
     static const std::unordered_map<std::string, UiStrategyCfg> &GetStrategy();
     static bool GetFocusCfg();
+#ifndef UPDATER_UT
 private:
+#endif
     static bool Init(const JsonNode &node);
     static bool LoadStrategy(const JsonNode &node);
     static bool LoadPages(const JsonNode &node);
