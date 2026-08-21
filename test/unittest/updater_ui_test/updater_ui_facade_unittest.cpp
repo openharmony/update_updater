@@ -20,6 +20,7 @@
 #include "updater_ui_config.h"
 #include "updater_ui_facade.h"
 #include "updater_ui_tools.h"
+#include "updater_ui_tools.h"
 
 using namespace testing::ext;
 using namespace Updater;
