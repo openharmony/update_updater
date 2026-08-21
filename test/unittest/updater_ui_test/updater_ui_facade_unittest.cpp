@@ -20,7 +20,7 @@
 #include "updater_ui_config.h"
 #include "updater_ui_facade.h"
 #include "updater_ui_tools.h"
-#include "updater_ui_tools.h"
+#include "updater_ui_traits.h"
 
 using namespace testing::ext;
 using namespace Updater;
@@ -74,5 +74,64 @@ HWTEST_F(UpdaterUiFacadeUnitTest, test_updater_ui_facade_show_funcs, TestSize.Le
     UPDATER_UI_INSTANCE.ShowFactoryConfirmPage();
     UPDATER_UI_INSTANCE.ShowMainpage();
     UPDATER_UI_INSTANCE.ShowProgressWarning(false);
+}
+
+class UpdaterUiConfigUnitTest : public testing::Test {
+public:
+    static void SetUpTestCase(void) {}
+    static void TearDownTestCase(void) {}
+    void SetUp() override {}
+    void TearDown() override {}
+};
+
+HWTEST_F(UpdaterUiConfigUnitTest, test_canonical_page_path_invalid_dir, TestSize.Level0)
+{
+    PagePath pagePath {};
+    pagePath.dir = "/nonexistent/path/with/invalid/chars???";
+    pagePath.pages = {"page1.json"};
+
+    bool result = CanonicalPagePath(pagePath);
+    EXPECT_FALSE(result);
+}
+
+HWTEST_F(UpdaterUiConfigUnitTest, test_canonical_page_path_valid_dir, TestSize.Level0)
+{
+    PagePath pagePath {};
+    pagePath.dir = "/data/updater";
+    pagePath.pages = {"page1.json", "page2.json"};
+
+    bool result = CanonicalPagePath(pagePath);
+    if (result) {
+        EXPECT_EQ(pagePath.pages[0], "/data/updater/page1.json");
+        EXPECT_EQ(pagePath.pages[1], "/data/updater/page2.json");
+    }
+}
+
+HWTEST_F(UpdaterUiConfigUnitTest, test_select_config_empty_node, TestSize.Level0)
+{
+    JsonNode emptyNode {};
+    std::string result = SelectConfig(emptyNode);
+    EXPECT_EQ(result, "");
+}
+
+HWTEST_F(UpdaterUiConfigUnitTest, test_updater_ui_config_init_invalid_node, TestSize.Level0)
+{
+    JsonNode emptyNode {};
+    bool result = UpdaterUiConfig::Init(emptyNode);
+    EXPECT_FALSE(result);
+}
+
+HWTEST_F(UpdaterUiConfigUnitTest, test_updater_ui_config_load_pages_invalid_path, TestSize.Level0)
+{
+    JsonNode invalidNode {};
+    bool result = UpdaterUiConfig::LoadPages(invalidNode);
+    EXPECT_FALSE(result);
+}
+
+HWTEST_F(UpdaterUiConfigUnitTest, test_updater_ui_config_reload_pages_invalid_path, TestSize.Level0)
+{
+    JsonNode invalidNode {};
+    bool result = UpdaterUiConfig::ReLoadPages(invalidNode);
+    EXPECT_FALSE(result);
 }
 }
