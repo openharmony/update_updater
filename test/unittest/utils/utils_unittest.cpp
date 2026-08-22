@@ -29,7 +29,6 @@ using namespace Utils;
 using namespace testing::ext;
 using namespace std;
 
-
 namespace UpdaterUt {
 class UtilsUnitTest : public testing::Test {
 public:
@@ -210,6 +209,29 @@ HWTEST_F(UtilsUnitTest, ConvertStrToNumber_test_001, TestSize.Level0)
     const std::string str = "12345";
     int64_t value;
     EXPECT_EQ(Utils::ConvertToLongLong(str, value), true);
+    EXPECT_EQ(value, 12345);
+
+    std::string emptyStr = "";
+    EXPECT_EQ(Utils::ConvertToLongLong(emptyStr, value), false);
+
+    std::string zeroStr = "0";
+    EXPECT_EQ(Utils::ConvertToLongLong(zeroStr, value), true);
+    EXPECT_EQ(value, 0);
+
+    std::string negStr = "-100";
+    EXPECT_EQ(Utils::ConvertToLongLong(negStr, value), true);
+    EXPECT_EQ(value, -100);
+
+    std::string largeStr = "9223372036854775807";
+    EXPECT_EQ(Utils::ConvertToLongLong(largeStr, value), true);
+    EXPECT_EQ(value, 9223372036854775807LL);
+
+    std::string smallStr = "-9223372036854775808";
+    EXPECT_EQ(Utils::ConvertToLongLong(smallStr, value), true);
+    EXPECT_EQ(value, INT64_MIN);
+
+    std::string withSpaceStr = " 123";
+    EXPECT_EQ(Utils::ConvertToLongLong(withSpaceStr, value), true);
 }
 
 HWTEST_F(UtilsUnitTest, ConvertStrToNumber_test_002, TestSize.Level0)
@@ -224,6 +246,26 @@ HWTEST_F(UtilsUnitTest, ConvertStrToNumber_test_003, TestSize.Level0)
     const std::string str = "12345";
     uint32_t value;
     EXPECT_EQ(Utils::ConvertToUnsignedLong(str, value), true);
+    EXPECT_EQ(value, 12345);
+
+    std::string emptyStr = "";
+    EXPECT_EQ(Utils::ConvertToUnsignedLong(emptyStr, value, 10), false);
+
+    std::string zeroStr = "0";
+    EXPECT_EQ(Utils::ConvertToUnsignedLong(zeroStr, value, 10), true);
+    EXPECT_EQ(value, 0);
+
+    std::string largeStr = "4294967295";
+    EXPECT_EQ(Utils::ConvertToUnsignedLong(largeStr, value, 10), true);
+    EXPECT_EQ(value, 4294967295U);
+
+    std::string hexStr = "0xFF";
+    EXPECT_EQ(Utils::ConvertToUnsignedLong(hexStr, value, 16), true);
+    EXPECT_EQ(value, 255);
+
+    std::string octStr = "0777";
+    EXPECT_EQ(Utils::ConvertToUnsignedLong(octStr, value, 8), true);
+    EXPECT_EQ(value, 511);
 }
 
 HWTEST_F(UtilsUnitTest, ConvertStrToNumber_test_004, TestSize.Level0)
@@ -231,6 +273,29 @@ HWTEST_F(UtilsUnitTest, ConvertStrToNumber_test_004, TestSize.Level0)
     const std::string str = "1.2345";
     double value;
     EXPECT_EQ(Utils::ConvertToDouble(str, value), true);
+    EXPECT_DOUBLE_EQ(value, 1.2345);
+
+    std::string emptyStr = "";
+    EXPECT_EQ(Utils::ConvertToDouble(emptyStr, value), false);
+
+    std::string zeroStr = "0";
+    EXPECT_EQ(Utils::ConvertToDouble(zeroStr, value), true);
+    EXPECT_DOUBLE_EQ(value, 0.0);
+
+    std::string negStr = "-3.14159";
+    EXPECT_EQ(Utils::ConvertToDouble(negStr, value), true);
+    EXPECT_DOUBLE_EQ(value, -3.14159);
+
+    std::string intStr = "100";
+    EXPECT_EQ(Utils::ConvertToDouble(intStr, value), true);
+    EXPECT_DOUBLE_EQ(value, 100.0);
+
+    std::string expStr = "1.5e10";
+    EXPECT_EQ(Utils::ConvertToDouble(expStr, value), true);
+    EXPECT_DOUBLE_EQ(value, 1.5e10);
+
+    std::string largeStr = "1.7976931348623157e308";
+    EXPECT_EQ(Utils::ConvertToDouble(largeStr, value), true);
 }
 
 HWTEST_F(UtilsUnitTest, ConvertStrToNumber_test_005, TestSize.Level0)
@@ -238,6 +303,26 @@ HWTEST_F(UtilsUnitTest, ConvertStrToNumber_test_005, TestSize.Level0)
     const std::string str = "1.2345";
     float value;
     EXPECT_EQ(Utils::ConvertToFloat(str, value), true);
+    EXPECT_FLOAT_EQ(value, 1.2345f);
+
+    std::string emptyStr = "";
+    EXPECT_EQ(Utils::ConvertToFloat(emptyStr, value), false);
+
+    std::string zeroStr = "0";
+    EXPECT_EQ(Utils::ConvertToFloat(zeroStr, value), true);
+    EXPECT_FLOAT_EQ(value, 0.0f);
+
+    std::string negStr = "-3.14";
+    EXPECT_EQ(Utils::ConvertToFloat(negStr, value), true);
+    EXPECT_FLOAT_EQ(value, -3.14f);
+
+    std::string intStr = "100";
+    EXPECT_EQ(Utils::ConvertToFloat(intStr, value), true);
+    EXPECT_FLOAT_EQ(value, 100.0f);
+
+    std::string expStr = "2.5e5";
+    EXPECT_EQ(Utils::ConvertToFloat(expStr, value), true);
+    EXPECT_FLOAT_EQ(value, 2.5e5f);
 }
 
 HWTEST_F(UtilsUnitTest, pathToRealPath_ShouldReturnFalse_WhenPathIsEmpty, TestSize.Level0)
