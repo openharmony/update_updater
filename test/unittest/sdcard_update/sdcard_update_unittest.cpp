@@ -39,7 +39,6 @@ using namespace std;
 using namespace testing::ext;
 using namespace testing;
 
-
 namespace {
 
 class MockSdcardUpdateAdapter : public ISdcardUpdateAdapter {
@@ -646,4 +645,14 @@ HWTEST_F(SdcardUpdateUnittest, UpdateGroup_MultiGroupChain, TestSize.Level1)
     EXPECT_EQ(status, UPDATE_SUCCESS);
 }
 
+HWTEST_F(SdcardUpdateUnittest, FindSdPkgAction_GetSdcardPkgsPath_PackageAlreadyExists, TestSize.Level1)
+{
+    FindSdPkgAction action;
+    UpdaterParams upParams {};
+    upParams.updatePackage.push_back("/data/updater/updater.zip");
+    UpdaterStatus status = action.GetSdcardPkgsPath(upParams);
+    EXPECT_EQ(status, UPDATE_SUCCESS);
+    EXPECT_EQ(upParams.updatePackage.size(), 1);
+    EXPECT_EQ(upParams.updatePackage[0], "/data/updater/updater.zip");
+}
 } // namespace
