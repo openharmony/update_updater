@@ -27,11 +27,15 @@
 #include "updater_main.h"
 #include "updater_ui_stub.h"
 #include "utils.h"
+#include "trace/io_collect.h"
 
 using namespace Updater;
 using namespace std;
 using namespace testing::ext;
 
+namespace Updater {
+bool ParseTypeAndValue(const std::string &str, std::string &type, int64_t &value);
+}
 
 namespace {
 constexpr uint32_t MAX_ARG_SIZE = 24;
@@ -616,5 +620,49 @@ HWTEST_F(UpdaterUtilUnitTest, FactoryResetModeTest, TestSize.Level1)
 
     upParams.factoryResetMode = "menu_wipe_data";
     ret = DoFactoryRstEntry(upParams);
+}
+
+HWTEST_F(UpdaterUtilUnitTest, ParseTypeAndValueTest, TestSize.Level1)
+{
+    std::string type;
+    int64_t value = 0;
+
+    EXPECT_FALSE(ParseTypeAndValue("", type, value));
+
+    EXPECT_FALSE(ParseTypeAndValue("noccolon", type, value));
+
+    EXPECT_TRUE(ParseTypeAndValue("rchar:1234", type, value));
+    EXPECT_EQ(type, "rchar");
+    EXPECT_EQ(value, 1234);
+
+    EXPECT_TRUE(ParseTypeAndValue("wchar:5678", type, value));
+    EXPECT_EQ(type, "wchar");
+    EXPECT_EQ(value, 5678);
+
+    EXPECT_TRUE(ParseTypeAndValue("syscr:100kB", type, value));
+    EXPECT_EQ(type, "syscr");
+    EXPECT_EQ(value, 100);
+
+    EXPECT_TRUE(ParseTypeAndValue("syscw:200KB", type, value));
+    EXPECT_EQ(type, "syscw");
+    EXPECT_EQ(value, 200);
+
+    EXPECT_TRUE(ParseTypeAndValue("read_bytes:0", type, value));
+    EXPECT_EQ(type, "read_bytes");
+    EXPECT_EQ(value, 0);
+
+    EXPECT_TRUE(ParseTypeAndValue("write_bytes:999kB", type, value));
+    EXPECT_EQ(type, "write_bytes");
+    EXPECT_EQ(value, 999);
+
+    EXPECT_TRUE(ParseTypeAndValue("cancelled_write_bytes:12345", type, value));
+    EXPECT_EQ(type, "cancelled_write_bytes");
+    EXPECT_EQ(value, 12345);
+
+    type = "";
+    value = 0;
+    EXPECT_TRUE(ParseTypeAndValue("rchar:0kB", type, value));
+    EXPECT_EQ(type, "rchar");
+    EXPECT_EQ(value, 0);
 }
 }
