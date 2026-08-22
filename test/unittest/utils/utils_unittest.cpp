@@ -29,6 +29,7 @@ using namespace Utils;
 using namespace testing::ext;
 using namespace std;
 
+
 namespace UpdaterUt {
 class UtilsUnitTest : public testing::Test {
 public:

@@ -39,6 +39,7 @@ using namespace std;
 using namespace testing::ext;
 using namespace testing;
 
+
 namespace {
 
 class MockSdcardUpdateAdapter : public ISdcardUpdateAdapter {

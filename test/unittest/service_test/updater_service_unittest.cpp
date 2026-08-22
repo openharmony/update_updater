@@ -32,6 +32,7 @@ using namespace Updater;
 using namespace std;
 using namespace testing::ext;
 
+
 namespace {
 constexpr uint32_t MAX_ARG_SIZE = 24;
 class UpdaterUtilUnitTest : public testing::Test {

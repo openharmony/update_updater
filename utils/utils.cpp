@@ -45,6 +45,7 @@
 #include "updater/updater_const.h"
 #include "scope_guard.h"
 
+
 namespace Updater {
 using namespace Hpackage;
 
