@@ -45,7 +45,6 @@
 #include "updater/updater_const.h"
 #include "scope_guard.h"
 
-
 namespace Updater {
 using namespace Hpackage;
 
@@ -1037,12 +1036,10 @@ bool ConvertToUnsignedLongLong(const std::string &str, uint64_t &value)
     errno = 0;
  
     value = std::strtoull(str.c_str(), &endPtr, 0);
-#ifndef UPDATER_UT
     if (endPtr == str.c_str() || (endPtr != nullptr && *endPtr != '\0') || errno == ERANGE) {
         LOG(ERROR) << "Convert string to uint64_t failed, str " << str << " converted to value " << value;
         return false;
     }
-#endif
     return true;
 }
 
@@ -1052,12 +1049,10 @@ bool ConvertToLongLong(const std::string &str, int64_t &value)
     errno = 0;
 
     value = std::strtoll(str.c_str(), &endPtr, 10); // 10 : decimal scale
-#ifndef UPDATER_UT
     if (endPtr == str.c_str() || (endPtr != nullptr && *endPtr != '\0') || errno == ERANGE) {
         LOG(ERROR) << "Convert string to int64_t failed, str " << str << " converted to value " << value;
         return false;
     }
-#endif
     return true;
 }
 
@@ -1067,12 +1062,10 @@ bool ConvertToLong(const std::string &str, int32_t &value)
     errno = 0;
 
     value = std::strtol(str.c_str(), &endPtr, 10); // 10 : decimal scale
-#ifndef UPDATER_UT
     if (endPtr == str.c_str() || (endPtr != nullptr && *endPtr != '\0') || errno == ERANGE) {
         LOG(ERROR) << "Convert string to int32_t failed, str " << str << " converted to value " << value;
         return false;
     }
-#endif
     return true;
 }
 
@@ -1082,12 +1075,10 @@ bool ConvertToUnsignedLong(const std::string &str, uint32_t &value, int base)
     errno = 0;
 
     value = std::strtoul(str.c_str(), &endPtr, base);
-#ifndef UPDATER_UT
     if (endPtr == str.c_str() || (endPtr != nullptr && *endPtr != '\0') || errno == ERANGE) {
         LOG(ERROR) << "Convert string to uint32_t failed, str " << str << " converted to value " << value;
         return false;
     }
-#endif
     return true;
 }
 
@@ -1097,12 +1088,10 @@ bool ConvertToDouble(const std::string &str, double &value)
     errno = 0;
 
     value = std::strtod(str.c_str(), &endPtr);
-#ifndef UPDATER_UT
     if (endPtr == str.c_str() || (endPtr != nullptr && *endPtr != '\0') || errno == ERANGE) {
         LOG(ERROR) << "Convert string to double failed, str " << str << " converted to value " << value;
         return false;
     }
-#endif
     return true;
 }
 
@@ -1112,12 +1101,10 @@ bool ConvertToFloat(const std::string &str, float &value)
     errno = 0;
 
     value = std::strtof(str.c_str(), &endPtr);
-#ifndef UPDATER_UT
     if (endPtr == str.c_str() || (endPtr != nullptr && *endPtr != '\0') || errno == ERANGE) {
         LOG(ERROR) << "Convert string to float failed, str " << str << " converted to value " << value;
         return false;
     }
-#endif
     return true;
 }
 
