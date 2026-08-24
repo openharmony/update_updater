@@ -319,9 +319,9 @@ __attribute__((weak)) bool PreSpecialProcess(UpdaterParams &upParams)
     return true;
 }
 
-__attribute__((weak)) void PostSpecialProcess([[maybe_unused]] UpdaterStatus &status)
+__attribute__((weak)) UpdaterStatus PostSpecialProcess()
 {
-    return;
+    return UPDATE_SUCCESS;
 }
 
 static UpdaterStatus VerifyBinfiles(UpdaterParams &upParams)
@@ -926,6 +926,11 @@ static void ShowSuccessUi(UpdaterParams &upParams, UpdaterStatus &status)
     }
     UPDATER_UI_INSTANCE.ShowSuccessPage();
 }
+
+__attribute__((weak)) UpdaterStatus PostOtaSpecialProcess([[maybe_unused]] UpdaterParams &upParams)
+{
+    return CheckAndSetSlot(upParams);
+}
  
 __attribute__((weak)) UpdaterStatus CheckAndSetSlot([[maybe_unused]]UpdaterParams &upParams)
 {
@@ -959,7 +964,7 @@ static void PostUpdate(UpdaterParams &upParams, UpdaterStatus &status,
         }
     }
     if (status == UPDATE_SUCCESS) {
-        status = CheckAndSetSlot(upParams);
+        status = PostOtaSpecialProcess(upParams);
     }
     ClearUpdateSlotParam();
     ClearUpdateSuffixParam();
@@ -1051,7 +1056,9 @@ static void PostSdcardUpdatePackages(UpdaterParams &upParams, UpdaterStatus &sta
     (void)PostUpdateSyncProcess(false, upParams, status);
     ClearUpdateSlotParam();
     ClearUpdateSuffixParam();
-    PostSpecialProcess(status);
+    if (status == UPDATE_SUCCESS) {
+        status = PostSpecialProcess();
+    }
     if (Utils::CheckUpdateMode(Updater::SDCARD_INTRAL_MODE)) {
         PostUpdatePackages(upParams, status);
     } else if (status == UPDATE_SUCCESS) {
