@@ -88,7 +88,6 @@ bool RawWriter::Sync(void)
         LOG(ERROR) << "fsync failed, errno is " << errno;
         return false;
     }
-    LOG(INFO) << "fsync successfully " << fd_;
     return true;
 }
 } // namespace Updater
