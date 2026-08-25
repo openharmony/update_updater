@@ -169,6 +169,9 @@ impl<T: Default + ReadLeBytes + Hash + Eq + PartialEq> ImgHashData<T> {
     pub fn load_img_hash_data(buffer: &[u8]) -> Result<Self, String> {
         let mut offset = 0usize;
         let mut hash_info = HashInfo::new();
+        if buffer.len() < HASH_INFO_SIZE {
+            return Err(format!("{} buffer is too small. {}", line!(), buffer.len()));
+        }
         hash_info.read_from_le_bytes( &buffer[..HASH_INFO_SIZE]);
 
         offset = HASH_INFO_SIZE + 2;
