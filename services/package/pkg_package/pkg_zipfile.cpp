@@ -254,7 +254,7 @@ int32_t ZipPkgFile::ParseFileEntries(std::vector<std::string> &fileNames,
             return PKG_INVALID_FILE;
         }
 
-        ZipFileEntry* entry = new ZipFileEntry(this, nodeId_++);
+        ZipFileEntry* entry = new(std::nothrow) ZipFileEntry(this, nodeId_++);
         if (entry == nullptr) {
             PKG_LOGE("Failed to create zip node for %s", pkgStream_->GetFileName().c_str());
             UPDATER_LAST_WORD(PKG_NONE_MEMORY, "Failed to create zip node for " + pkgStream_->GetFileName());
