@@ -212,7 +212,7 @@ int32_t Lz4PkgFile::LoadPackage(std::vector<std::string> &fileNames, VerifyFunct
     ret = PKG_INVALID_FILE;
     if (magicNumber == PkgAlgorithmLz4::LZ4S_MAGIC_NUMBER ||
         magicNumber == PkgAlgorithmLz4::LZ4B_MAGIC_NUMBER) {
-        Lz4FileEntry *entry = new Lz4FileEntry(this, nodeId_++);
+        Lz4FileEntry *entry = new(std::nothrow) Lz4FileEntry(this, nodeId_++);
         if (entry == nullptr) {
             PKG_LOGE("Fail create upgrade node for %s", pkgStream_->GetFileName().c_str());
             return PKG_LZ4_FINISH;

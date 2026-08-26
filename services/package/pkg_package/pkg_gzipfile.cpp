@@ -386,7 +386,7 @@ int32_t GZipPkgFile::LoadPackage(std::vector<std::string> &fileNames, VerifyFunc
         return PKG_INVALID_FILE;
     }
 
-    GZipFileEntry *entry = new GZipFileEntry(this, nodeId_++);
+    GZipFileEntry *entry = new(std::nothrow) GZipFileEntry(this, nodeId_++);
     if (entry == nullptr) {
         PKG_LOGE("Fail create gzip node for %s", pkgStream_->GetFileName().c_str());
         UPDATER_LAST_WORD(PKG_INVALID_STATE, "Fail create gzip node for " + pkgStream_->GetFileName());
