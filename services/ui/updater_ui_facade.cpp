@@ -24,6 +24,7 @@
 namespace Updater {
 constexpr int FULL_PERCENT_PROGRESS = 100;
 static float g_currentPercent = 0.0;
+constexpr uint32_t PROGERESS_SHOW_DELAY_MILLIONS = 100;
 
 UpdaterUiFacade::UpdaterUiFacade()
     : strategies_ {UpdaterUiConfig::GetStrategy()}, pgMgr_ {PageManager::GetInstance()}, mode_ {""}
@@ -194,9 +195,10 @@ void UpdaterUiFacade::ShowProgressPage() const
     SetProgressVisible(true);
     SetLogoVisible(true);
     SetBackgroundVisible(true);
-    ShowProgress(0);
     pgMgr_.ShowPage(it->second.progressPage.progressPageId);
     ShowProgressWarning(false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(PROGERESS_SHOW_DELAY_MILLIONS));
+    ShowProgress(0);
 }
 
 void UpdaterUiFacade::ShowSuccessPage() const
