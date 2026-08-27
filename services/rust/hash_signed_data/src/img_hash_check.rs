@@ -175,6 +175,9 @@ impl<T: Default + ReadLeBytes + Hash + Eq + PartialEq> ImgHashData<T> {
         hash_info.read_from_le_bytes( &buffer[..HASH_INFO_SIZE]);
 
         offset = HASH_INFO_SIZE + 2;
+        if buffer.len() < offset + 4 {
+            return Err(format!("{} buffer is too small. {}", line!(), buffer.len()));
+        }
         let hash_data_len = u32::from_le_bytes(buffer[offset..4 + offset].try_into().unwrap());
 
         offset += 4;
