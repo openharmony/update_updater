@@ -278,7 +278,7 @@ bool MatchInternalDataDiskPattern(const std::string &deviceName)
     std::string devicePath = "/sys/block/" + deviceName;
     char linkTarget[PATH_MAX] {0};
     ssize_t len = readlink(devicePath.c_str(), linkTarget, sizeof(linkTarget) - 1);
-    if (len > 0) { 
+    if (len > 0) {
         linkTarget[len] = '\0';
         std::string targetPath(linkTarget);
         if (targetPath.size() >= PARENT_DIR_PREFIX_LEN &&
@@ -305,7 +305,7 @@ bool IsDataDisk(const std::string &deviceName)
     if (!MatchInternalDataDiskPattern(deviceName)) {
         LOG(INFO) << "is not internal data disk: " << deviceName;
         return false;
-    } 
+    }
     std::string removablePath = "/sys/block/" + deviceName + "/removable";
     if (access(removablePath.c_str(), F_OK) == 0) {
         std::string removable = Utils::ReadFile(removablePath);
