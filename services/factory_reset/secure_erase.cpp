@@ -20,6 +20,7 @@
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <filesystem>
+#include <fnmatch.h>
 #include <fstream>
 #include <iostream>
 #include <linux/fs.h>
@@ -46,6 +47,11 @@ constexpr uint64_t OVERWRITE_SZIE = 1024 * 1024 * 1024;
 constexpr uint8_t OVERWRITE_NUM = 0xFF;
 constexpr const char *USERDATA_PATH = "/dev/block/by-name/userdata";
 constexpr const char *SECURE_ERASE_PARTITION_PATH = "/vendor/etc/secure_erase_partition.json";
+constexpr const char *INTERNAL_DATA_SATA_PATTERN = "/sys/devices/platform/bfa00000.sata/*";
+constexpr const char *INTERNAL_DATA_NVME_PATTERN = "/sys/devices/platform/a0000000.hi_pcie/*/nvme/nvme1/*";
+constexpr const char *PARENT_DIR_PREFIX = "../";
+constexpr const size_t PARENT_DIR_PREFIX_LEN = 3;
+constexpr const size_t PARENT_DIR_SKIP_LEN = 2;
 constexpr const size_t MIN_NVME_NAME_LENGTH = 7;
 constexpr const size_t NVME_BASE_LEN = 4;
 
@@ -267,17 +273,39 @@ bool CheckNvmeFormat(const std::string& deviceName)
     return true;
 }
 
+bool MatchInternalDataDiskPattern(const std::string &deviceName)
+{
+    std::string devicePath = "/sys/block/" + deviceName;
+    char linkTarget[PATH_MAX] {0};
+    ssize_t len = readlink(devicePath.c_str(), linkTarget, sizeof(linkTarget) - 1);
+    if (len > 0) { 
+        linkTarget[len] = '\0';
+        std::string targetPath(linkTarget);
+        if (targetPath.size() >= PARENT_DIR_PREFIX_LEN &&
+            targetPath.substr(0, PARENT_DIR_PREFIX_LEN) == PARENT_DIR_PREFIX) {
+            targetPath = "/sys" + targetPath.substr(PARENT_DIR_SKIP_LEN);
+        }
+        LOG(INFO) << "readlink path: " << targetPath;
+        return fnmatch(INTERNAL_DATA_SATA_PATTERN, targetPath.c_str(), 0) == 0 ||
+            fnmatch(INTERNAL_DATA_NVME_PATTERN, targetPath.c_str(), 0) == 0;
+    } else {
+        LOG(ERROR) << "readlink failed for: " << deviceName;
+        return false;
+    }
+}
+
 bool IsDataDisk(const std::string &deviceName)
 {
     if (deviceName.find("nvme") != std::string::npos) {
-        if (!CheckNvmeFormat(deviceName)) {
-            return false;
-        }
-        return true;
+        return CheckNvmeFormat(deviceName) && MatchInternalDataDiskPattern(deviceName);
     }
     if (deviceName.find("sd") == std::string::npos) {
         return false;
     }
+    if (!MatchInternalDataDiskPattern(deviceName)) {
+        LOG(INFO) << "is not internal data disk: " << deviceName;
+        return false;
+    } 
     std::string removablePath = "/sys/block/" + deviceName + "/removable";
     if (access(removablePath.c_str(), F_OK) == 0) {
         std::string removable = Utils::ReadFile(removablePath);
