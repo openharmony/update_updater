@@ -13,12 +13,14 @@
  * limitations under the License.
  */
 #include "updater_main.h"
+#include <charconv>
 #include <chrono>
 #include <dirent.h>
 #include <fcntl.h>
 #include <getopt.h>
 #include <libgen.h>
 #include <string>
+#include <system_error>
 #include <sys/mount.h>
 #include <sys/reboot.h>
 #include <sys/stat.h>
@@ -60,6 +62,22 @@ using Utils::String2Int;
 using namespace Hpackage;
 using namespace Updater::Utils;
 using namespace std::literals::chrono_literals;
+
+template<typename T>
+static bool ParseCliNumber(const char *text, T &out)
+{
+    if (text == nullptr || *text == '\0') {
+        return false;
+    }
+    T parsed {};
+    const char *last = text + std::char_traits<char>::length(text);
+    auto [ptr, ec] = std::from_chars(text, last, parsed);
+    if (ec != std::errc{} || ptr != last) {
+        return false;
+    }
+    out = parsed;
+    return true;
+}
 
 [[maybe_unused]] constexpr int DISPLAY_TIME = 1000 * 1000;
 constexpr struct option OPTIONS[] = {
@@ -1318,12 +1336,22 @@ std::unordered_map<std::string, std::function<void ()>> InitOptionsFuncTab(char*
         }},
         {"retry_count", [&upParams, &optarg]() -> void
         {
-            upParams.retryCount = atoi(optarg);
+            int retryCount = 0;
+            if (!ParseCliNumber(optarg, retryCount)) {
+                LOG(ERROR) << "invalid retry_count: " << (optarg == nullptr ? "null" : optarg);
+                return;
+            }
+            upParams.retryCount = retryCount;
             HardwareFaultRetry::GetInstance().SetRetryCount(upParams.retryCount);
         }},
         {"panic_count", [&upParams, &optarg]() -> void
         {
-            upParams.panicCount = atoi(optarg);
+            int panicCount = 0;
+            if (!ParseCliNumber(optarg, panicCount)) {
+                LOG(ERROR) << "invalid panic_count: " << (optarg == nullptr ? "null" : optarg);
+                return;
+            }
+            upParams.panicCount = panicCount;
         }},
         {"factory_wipe_data", [&upParams]() -> void
         {
@@ -1352,7 +1380,12 @@ std::unordered_map<std::string, std::function<void ()>> InitOptionsFuncTab(char*
         }},
         {"upgraded_pkg_num", [&upParams, &optarg]() -> void
         {
-            upParams.pkgLocation = static_cast<unsigned int>(atoi(optarg));
+            unsigned int pkgLocation = 0;
+            if (!ParseCliNumber(optarg, pkgLocation)) {
+                LOG(ERROR) << "invalid upgraded_pkg_num: " << (optarg == nullptr ? "null" : optarg);
+                return;
+            }
+            upParams.pkgLocation = pkgLocation;
         }},
         {"sdcard_update", [&upParams]() -> void
         {
