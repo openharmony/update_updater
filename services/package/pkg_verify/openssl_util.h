@@ -36,7 +36,7 @@ bool VerifyX509CertByIssuerCert(X509 *cert, X509 *issuerCert);
 int32_t VerifyDigestByPubKey(EVP_PKEY *pubKey, const int nid, const std::vector<uint8_t> &digestData,
     const std::vector<uint8_t> &signature);
 int32_t CalcSha256Digest(const Hpackage::PkgStreamPtr srcData,
-    const size_t dataLen, std::vector<uint8_t> &result, size_t offset);
+    const size_t dataLen, std::vector<uint8_t> &result, size_t offset = 0);
 }
 
 #endif
