@@ -193,7 +193,8 @@ int32_t VerifyDigestByPubKey(EVP_PKEY *pubKey, const int nid, const std::vector<
     return 0;
 }
 
-int32_t CalcSha256Digest(const PkgStreamPtr srcData, const size_t dataLen, std::vector<uint8_t> &result)
+int32_t CalcSha256Digest(const PkgStreamPtr srcData,
+    const size_t dataLen, std::vector<uint8_t> &result, size_t offset)
 {
     Updater::UPDATER_INIT_RECORD;
     if (srcData == nullptr || dataLen == 0) {
@@ -206,7 +207,6 @@ int32_t CalcSha256Digest(const PkgStreamPtr srcData, const size_t dataLen, std::
     SHA256_CTX ctx;
     SHA256_Init(&ctx);
 
-    size_t offset = 0;
     size_t remainLen = dataLen;
     size_t blockLen = HASH_SOURCE_BLOCK_LEN;
     PkgBuffer buffer(blockLen);
