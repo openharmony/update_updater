@@ -103,7 +103,7 @@ UpdaterStatus UpdateSubPkg(UpdaterParams &upParams);
 void NotifyPreCheck(UpdaterStatus &status, UpdaterParams &upParams);
 bool EnableCodeSignForBinary([[maybe_unused]] const std::string &fullPath);
 void ReportPID([[maybe_unused]] const pid_t &pid, [[maybe_unused]] const int &reportMode);
-bool PreSpecialProcess(UpdaterParams &upParams);
+bool PreSpecialProcess(UpdaterParams &upParams, bool isUpdateCurrSlot);
 UpdaterStatus PostSpecialProcess();
 UpdaterStatus PostOtaSpecialProcess([[maybe_unused]] UpdaterParams &upParams);
 #ifdef __cplusplus
