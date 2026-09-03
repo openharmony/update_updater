@@ -309,10 +309,10 @@ __attribute__((weak)) void NotifyPreCheck(UpdaterStatus &status, UpdaterParams &
     return;
 }
 
-__attribute__((weak)) bool PreSpecialProcess(UpdaterParams &upParams)
+__attribute__((weak)) bool PreSpecialProcess(UpdaterParams &upParams, bool isUpdateCurrSlot)
 {
     LOG(INFO) << "start PreSpecialProcess";
-    if (SetUpdateSlotParam(upParams, true) != UPDATE_SUCCESS) {
+    if (SetUpdateSlotParam(upParams, isUpdateCurrSlot) != UPDATE_SUCCESS) {
         LOG(ERROR) << "SetUpdateSlotParam failed";
         return false;
     }
@@ -1032,7 +1032,7 @@ static UpdaterStatus PreSdcardUpdatePackages(UpdaterParams &upParams)
         return UPDATE_SKIP;
     }
     UpdaterInit::GetInstance().InvokeEvent(UPDATER_PRE_VERIFY_PACKAGE_EVENT);
-    if (!PreSpecialProcess(upParams)) {
+    if (!PreSpecialProcess(upParams, true)) {
         LOG(ERROR) << "pre sd special process failed";
         return UPDATE_ERROR;
     }
