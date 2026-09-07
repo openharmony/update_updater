@@ -167,6 +167,10 @@ bool KeyListener::OnKeyAct(OHOS::UIView &view, const OHOS::KeyEvent &event)
 
 __attribute__((weak)) bool IsViewSupportKeyEvent(OHOS::UIView *view)
 {
+    if (view == nullptr) {
+        LOG(ERROR) << "view is nullptr";
+        return false;
+    }
     // triggering button press event by key supports labelButton and label
     if ((view->GetViewType() == OHOS::UI_LABEL_BUTTON) || (view->GetViewType() == OHOS::UI_LABEL)) {
         LOG(ERROR) << "focused view is label button or label";

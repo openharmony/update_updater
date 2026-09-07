@@ -93,9 +93,12 @@ bool PageManager::ResizeImpl(UxPageInfo &pageInfo, std::string_view entry)
     auto& basePage = static_cast<BasePage&>(*it->second);
     basePage.width_ = Screen::GetInstance().GetWidth();
     basePage.height_ = Screen::GetInstance().GetHeight();
-    basePage.ResizePage(pageInfo);
-    if (OHOS::RootView::GetInstance() == nullptr) {
-        LOG(ERROR) << "rootview is nullptr!";
+    if (!basePage.ResizePage(pageInfo)) {
+        LOG(ERROR) << "ResizePage error";
+        return false;
+    }
+    if (OHOS::RootView::GetInstance() == nullptr || basePage.GetView() == nullptr) {
+        LOG(ERROR) << "rootview or GetView is nullptr!";
         return false;
     }
     OHOS::RootView::GetInstance()->Add(basePage.GetView());
