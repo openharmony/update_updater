@@ -191,7 +191,7 @@ int32_t Lz4PkgFile::LoadPackage(std::vector<std::string> &fileNames, VerifyFunct
         PKG_LOGE("error state curr %d ", state_);
         return PKG_INVALID_STATE;
     }
-    if (pkgStream_ == nullptr)) {
+    if (pkgStream_ == nullptr) {
         PKG_LOGE("pkgStream_ is null");
         return PKG_INVALID_PARAM;
     }
