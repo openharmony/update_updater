@@ -185,6 +185,7 @@ static int32_t DoExecuteUpdateBlock(const UpdateBlockInfo &infos, TransferManage
 
     if (fsync(fd) == -1) {
         LOG(ERROR) << "fsync failed: " << strerror(errno);
+        close(fd);
         return Uscript::USCRIPT_ERROR_EXECUTE;
     }
     close(fd);
