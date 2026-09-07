@@ -492,6 +492,7 @@ UScriptValuePtr StringValue::Computer(int32_t action, UScriptValuePtr value)
             str.assign(this->GetValue());
             return make_shared<StringValue>(str + stringValue->GetValue());
         } else {
+            USCRIPT_LOGE("Failed to get value type:" << rightValue->GetValueType());
             return defReturn;
         }
     }
