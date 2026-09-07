@@ -125,7 +125,7 @@ bool RemoveDir(const std::string &path)
             }
             struct stat st {};
             auto file_name = strPath + std::string(dt->d_name);
-            if (stat(file_name.c_str(), &st) != 0) {
+            if (lstat(file_name.c_str(), &st) != 0) {
                 LOG(ERROR) << "stat fail, errno: " << errno;
             }
             if (S_ISDIR(st.st_mode)) {
