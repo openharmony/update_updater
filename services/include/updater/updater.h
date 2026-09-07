@@ -142,6 +142,8 @@ bool IsSDCardExist(const std::string &sdcard_path);
 
 void PostUpdater(bool clearMisc);
 
+bool IsTargetFile(const std::string &fileName);
+
 bool DeleteUpdaterPath(const std::string &path);
 
 bool ClearMisc();
