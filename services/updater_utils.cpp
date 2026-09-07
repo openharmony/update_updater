@@ -38,12 +38,6 @@
 namespace Updater {
 using namespace Hpackage;
 using namespace Updater::Utils;
-const std::vector<std::string> TARGET_FILES {
-    UPDATER_RESULT_FILE, UPDATER_LOCALE_FILE, MODULE_UPDATE_RESULT_FILE,
-    UPLOAD_LOG_TIME_FILE, MANUAL_UPLOAD_LOG_TIME_FILE, INSTALL_TIME_FILE,
-    ROLLBACK_FILE, EUPDATER_RESULT_FILE, AB_UPDATE_RESULT,
-    SINGULAR_UPDATE_NAME, CDC_LOG_NAME, SINGULAR_UPDATE_RESULT
-};
 
 std::recursive_mutex &GetAffinityLock()
 {
@@ -96,7 +90,13 @@ void ReadInstallTime(UpdaterParams &upParams)
 
 bool IsTargetFile(const std::string &fileName)
 {
-    return find(TARGET_FILES.begin(), TARGET_FILES.end(), fileName) != TARGET_FILES.end();
+    const std::vector<std::string> targetFiles {
+        UPDATER_RESULT_FILE, UPDATER_LOCALE_FILE, MODULE_UPDATE_RESULT_FILE,
+        UPLOAD_LOG_TIME_FILE, MANUAL_UPLOAD_LOG_TIME_FILE, INSTALL_TIME_FILE,
+        ROLLBACK_FILE, EUPDATER_RESULT_FILE, AB_UPDATE_RESULT,
+        SINGULAR_UPDATE_NAME, CDC_LOG_NAME, SINGULAR_UPDATE_RESULT
+    };
+    return find(targetFiles.begin(), targetFiles.end(), fileName) != targetFiles.end();
 }
 
 bool DeleteUpdaterPath(const std::string &path)
