@@ -483,7 +483,7 @@ UScriptValuePtr StringValue::Computer(int32_t action, UScriptValuePtr value)
             }
             str.assign(this->GetValue());
             return make_shared<StringValue>(str + to_string(floatValue->GetValue()));
-        } else {
+        } else if (rightValue->GetValueType() == UScriptValue::VALUE_TYPE_STRING) {
             StringValue* stringValue = static_cast<StringValue*>(rightValue.get());
             if (stringValue == nullptr) {
                 USCRIPT_LOGE("Failed to cast ");
@@ -491,6 +491,8 @@ UScriptValuePtr StringValue::Computer(int32_t action, UScriptValuePtr value)
             }
             str.assign(this->GetValue());
             return make_shared<StringValue>(str + stringValue->GetValue());
+        } else {
+            return defReturn;
         }
     }
     if (rightValue->GetValueType() != UScriptValue::VALUE_TYPE_STRING) {

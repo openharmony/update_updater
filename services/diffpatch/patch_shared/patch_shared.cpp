@@ -183,7 +183,10 @@ static int32_t DoExecuteUpdateBlock(const UpdateBlockInfo &infos, TransferManage
     }
     int32_t ret = ExecuteTransferCommand(fd, lines, tm, infos.partitionName, targetPath);
 
-    fsync(fd);
+    if (fsync(fd) == -1) {
+        LOG(ERROR) << "fsync failed: " << strerror(errno);
+        return Uscript::USCRIPT_ERROR_EXECUTE;
+    }
     close(fd);
     fd = -1;
     if (ret == Uscript::USCRIPT_SUCCESS) {
