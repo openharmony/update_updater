@@ -38,6 +38,12 @@
 namespace Updater {
 using namespace Hpackage;
 using namespace Updater::Utils;
+const std::vector<std::string> TARGET_FILES {
+    UPDATER_RESULT_FILE, UPDATER_LOCALE_FILE, MODULE_UPDATE_RESULT_FILE,
+    UPLOAD_LOG_TIME_FILE, MANUAL_UPLOAD_LOG_TIME_FILE, INSTALL_TIME_FILE,
+    ROLLBACK_FILE, EUPDATER_RESULT_FILE, AB_UPDATE_RESULT,
+    SINGULAR_UPDATE_NAME, CDC_LOG_NAME, SINGULAR_UPDATE_RESULT
+};
 
 std::recursive_mutex &GetAffinityLock()
 {
@@ -88,6 +94,11 @@ void ReadInstallTime(UpdaterParams &upParams)
     }
 }
 
+bool IsTargetFile(const std::string &fileName)
+{
+    return find(TARGET_FILES.begin(), TARGET_FILES.end(), fileName) != TARGET_FILES.end();
+}
+
 bool DeleteUpdaterPath(const std::string &path)
 {
     auto pDir = std::unique_ptr<DIR, decltype(&closedir)>(opendir(path.c_str()), closedir);
@@ -102,19 +113,7 @@ bool DeleteUpdaterPath(const std::string &path)
     struct dirent *dp = nullptr;
     while ((dp = readdir(pDir.get())) != nullptr) {
         std::string currentName(dp->d_name);
-        if (currentName[0] == '.' || (currentName.compare("log") == 0) ||
-            (currentName.compare(UPDATER_RESULT_FILE) == 0) ||
-            (currentName.compare(UPDATER_LOCALE_FILE) == 0) ||
-            (currentName.compare(MODULE_UPDATE_RESULT_FILE) == 0) ||
-            (currentName.compare(UPLOAD_LOG_TIME_FILE) == 0) ||
-            (currentName.compare(MANUAL_UPLOAD_LOG_TIME_FILE) == 0) ||
-            (currentName.compare(INSTALL_TIME_FILE) == 0) ||
-            (currentName.compare(ROLLBACK_FILE) == 0) ||
-            (currentName.compare(EUPDATER_RESULT_FILE) == 0) ||
-            (currentName.compare(AB_UPDATE_RESULT) == 0) ||
-            (currentName.compare(SINGULAR_UPDATE_NAME) == 0) ||
-            (currentName.compare(CDC_LOG_NAME) == 0) ||
-            (currentName.compare(SINGULAR_UPDATE_RESULT) == 0)) {
+        if (currentName[0] == '.' || (currentName.compare("log") == 0) || IsTargetFile(currentName)) {
             continue;
         }
         if (sdcardTmp && currentName.find(SDCARD_PACKAGE_SUFFIX) != std::string::npos) {
