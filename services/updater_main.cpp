@@ -694,7 +694,7 @@ static UpdaterStatus VerifyUpParams(UpdaterParams &upParams)
         UPDATER_UI_INSTANCE.Sleep(UI_SHOW_DURATION);
         UPDATER_LAST_WORD(UPDATE_ERROR, "Battery is not sufficient for install package.");
         LOG(ERROR) << "Battery is not sufficient for install package.";
-        return UPDATE_SKIP;
+        return UPDATE_ERROR;
     }
     return UPDATE_SUCCESS;
 }
