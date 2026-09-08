@@ -352,6 +352,9 @@ void UpdateBinaryTids(const std::vector<std::string> &output, UpdaterParams &upP
 		// get little core nums or affinityCpuCores
 		unsigned int maskedCores = upParams.affinityCpuCores.has_value() ? *upParams.affinityCpuCores :
     								GetCpuCores(upParams, LITTLE_CORE_INDEX);
+        unsigned int minMaskedCores = 4; // at least 4 cores, if less than 4 cores, set to 4 cores
+        maskedCores = (coreCount >= minMaskedCores && maskedCores < minMaskedCores) ?
+                        minMaskedCores : maskedCores;
 		unsigned int reservedCores = coreCount > maskedCores ? coreCount - maskedCores : 0;
         SetCpuAffinityByPid(upParams, reservedCores);
     }
