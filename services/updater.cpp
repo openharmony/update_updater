@@ -112,6 +112,7 @@ int32_t ExtractUpdaterBinary(PkgManager::PkgManagerPtr manager, std::string &pac
     if (ret != PKG_SUCCESS) {
         LOG(ERROR) << "ExtractUpdaterBinary extract file failed";
         UPDATER_LAST_WORD(UPDATE_CORRUPT, "ExtractUpdaterBinary extract file failed");
+        manager->ClosePkgStream(outStream);
         return UPDATE_CORRUPT;
     }
     HashDataVerifier verifier {manager};
@@ -119,6 +120,7 @@ int32_t ExtractUpdaterBinary(PkgManager::PkgManagerPtr manager, std::string &pac
         !verifier.VerifyHashData("build_tools/", updaterBinary, outStream)) {
         LOG(ERROR) << "verify updater_binary failed";
         UPDATER_LAST_WORD(UPDATE_CORRUPT, "verify updater_binary failed");
+        manager->ClosePkgStream(outStream);
         return UPDATE_CORRUPT;
     }
     manager->ClosePkgStream(outStream);
@@ -751,6 +753,10 @@ static std::string GetBinaryPath(PkgManager::PkgManagerPtr pkgManager, UpdaterPa
 static std::string GetFullPath(PkgManager::PkgManagerPtr pkgManager, UpdaterParams &upParams)
 {
     std::string fullPath = "";
+    if (pkgManager == nullptr) {
+        LOG(ERROR) << "pkgManager is nullptr";
+        return fullPath;
+    }
     if (upParams.updateBin.size() > 0) {
         fullPath = GetBinaryPathFromBin(pkgManager, upParams);
     } else if (upParams.updatePackage.size() > 0) {
@@ -772,25 +778,20 @@ static std::string GetFullPath(PkgManager::PkgManagerPtr pkgManager, UpdaterPara
 UpdaterStatus StartUpdaterProc(PkgManager::PkgManagerPtr pkgManager, UpdaterParams &upParams)
 {
     UPDATER_INIT_RECORD;
-    if (pkgManager == nullptr) {
-        LOG(ERROR) << "pkgManager is nullptr";
-        UPDATER_LAST_WORD(UPDATE_CORRUPT, "pkgManager is nullptr");
-        return UPDATE_CORRUPT;
-    }
     int pfd[DEFAULT_PIPE_NUM]; /* communication between parent and child */
     if (pipe(pfd) < 0) {
         LOG(ERROR) << "Create pipe failed: ";
         UPDATER_LAST_WORD(UPDATE_ERROR, "Create pipe failed");
         return UPDATE_ERROR;
     }
-    int pipeRead = pfd[0];
-    int pipeWrite = pfd[1];
     std::string fullPath = GetFullPath(pkgManager, upParams);
     if (fullPath == "") {
         LOG(ERROR) << "Failed to sign for binary";
         UPDATER_LAST_WORD(UPDATE_ERROR, "Failed to sign for binary");
         return UPDATE_ERROR;
     }
+    int pipeRead = pfd[0];
+    int pipeWrite = pfd[1];
     pid_t pid = fork();
     if (pid < 0) {
         ERROR_CODE(CODE_FORK_FAIL);
@@ -814,8 +815,10 @@ UpdaterStatus StartUpdaterProc(PkgManager::PkgManagerPtr pkgManager, UpdaterPara
     bool retryUpdate = false;
     if (HandlePipeMsg(upParams, pipeRead, retryUpdate) != UPDATE_SUCCESS) {
         UPDATER_LAST_WORD(UPDATE_ERROR, "HandlePipeMsg failed");
+        close(pipeRead);   // close read endpoint
         return UPDATE_ERROR;
     }
+    close(pipeRead);   // close read endpoint
     return CheckProcStatus(upParams, retryUpdate);
 }
 
