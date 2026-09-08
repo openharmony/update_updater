@@ -752,6 +752,10 @@ static std::string GetBinaryPath(PkgManager::PkgManagerPtr pkgManager, UpdaterPa
 
 static std::string GetFullPath(PkgManager::PkgManagerPtr pkgManager, UpdaterParams &upParams)
 {
+    if (pkgManager == nullptr) {
+        LOG(ERROR) << "pkgManager is nullptr";
+        return UPDATE_CORRUPT;
+    }
     std::string fullPath = "";
     if (upParams.updateBin.size() > 0) {
         fullPath = GetBinaryPathFromBin(pkgManager, upParams);
@@ -774,11 +778,6 @@ static std::string GetFullPath(PkgManager::PkgManagerPtr pkgManager, UpdaterPara
 UpdaterStatus StartUpdaterProc(PkgManager::PkgManagerPtr pkgManager, UpdaterParams &upParams)
 {
     UPDATER_INIT_RECORD;
-    if (pkgManager == nullptr) {
-        LOG(ERROR) << "pkgManager is nullptr";
-        UPDATER_LAST_WORD(UPDATE_CORRUPT, "pkgManager is nullptr");
-        return UPDATE_CORRUPT;
-    }
     int pfd[DEFAULT_PIPE_NUM]; /* communication between parent and child */
     if (pipe(pfd) < 0) {
         LOG(ERROR) << "Create pipe failed: ";
