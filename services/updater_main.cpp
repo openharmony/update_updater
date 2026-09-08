@@ -1029,7 +1029,7 @@ static UpdaterStatus PreSdcardUpdatePackages(UpdaterParams &upParams)
         UPDATER_UI_INSTANCE.ShowUpdInfo(TR(LOG_LOWPOWER));
         UPDATER_UI_INSTANCE.Sleep(UI_SHOW_DURATION);
         LOG(ERROR) << "Battery is not sufficient for install package.";
-        return UPDATE_SKIP;
+        return UPDATE_ERROR;
     }
     UpdaterInit::GetInstance().InvokeEvent(UPDATER_PRE_VERIFY_PACKAGE_EVENT);
     if (!PreSpecialProcess(upParams, true)) {
