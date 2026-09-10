@@ -402,7 +402,8 @@ bool CopyFile(const std::string &src, const std::string &dest, bool isAppend)
 
     fout << fin.rdbuf();
     if (fout.fail() || fout.tellp() != fin.tellg()) {
-        
+        LOG(ERROR) << "copy file fail, written " << fout.tellp()
+             << " bytes, but source is " << fin.tellg() << " bytes";
         fout.clear();
         return false;
     }
