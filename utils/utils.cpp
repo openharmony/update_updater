@@ -401,7 +401,8 @@ bool CopyFile(const std::string &src, const std::string &dest, bool isAppend)
     }
 
     fout << fin.rdbuf();
-    if (fout.fail()) {
+    if (fout.fail() || fout.tellp() != fin.tellg()) {
+        
         fout.clear();
         return false;
     }
