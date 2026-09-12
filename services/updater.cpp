@@ -112,7 +112,6 @@ int32_t ExtractUpdaterBinary(PkgManager::PkgManagerPtr manager, std::string &pac
     if (ret != PKG_SUCCESS) {
         LOG(ERROR) << "ExtractUpdaterBinary extract file failed";
         UPDATER_LAST_WORD(UPDATE_CORRUPT, "ExtractUpdaterBinary extract file failed");
-        manager->ClosePkgStream(outStream);
         return UPDATE_CORRUPT;
     }
     HashDataVerifier verifier {manager};
@@ -120,7 +119,6 @@ int32_t ExtractUpdaterBinary(PkgManager::PkgManagerPtr manager, std::string &pac
         !verifier.VerifyHashData("build_tools/", updaterBinary, outStream)) {
         LOG(ERROR) << "verify updater_binary failed";
         UPDATER_LAST_WORD(UPDATE_CORRUPT, "verify updater_binary failed");
-        manager->ClosePkgStream(outStream);
         return UPDATE_CORRUPT;
     }
     manager->ClosePkgStream(outStream);
