@@ -22,7 +22,7 @@
 
 namespace Updater {
 #ifndef UPDATER_AB_SUPPORT
-void GetPartitionSuffix(std::string &suffix)
+__attribute__((weak)) void GetPartitionSuffix(std::string &suffix)
 {
     suffix = "";
 }
@@ -34,7 +34,7 @@ void SetActiveSlot()
 {
 }
 #else
-void GetPartitionSuffix(std::string &suffix)
+__attribute__((weak)) void GetPartitionSuffix(std::string &suffix)
 {
     OHOS::HDI::Partitionslot::V1_0::PartitionSlotManager psMgr;
     int32_t curSlot = -1;
