@@ -21,7 +21,17 @@
 #include <unistd.h>
 
 namespace Updater {
+#ifdef __cplusplus
+#if __cplusplus
+extern "C" {
+#endif
+#endif
 void GetPartitionSuffix(std::string &suffix);
+#ifdef __cplusplus
+#if __cplusplus
+}
+#endif
+#endif
 void GetActivePartitionSuffix(std::string &suffix);
 void SetActiveSlot();
 } // Updater
